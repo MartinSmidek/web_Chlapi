@@ -1,0 +1,189 @@
+// ----------------------------------------------------------------------------------- parametrizace
+//        background           color
+@jump_b:  #E6CF73;   @jump_c:  #000000;
+@activ_b: #807340;   @activ_c: #FFFFFF;
+@text_b:  #FFFFFF;   @text_c:  #000000;
+@obal_b:  #CFDDE6;   @obal_c:  #000000;
+@abstr_b: #E6E1CF;   @abstr_c: #000000;
+
+.shadow-img { 
+  filter: drop-shadow(5px 5px 10px #567); }
+.shadow-box { 
+  box-shadow:  
+    -1px  1px 0px #567, 
+     1px -1px 0px #567, 
+    -1px -1px 0px #567,
+    5px 5px 10px #567; }
+.shadow-txt { 
+  text-shadow: 3px 3px 3px #567,
+    -1px -1px 0 #000,
+     1px -1px 0 #000,
+    -1px  1px 0 #000,
+     1px  1px 0 #000; }
+
+// ------------------------------------------------------------------------------------------ layout
+html {
+  width: 100%; height: 100%; 
+  body { 
+    background-image: url(img/foto_home.jpg); background-size: cover;
+    width: 100%; margin:0;
+    font-size:10pt; font-family: sans-serif; }
+  // styly Ezer kvůli zobrazení mapy
+  div.Panel3, div.Form3, div.Label3 {
+    position:absolute; top:0; width:100%; height:100%; z-index: -1;
+  }
+}
+// ------------------------------------------------------------------------------------------- texty
+// obecné styly
+.jump {
+  display: inline-block; border-radius: .4em;
+  padding: 0.1em 0.6em; font-weight: bold; text-decoration: none; cursor: pointer; 
+}
+a.jump { 
+  .shadow-box; margin:0em 0.3em; background-color: @jump_b; color: @jump_c; }
+div.text { padding: .4em; }
+div.podpis { text-align: right; font-style: italic; clear: both; }
+// ------------------------------------------------------------------------------------- logo + menu
+div.filler { height: 2em; }
+// logo
+#logo {
+  .shadow-img(); 
+  position: absolute; left: 0.5em; top: 0.5em; width: 6em; }
+// menu
+#menu {
+  width:100%; text-align: right;
+  a.active {
+    background-color: @activ_b !important; color: @activ_c !important; }
+  a:hover {
+    background-color: @text_b !important; color: @text_c !important; }
+  span { 
+    vertical-align: middle; height: 2.2em;  display: table-cell;}
+
+  // top menu 
+  #page_tm { 
+    border-top:.3em solid #F5CF85; margin-right: 2em;
+    span { 
+      height: 1.5em; }
+    &:hover { 
+      border-top-color: @text_b !important; }
+    &.active { 
+      border-top:.3em solid @activ_b; }
+    a.jump {  
+      border-radius: 0em 0em .8em .8em; }
+  }
+
+  // main menu
+  #page_hm {  
+    margin: 0.4em 2em;
+    a.jump {
+      vertical-align: top; position: relative; 
+      &.subs {
+        border-bottom: .5em solid @activ_b; border-radius: .8em .8em 0em 0em; }
+    }
+  }
+
+  // sub menu
+  #page_sm { 
+    position: absolute; top: 5.5em; right: 3em; 
+    a.jump {
+      border-radius: 0em 0em .8em .8em; }
+    &>span {
+      display: inline-block; border-top: .3em solid @activ_b; }
+  }
+}
+  // bar menu
+  #bar_menu { 
+    color: @jump_b; font-size:1.4em !important; 
+    position: absolute; z-index:1; right: 0.5em; top: 0.2em; cursor:pointer; 
+    &>i { .shadow-txt; }
+  }
+  #bar_items {
+    border: 1px solid #ccc; display: none; position: absolute; 
+    .shadow-box; cursor: default; z-index: 1; width: 12em; top: 2em; right: 1em;
+    span {
+      background-color: @text_b;
+      padding: .5em; display: block;
+      &.separator {
+        border-top: 1px solid #999; }
+      &:hover {
+        background-color: @jump_b; }
+    }
+  }
+
+// ---------------------------------------------------------------------------------------- elementy
+// speciální články
+// home page
+#clanek2, #user_mail, #skup0, #skup1, #skup2 {
+  background-color: @text_b; color: @text_c; 
+  float: right; margin: 1em 2em; max-width: 100%;
+  line-height: 1.5; padding: 1em; border-radius: 0.5em; .shadow-box;  
+  &#user_mail {
+    width: 29em; padding: 0; position: absolute; right: -1em; top: 2em;
+    span {
+      display: block; width:100%; text-align:center; height: 2em;
+      background-color: @activ_b; border-radius:.4em .4em 0 0; color:@activ_c; font-weight:bold; }
+    div { padding:1em; 
+      #mail { left:4em; width:80%; }
+      #pin { right:1em; width:15%; }
+      button { margin: 0.5em 1em 0 0; }
+    }
+  }
+  &#skup0 { 
+    width:18em; }
+  &#skup1 { 
+    max-width:25em; display:none; fi
+    .jump { margin: 0.5em 1em 0 0; }
+  } 
+  &#skup2 { 
+    max-width:25em; display:none; 
+    input { 
+      display:block; max-width:24.5em; width:100%;
+      border:1px solid grey; padding:2px; margin-bottom:2px; }
+    textarea { 
+      display:block; max-width:24.5em; font-family:sans-serif; min-height: 5em; width:100%;
+      border:1px solid grey; padding:2px; font-size: 10pt; }
+    .jump { margin: 0.5em 1em 0 0; }
+  }
+  &#clanek2 {
+    width: 40em; }
+}
+// články v mapě
+
+// abstrakty
+#list {
+  margin-top: 1em;
+  div.abstr {
+    width: 33.3%; display: inline-block; vertical-align: top; 
+    a.abstrakt {
+      background-color: @abstr_b; color: @abstr_c;
+      border-radius: .4em; margin: 0.5em; cursor: pointer; padding: .4em; .shadow-box;
+      display: block; text-decoration: none; overflow: hidden; height: 8.8em;
+      &:hover {
+        background-color: @text_b !important; color: @text_c !important; }
+    }
+  }
+}
+// vlákno
+#vlakno {
+  clear: both;
+  padding-right: 1em;  
+  div.clanek {
+    background-color: @text_b; color: @text_c;
+    overflow: auto; margin: 0.5em; position: relative; .shadow-box; }
+  div.galerie {
+    background-color: @text_b; color: @text_c;
+    overflow: hidden; margin: 0.5em; position: relative; border-radius: .8em; }
+}
+// kniha
+.kniha_bg {
+  background-color: @obal_b; color: @obal_c;
+  display: block; clear: both; border-radius: .8em;
+  div.kniha_br {
+    clear: both; padding: 1em 0; text-align: center; }
+  div.kniha_hr {
+    clear: both;
+    padding: 1em 0;
+    text-align: center;
+    cursor: pointer;
+  }
+}

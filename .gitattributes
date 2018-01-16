@@ -1,3 +1,19 @@
 * text=auto !eol
 /index.php -text
 man/$.ezer -text
+man/2chlapi.js -text
+man/2chlapi.less -text
+man/2template_ch.php -text
+man/2web_fce.php -text
+man/img/+logo.gif -text
+man/img/-logo.gif -text
+man/img/buben.png -text
+man/img/chlapi_ico.png -text
+man/img/chlapi_ico_local.png -text
+man/img/kriz.png -text
+man/img/man_local.png -text
+man/img/new.png -text
+man/man.inc.php -text
+man/man.php -text
+man/mini.css -text
+man/web_edit.css -text

@@ -12,10 +12,11 @@ panel p [0,0,*,*] { type:'main'
   proc onstart() { var gets:object
     gets.set(function('return Ezer.get;'));
     last.set(cconc(gets.page,gets.page,'home'));
-    [ has_skill('a');   // pouze admin má plné prostředí
-      /*admin*/ function('return admin(1)')
-    | /*user*/  f.display(0); w.property(°{top:0}); function('return admin(0)')
-    ];
+    function('return admin(0)');
+//    [ has_skill('a');   // pouze admin má plné prostředí
+//      /*admin*/ function('return admin(1)')
+//    | /*user*/  f.display(0); w.property(°{top:0}); function('return admin(0)')
+//    ];
     OPTIONS.start;
     go_menu(last.get);
 #     TEST.modal
@@ -95,7 +96,7 @@ panel p [0,0,*,*] { type:'main'
     DUMP.Init(cid,pid);
   }
 # ----------------------------------------------------------------------------==> control bar
-  form _f [,,*,30] { css:'grey', style:'z-index:9999'
+  form _f [,,*,30] { css:'grey admin', style:'z-index:9999;position:sticky'
     proc hide_all() { BE_LOG.hide; FE_LOG.hide; FE_USER.hide; BE_USER.hide; OPTIONS.hide; CMS.hide }
     button [80,5,,]  { skill:'a|a', title:"[fa-chevron-left]"    proc onclick() { hide_all; go(history.get) } }
     button [101,5,,] { skill:'a|a', title:"[fa-repeat]"          proc onclick() { hide_all; cms_go(last.get) } }
@@ -114,18 +115,19 @@ panel p [0,0,*,*] { type:'main'
       proc onclick() { var ref:text
         //logout;
         ask('server',°{cmd:'be_logout'});
-        ref.set(conc("index.php?page=",last.get));
+        ref.set(conc(function("return Ezer.web.index"),"?page=",last.get));
         function('ref',"location.href= ref;",ref);
     } }
     button [-10,5,,] { skill:'a|a', title:"[fa-bars]"           proc onclick() { hide_all; OPTIONS.modal } }
   }
 # ----------------------------------------------------------------------------==> page
-  form _w [,,*,*] { // style:"overflow-x:hidden;overflow-y:auto;bottom:0px;height:initial"
-    label page { style:'width:100%;z-index:0;height:100%' }
+  form _w [,,*,*] { style:"position:initial"
+    label page { style:'width:100%;z-index:2;height:100%' }
+    label mapa { type:'map', style:'width:100%;height:100%' }
   }
 }
 # ----------------------------------------------------------------------------==> CMS
-panel CMS [0,0,800,400] { type:'popup',  title:'CMS - definice menu', 
+panel CMS [0,0,600,296] { type:'popup',  title:'CMS - definice menu', 
     css:'dialog', par:°{min_top:30}
   var web=2, from_table= 1
   use a: area a_
@@ -136,7 +138,7 @@ panel CMS [0,0,800,400] { type:'popup',  title:'CMS - definice menu',
     a.select_curr;
   }
   area a_ { 
-    title:"<div id='tree' style='width:206px;height:100%'></div>"
+    title:"<div id='tree' style='width:206px;height:300px;overflow:auto'></div>"
     var curr_id:text, curr_data:object // index a data nastaveného node
     menu { type:'context'
       item { title:'vlož podmenu' proc onclick() { var root:object, root_id:text, node:object
@@ -179,8 +181,8 @@ panel CMS [0,0,800,400] { type:'popup',  title:'CMS - definice menu',
       }
     }
   }
-  form _u [,,600,*] { css:'popup-right'
-    label save_info [5,230,578,]  
+  form _u [,,400,300] { css:'popup-right'
+    label save_info [5,130,578,]  
     button [10,10,,] { title:"[fa-play]", help:"zobraz 2 úrovně menu"
       proc onclick() { a.tree_expand(2); 
     }}
@@ -206,27 +208,28 @@ panel CMS [0,0,800,400] { type:'popup',  title:'CMS - definice menu',
         p.refresh
     }}
 //    button [-50,10,,] { title:"TEST" proc onclick() { a.select_curr; }}
-    field mid [5,264,35,] { title:"^mid" }
-    field mid_top [49,264,35,] { title:"^top" }
-    field mid_sub [94,264,35,] { title:"^sub" }
-    field typ [153,264,22,17] { title:"^typ" }
-    field rank [186,264,22,17] { title:"^rank" }
-    field level [218,264,22,17] { title:"^level" }
-    field ref [6,303,79,] { title:"^ref" }
+    field mid [5,164,35,] { title:"^mid" }
+    field mid_top [49,164,35,] { title:"^top" }
+    field mid_sub [94,164,35,] { title:"^sub" }
+    field typ [153,164,22,17] { title:"^typ" }
+    field rank [186,164,22,17] { title:"^rank" }
+    field level [218,164,22,17] { title:"^level" }
+    field ref [6,203,79,] { title:"^ref" }
 //    field site [122,264,29,] { title:"^site" }
 //    field mref [283,264,155,] { title:"^mref" }
 //    field event [451,264,131,] { title:"^event" }
-    field nazev [97,303,146,] { title:"^název" }
-    field title [256,303,327,] { title:"^title" }
+    field nazev [97,203,146,] { title:"^název" }
+    field title [256,203,127,] { title:"^title" }
 //    field next [169,304,100,] { title:"^next" }
 //    field val [282,304,300,] { title:"^default" }
-    field elem [5,342,578,] { title:"^definice obsahu" }
+    field elem [5,242,378,] { title:"^definice obsahu" }
     proc onchanged(elem) {
       echo(elem.id); a.curr_data.set(elem.get,elem.id); elem.plain;
     }
   }
 }
 # ----------------------------------------------------------------------------==> OPTIONS
+// úrovně: 1=DS, 2=super, 
 panel OPTIONS [0,0,400,200] { title:'Volby zobrazení v editačním režimu', type:'popup', css:'dialog'
   use g: form _g [0,10,,]
   proc onfocus() { start }
