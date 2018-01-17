@@ -10,9 +10,9 @@
   $app_name=  "chlapi.online";
   $app_login= 'Guest/';                   // zakomentovat pro automatické přihlášení 
   $app_root=  'man';
-  $app_js=    array("man/3chlapi.js","man/modernizr-custom.js",
+  $app_js=    array("man/2chlapi.js","man/modernizr-custom.js",
                     "man/fotorama/fotorama.js");
-  $app_css=   array("man/mini.css","man/2chlapi.css","man/web_edit.css",
+  $app_css=   array("man/mini.css","man/3chlapi.css","man/web_edit.css",
                     "man/fotorama/fotorama.css");
   $skin=      'ck';
   $abs_roots= array("/home/users/gandi/ezer.cz/web/demo","C:/Ezer/beans/chlapi.online");
@@ -37,7 +37,8 @@
     'to_trace' => 1,
   );
 
-  // je to aplikace se startem v podsložce
+  // je to aplikace se startem v podsložce a chceme mapy
+  $_GET['gmap']= 1;
   require_once("../$kernel/ezer_main.php");
   
 function specific(&$template_meta,&$template) {

@@ -122,8 +122,8 @@ panel p [0,0,*,*] { type:'main'
   }
 # ----------------------------------------------------------------------------==> page
   form _w [,,*,*] { style:"position:initial"
-    label page { style:'width:100%;z-index:2;height:100%' }
-    label mapa { type:'map', style:'width:100%;height:100%' }
+    label page { css:'cms_page' }
+    label mapa { type:'map', css:'cms_mapa' }
   }
 }
 # ----------------------------------------------------------------------------==> CMS

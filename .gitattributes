@@ -1,4 +1,5 @@
 * text=auto !eol
+/2index.php -text
 /index.php -text
 man/$.ezer -text
 man/2chlapi.js -text

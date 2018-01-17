@@ -36,8 +36,10 @@ function context(web) {
 // ----------------------------------------------------------------------------------------- noadmin
 // zpřístupní ladící a administrátorské prvky pro a=1 znepřístupní pro a=0
 function admin(a) {
-  let state= a ? 'block' : 'none';
+  let state= a ? 'block' : 'none',
+      margin= a ? '30px' : '0px';
   jQuery('div.admin').css({display:state});
+  jQuery('div.cms_page').css({top:margin});
 //  var logo=  jQuery('#logo'),
 //      work=  jQuery('#work'),
 //      dolni= jQuery('#dolni');
@@ -266,17 +268,18 @@ var code= {
   "app": {
     "part": {
       "x": {
+        "options": {"css":"mapa"},
         "type": "panel.main",
         "part": {
           "f": {
-            "type": "var",
-            "_of": "form",
-            "_init": "$.x._f"
+            "options": {"css":"mapa"},
+            "type": "var", "_of": "form", "_init": "$.x._f"
           },
           "_f": {
             "type": "form",
             "part": {
               "l": {
+                "options": {"css":"mapa"},
                 "type": "label.map"
               }
             }
@@ -288,7 +291,11 @@ var code= {
 };
 // -------------------------------------------------------------------------------------- skup mapka
 function skup_mapka() {
-  if ( Ezer.App ) {
+  label= jQuery('div.cms_mapa');
+  if ( label[0] ) {
+    label= label.data('ezer');
+  }
+  else {
     jQuery('#skup0').css({display:'block'});
     Ezer.App.load_root(code);
     panel= Ezer.run.$.part.x;
@@ -335,10 +342,8 @@ function skup_dialog2(mark) {
     + "<div>"
     + "  <input class='skup_x' type='text' id='skup_from' placeholder='tvůj email'>"
     + "  <textarea class='skup_x' id='skup_body' placeholder='dotaz na organizátory'></textarea>"
-    + "<a class='skup_x jump' onclick=\"jQuery('#skup2').css({display:'none'});\">"
-    + "  <span>Zpět</span></a>"
-    + "<a class='skup_x jump' onclick=\"skup_sendmail('"+ mark.id + "','" + mark.title + "');\">"
-    + "  <span>Poslat mail</span></a>"
+    + "<a class='skup_x jump' onclick=\"skup_sendmail('"+mark.id+"','"+mark.title+"');\">Poslat mail</a>"
+    + "<a class='skup_x jump' onclick=\"jQuery('#skup2').css({display:'none'});\">Zpět</a>"
     + "<div id='skup_msg'></div>"
     + "</div>"
   );

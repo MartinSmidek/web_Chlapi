@@ -1,11 +1,11 @@
 <?php
 
-$local_test= $_SERVER['SERVER_NAME']=='web.bean' ? 1 : 0;
-$index= $local_test ? "chlapi-online.php" : "index.php";
+$local_test= $_SERVER['SERVER_NAME']=='chlapi.bean' ? 1 : 0;
+$index= $local_test ? "index.php" : "index.php";
 
 $secret= "WEBKEYNHCHEIYSERVANTAFVUOVKEYWEB";
 $servant= $local_test
-  ? "http://web.bean:8080/servant.php?secret=$secret"
+  ? "http://setkani.bean:8080/servant.php?secret=$secret"
   : "https://www.setkani.org/servant.php?secret=$secret";
 
 # ------------------------------------------ IP test
@@ -22,7 +22,7 @@ $servant= $local_test
 
 $microtime_start= microtime();
 if ( !isset($_SESSION) ) session_start();
-if ( isset($_GET['err']) && $_GET['err'] ) error_reporting(E_ERROR);
+if ( isset($_GET['err']) && $_GET['err'] ) error_reporting(E_ERROR); else error_reporting(0);
 ini_set('display_errors', 'On');
 require_once("cms/template_ch.php");
 // require_once("cms/web_fce.php");
@@ -62,11 +62,11 @@ $ezer_path_root= $_SESSION['web']['path']= $_SERVER['DOCUMENT_ROOT'];
 template($href,$path,$fe_host,$fe_user,$be_user);
 die();
 
-/** ========================================================================================> SERVER */
+/* ========================================================================================> SERVER 
 # funkce na serveru přes AJAX
-function servant($qry) {
+function servant($qry,$context=null) {
   global $y, $servant;
-  $json= file_get_contents("$servant&$qry");
+  $json= file_get_contents("$servant&$qry",false,$context);
   if ( $json===false ) {
     $y->msg= "$qry vrátilo false";
   }
@@ -74,7 +74,8 @@ function servant($qry) {
     $y= json_decode($json);
   }
   else {
-    $y->msg= "'$servant&$qry' vrátil '$json'";
+    $y->msg= "Sorry, došlo k chybě č.4, martin@smidek.eu ti poradí ...";
+//    $y->msg= "'$servant&$qry' vrátil '$json'";
   }
 }
 function server($x) {
@@ -85,24 +86,39 @@ function server($x) {
     $y= (object)array('msg'=>'TEST neprošel');
     servant('test=1');
     break;
+  
   case 'clanek':   // ----------------------------------------------------------------------- clanek
     $y= (object)array('msg'=>'neznámý článek');
     servant("clanek=$x->pid"); // part.uid
     break;
+  
+  case 'galerie': // ----------------------------------------------------------------------- galerie
+    $y= (object)array('msg'=>'neznámý článek');
+    servant("galerie=$x->pid"); // part.uid
+    break;
+  
+  case 'kniha':     // ----------------------------------------------------------------------- kniha
+    $y= (object)array('msg'=>'neznámý článek');
+    servant("kniha=$x->cid&page=$x->page&kapitola=$x->kapitola"); // case.uid,part.uid
+    break;
+  
   case 'roky':     // ------------------------------------------------------------------------- roky
     $y= (object)array('msg'=>'roky?');
     servant('roky=1');
     break;
+  
   case 'foto':     // ------------------------------------------------------------------------- foto
     $y= (object)array('msg'=>'TEST neprošel');
     $AND= "&rok={$x->rok}";
     $AND.= isset($_GET['id']) ? "&id={$_GET['id']}" : "";
     servant("foto=1$AND&groups=0,4,6");
     break;
+  
   case 'free':     // ------------------------------------------------------------------------- free
     $y= (object)array('msg'=>'TEST neprošel');
     servant('free=1');
     break;
+  
   case 'sendmail': // -------------------------------------------------------------------- send mail
     // ask({cmd:'sendmail',to:to,reply:reply,subj:subj,body:body},skup_sendmail_);
     $y->ok= emailIsValid($x->to,$err) ? 1 : 0;
@@ -123,8 +139,8 @@ function server($x) {
     break;
 
   case 'me_login': // ------------------------------------------------------------------------ login
-    servant("mail=$x->mail&pin=$x->pin&web=$x->web");
-    if ( $y->state=='ok') {
+    servant("cmd=me_login&mail=$x->mail&pin=$x->pin&web=$x->web");
+    if ( isset($y->state) && $y->state=='ok') {
       // přihlas uživatele jako FE
       $_SESSION['web']['fe_usergroups']= '4,6';
       $_SESSION['web']['fe_userlevel']= 0;
@@ -134,121 +150,7 @@ function server($x) {
       $y->be_user= 0;
     } 
     break;
-  /*
-    // v x.local_ip je lokální IP adresa, ip_get() dá externí
-    // chybové hodnoty
-    $ido= $iniciace= $user= $timeout= '';
-    // ----------------------- nulování stavu po 3 minutách nebo po odhlášení
-    if ( isset($_SESSION['ans']['stamp']) ) {
-      $min= 2;
-      $now= time();
-      $sec= $now - $_SESSION['ans']['stamp'];
-      if ( $sec > $min*60 && $_SESSION['ans']['phase']>1 ) {
-        $timeout= 1;
-      }
-    }
-    else {
-      unset($_SESSION['ans']);
-    }
-    $faze= isset($_SESSION['ans']['phase']) ? $_SESSION['ans']['phase'] : 0;
-    switch ( $faze ) {
 
-    case 0: // ----------------------- ověření syntaxe adresy a existence domény
-      $ok= emailIsValid($x->mail,$err);                 // 0 = byla zadána adresa a možná PIN
-      if ( !$ok ) { $y->txt= "'$x->mail' nevypadá jako mailová adresa ($err)"; }
-      $ans= 'nevolalo se';
-      $iniciace= 0;
-      if ( $ok ) {                                      
-        $_SESSION['ans']['phase']= 1;                   // 1 = ověření adresy z Answeru
-        $json= file_get_contents("$servant&mail=$x->mail&pin=$x->pin");
-        $ans= json_decode($json);
-        $ido= $ans->user;
-        $user= $ans->name;
-        $iniciace= $ans->mrop;
-        $_SESSION['ans']['phase']= $iniciace ? 2 : 3;   // 2 = adresa je ověřená nebo 3 = odmítnutá
-        $y->my_ip= isset($ans->my_ip) ? $ans->my_ip : '?';
-        $y->trace= $ans->trace;
-      }
-      $y->ans= $ans;
-      if ( !$ok ) { goto end; }
-      if ( !$iniciace ) {
-        $y->txt= "adresu '$x->mail' jsme nenašli, požádej Martina o pomoc.";
-        goto end;
-      }
-      // vytvoření PIN a zaslání mailem
-      $pin= rand(1000,9999);
-      // odeslání mailu
-      $_SESSION['ans']= array();
-      $_SESSION['ans']['me_user']= $ido;
-      $_SESSION['ans']['fe_usergroups']= $iniciace ? '4,6' : '4';
-      $_SESSION['ans']['fe_username']= $user;
-      $_SESSION['ans']['mail']= $x->mail;
-      $_SESSION['ans']['pin']= $pin;
-      $_SESSION['ans']['stamp']= time();
-      $_SESSION['ans']['phase']= 1;
-      $y->txt= "na uvedenou adresu byl odeslán mail obsahující PIN, zapiš jej do pole vedle adresy";
-      $ret= mail_send('martin@smidek.eu',$x->mail,"Rozšíření přístupu na chlapi.online",
-        "V přihlašovacím dialogu webové stránky napiš vedle svojí mailové adresy $pin.
-        <br>Přeji Ti příjemné prohlížení, Tvůj web");
-      $_SESSION['ans']['phpmailer']= $ret;
-      if ( $ret->err ) { $y->msg= "Mail se bohužel nepovedlo odeslat ($ret->err)"; goto end; }
-      $_SESSION['ans']['phase']= 4;                     // 4 = byl poslán mail s PIN
-      break;
-
-    case '6': // ----------------------- byl zapsán prázdný PIN
-    case '8': // ----------------------- byl podruhé zapsán PIN
-      if ( $timeout ) {
-        $y->txt= "během přihlašování došlo k chybě $faze, dej Zpět a zkus to znovu";
-        unset($_SESSION['ans']);
-        goto end;
-      }
-    case '4': // ----------------------- byl poprvé zapsán PIN
-      $pin= $x->pin;
-      $mail= $x->mail;
-      if ( $mail==$_SESSION['ans']['mail'] ) {
-        if ( !$pin ) {
-          $_SESSION['ans']['phase']= 6;                 // 6 = PIN chybí
-          $y->txt= "do druhého pole je třeba zapsat PIN, který došel mailem";
-          goto end;
-        }
-        elseif ( $pin==$_SESSION['ans']['pin'] ) {
-          // přihlas ANS uživatele jako FE
-          $_SESSION['ans']['phase']= 9;                 // 9 = PIN ok, přihlášení
-          $uid= 999999;
-          $_SESSION['web']['fe_usergroups']= $_SESSION['ans']['fe_usergroups'];
-          $_SESSION['web']['fe_userlevel']= 0;
-          $_SESSION['web']['fe_user']= $uid;
-          $_SESSION['web']['fe_username']= $user;
-          $y->fe_user= $uid;
-          $y->be_user= 0;
-        }
-        elseif ( $faze==8 ) {
-          $_SESSION['ans']['phase']= 7;                 // 7 = PIN hádán
-          $y->txt= "je zapotřebí požádat o nový PIN";
-          goto end;
-        }
-        else {
-          $_SESSION['ans']['phase']= 8;                 // 8 = PIN ko
-          $y->txt= "to je jiný PIN, než který byl poslán v posledním mailu - nepřeklepl ses?";
-          goto end;
-        }
-      }
-      break;
-    default:
-      if ( $timeout ) {
-        $y->txt= "během přihlašování došlo k chybě $faze, zkus to znovu";
-      }
-      else {
-        $y->txt= "během přihlašování došlo k chybě $faze, počkej 2 minuty";
-      }
-      unset($_SESSION['ans']);
-      break;
-    }
-  end:
-//     $y->trace= $trace;
-//     $CMS= $oldCMS;
-    break;
-*/
   case 'be_logout': // ---------------------------------------------------------------------- logout
     $_SESSION['web']= array();
     $_SESSION['web']['fe_user']= 0;
@@ -260,6 +162,26 @@ function server($x) {
     $y->be_user= 0;
     $y->page= $x->page;
     break;
+
+  case 'upd_menu': // --------------------------------------------------------------------- upd menu
+    // do y.msg vrací 
+    $y= (object)array();
+    $qry= menu_get();
+    $query= http_build_query(array(
+//        'post' => "TEST"
+        'post' => $qry
+    ));
+    $length= strlen($query);
+    $options= array('http'=>array(
+        'method'  => "POST",
+        'header'  => "Connection: close\r\nContent-Length: $length",
+        'content' => $query
+    ));
+    $context= stream_context_create($options);
+    servant("upd_menu=post",$context);
+    $y->msg.= " <br> <hr> $qry";
+    break;
+
   }
   return 1;
 }
@@ -269,4 +191,42 @@ function ip_get() {
   return isset($_SERVER['HTTP_X_FORWARDED_FOR'])
     ? $_SERVER['HTTP_X_FORWARDED_FOR'] : $_SERVER['REMOTE_ADDR'];
 }
+# ----------------------------------------------------------------------------------------- menu get
+# přenos $def_block do tx_gnmenu pomocí servant
+function menu_get() {
+  global $def_block;
+  $qry= '';
+  $mid= 0;
+//  $qry= "DELETE FROM TABLE tx_gnmenu WHERE wid=2"; // 1=setkani.org, 2=chlapi.online
+//  $qry.= "INSERT INTO tx_gnmenu (wid,mid,mid_top,ref,typ,nazev,next,val,elem) VALUES";
+//  $del= "\n";
+  foreach ($def_block as $ref=>$def) {
+    $def= explode(':',$def);
+    $def= array_map('trim',$def);
+//    $def= array_map('mysql_escape_string',$def);
+    list($t_bloku,$filler,$nazev,$next,$default1,$elems)= $def;
+    $typ_bloku= $t_bloku=='m' ? 'mm' : 'sm'; 
+    if ( $typ_bloku=='sm' ) continue;
+    $mid++;
+    $qry.= "$del(2,$mid,0,'$ref','$typ_bloku',\"$nazev\",'$next','$default1','$elems')";
+    $del= ",\n";
+    list($elem)= explode(';',$elems);
+    list($typ,$ids)= explode('=',$elem.'=');
+    if ( $typ=='menu' ) {
+      $mid_top= $mid;
+      foreach (explode(',',$ids) as $ref2) {
+        $mid++;
+        $def2= $def_block[$ref2];
+        $def= explode(':',$def2);
+        $def= array_map('trim',$def);
+//        $def= array_map('mysql_escape_string',$def);
+        list($t_bloku,$filler,$nazev,$next,$default2,$elems)= $def;
+        $typ_bloku= $t_bloku=='m' ? 'mm' : 'sm'; 
+        $qry.= "$del(2,$mid,$mid_top,'$ref2','$typ_bloku',\"$nazev\",'$next','$default2','$elems')";
+      }
+    }
+  }
+  return $qry;
+}
+*/    
 ?>

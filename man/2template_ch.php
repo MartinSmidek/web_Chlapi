@@ -185,10 +185,11 @@ __EOT;
       break;
 
     case 'mapa':    # ------------------------------------------------ . mapa
+      global $CMS;
       $load_ezer= true;
-//      $html.= <<<__EOT
-//        <script>skup_mapka();</script>
-//__EOT;
+      $html.= !$CMS ? '' : <<<__EOT
+        <script>skup_mapka();</script>
+__EOT;
       break;
 
     case 'skupiny': # ------------------------------------------------ . skupiny
@@ -400,16 +401,17 @@ __EOD;
         $menu
       </div>
       <div id='user_mail' style="display:$fe_user_display">
-        <span>Přihlášení uživatele</span>
-        <div>Napiš svoji mailovou adresu, na kterou ti dojde mail s PINem,
+        <span id='user_mail_head'>Přihlášení uživatele</span>
+        <div>
+          <span id="user_mail_txt">
+            Napiš svoji mailovou adresu, na kterou ti dojde mail s PINem,
             který ti zpřístupní např. fotky z akcí, kterých ses zúčastnil ...
+          </span>
           <input id='mail' type='text' placeholder='emailová adresa'>
           <input id='pin' type='text' placeholder='PIN'>
           <br>
-          <button id='me_login' style='position:initial'
-            onclick="me_login('$currpage');">Přihlásit</button>
-          <button id='me_zpet' style='position:initial'
-            onclick="jQuery('#user_mail').hide();">Zpět</button>
+          <a class='jump' onclick="me_login('$currpage');">Přihlásit</a>
+          <a class='jump' onclick="jQuery('#user_mail').hide();">Zpět</a>
         </div>
       </div>
       $filler
@@ -460,11 +462,6 @@ function ask_server($x) {
   global $y;
 //   $x->cmd= 'test';
   switch ( $x->cmd ) {
-  case 'test':     // ------------------------------------------------------------------------- test
-    $y= (object)array('msg'=>'TEST neprošel');
-    servant('test=1');
-    break;
-  
   case 'clanky':   // ----------------------------------------------------------------------- clanky
     $y= (object)array('msg'=>'neznámý článek');
     servant("clanky=$x->chlapi&back=$x->back"); // part.uid
@@ -485,36 +482,9 @@ function ask_server($x) {
     servant("clanek=$x->pid"); // part.uid
     break;
   
-  case 'abstrakt':   // ------------------------------------------------------------------- abstrakt
-    $y= (object)array('msg'=>'neznámý abstrakt');
-    servant("abstrakt=$x->ids"); // case.uid,...
-    break;
-  
-  case 'galerie': // ----------------------------------------------------------------------- galerie
-    $y= (object)array('msg'=>'neznámý článek');
-    servant("galerie=$x->pid"); // part.uid
-    break;
-  
   case 'kniha':     // ----------------------------------------------------------------------- kniha
     $y= (object)array('msg'=>'neznámý článek');
     servant("kniha=$x->cid&page=$x->page&kapitola=$x->kapitola"); // case.uid,part.uid
-    break;
-  
-  case 'roky':     // ------------------------------------------------------------------------- roky
-    $y= (object)array('msg'=>'roky?');
-    servant('roky=1');
-    break;
-  
-  case 'foto':     // ------------------------------------------------------------------------- foto
-    $y= (object)array('msg'=>'TEST neprošel');
-    $AND= "&rok={$x->rok}";
-    $AND.= isset($_GET['id']) ? "&id={$_GET['id']}" : "";
-    servant("foto=1$AND&groups=0,4,6");
-    break;
-  
-  case 'free':     // ------------------------------------------------------------------------- free
-    $y= (object)array('msg'=>'TEST neprošel');
-    servant('free=1');
     break;
   
   case 'sendmail': // -------------------------------------------------------------------- send mail
@@ -561,25 +531,6 @@ function ask_server($x) {
     $y->fe_user= 0;
     $y->be_user= 0;
     $y->page= $x->page;
-    break;
-
-  case 'upd_menu': // --------------------------------------------------------------------- upd menu
-    // do y.msg vrací 
-    $y= (object)array();
-    $qry= menu_get();
-    $query= http_build_query(array(
-//        'post' => "TEST"
-        'post' => $qry
-    ));
-    $length= strlen($query);
-    $options= array('http'=>array(
-        'method'  => "POST",
-        'header'  => "Connection: close\r\nContent-Length: $length",
-        'content' => $query
-    ));
-    $context= stream_context_create($options);
-    servant("upd_menu=post",$context);
-    $y->msg.= " <br> <hr> $qry";
     break;
 
   }
