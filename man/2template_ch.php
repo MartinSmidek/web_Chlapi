@@ -22,8 +22,6 @@ function page($a,$b) {
   $CMS= 1;
   $be_user= isset($_SESSION['web']['be_user']) ? $_SESSION['web']['be_user'] : 0;
   $fe_user= isset($_SESSION['web']['fe_user']) ? $_SESSION['web']['fe_user'] : 0;
-  // výpočet fe_level podle záznamu v ezer_db2.osoba.web_level a 
-  $fe_level= isset($_SESSION['web']['fe_level']) ? $_SESSION['web']['fe_level'] : 0;
   read_menu();
   $path= explode('!',$b);
   $elem= eval_menu($path);
@@ -36,26 +34,27 @@ function page($a,$b) {
 // přidá položku has_subs pokud má hlavní menu submenu
 function read_menu() { 
   global $ezer_db, $fe_level, $menu;
+  // výpočet fe_level podle záznamu v ezer_db2.osoba.web_level a 
+  $fe_level= isset($_SESSION['web']['fe_level']) ? $_SESSION['web']['fe_level'] : 0;
   // connect
   $ezer_local= preg_match('/^.*\.(bean)$/',$_SERVER["SERVER_NAME"]);
   $hst1= 'localhost';
-  $nam1= $ezer_local ? 'gandi'    : 'proglas';
-  $pas1= $ezer_local ? ''         : 'pr0gl8s';
-  $hst2= $ezer_local ? 'localhost': '192.168.1.145';
-  $nam2= $ezer_local ? 'gandi'    : 'gandi';
-  $pas2= $ezer_local ? ''         : 'r8d0st';
+  $nam1= $ezer_local ? 'gandi'    : 'gandi';
+  $pas1= $ezer_local ? ''         : 'radost';
+  $db1=  $ezer_local ? 'setkani'  : 'ezerweb';
   $ezer_db= array( /* lokální */
-    'setkani'  =>  array(0,$hst1,$nam1,$pas1,'utf8'),
-    'ezer_db2' =>  array(0,$hst2,$nam2,$pas2,'utf8')
+    'setkani'  =>  array(0,$hst1,$nam1,$pas1,'utf8',$db1),
   );
   ezer_connect('setkani');
   // načtení menu
   $menu= array();
   $mn= mysql_qry("SELECT * FROM menu WHERE wid=2 ORDER BY typ,rank");
   while ($mn && ($m= mysql_fetch_object($mn))) {
-    if ( $m->level<0 ) continue;
+    if ( $m->typ<0 ) continue; 
     // filtrace chráněných položek
-    if ( $m->level && !($fe_level & $m->level) ) continue;
+    if ( $m->level<0 && $fe_level && ($fe_level & -$m->level) ) continue;  // -8 nezobrazit pro mrop
+    if ( $m->level>0 && !($fe_level & $m->level) ) continue;    //  8 zobrazit jen pro mrop
+    if ( $m->level<0 ) $m->level= 0;
     $menu[$m->mid]= $m;
     if ( $m->typ==2 ) $menu[$m->mid_top]->has_subs= true;
   }
@@ -182,6 +181,19 @@ function eval_elem($desc) {
       $html.= <<<__EOT
         <script>admin($cms_bar);</script>
 __EOT;
+      break;
+
+    case 'ppt':     # ------------------------------------------------ . ppt
+      global $CMS;
+      $fname= "docs/$id.html";
+      if ( file_exists($fname) ) {
+        $doc= file_get_contents($fname);
+//        $beg= '<div id=\"page-container\">';
+//        $end= '<div class=\"loading-indicator\">';
+//        $ok= preg_match("/$beg(.*)$end/u", $doc, $m);
+//        $m= $m;
+        $html.= $doc;
+      }
       break;
 
     case 'mapa':    # ------------------------------------------------ . mapa

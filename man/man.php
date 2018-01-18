@@ -15,7 +15,7 @@
   $app_css=   array("man/mini.css","man/3chlapi.css","man/web_edit.css",
                     "man/fotorama/fotorama.css");
   $skin=      'ck';
-  $abs_roots= array("/home/users/gandi/ezer.cz/web/demo","C:/Ezer/beans/chlapi.online");
+  $abs_roots= array("/home/users/gandi/chlapi.online/web","C:/Ezer/beans/chlapi.online");
   $rel_roots= array("http://chlapi.online","http://chlapi.bean:8080","man/fotorama/fotorama.css");
   
   // specifická část aplikace předávaná do options
@@ -26,7 +26,7 @@
     'template' => "user",
     'template_meta' => $template_meta,
     'template_body' => $template,
-    'CKEditor' => "{
+  'CKEditor' => "{
       version:'4.6',
       Minimal:{toolbar:[['Bold','Italic','Source']]}
     }"
