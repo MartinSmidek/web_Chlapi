@@ -2,7 +2,7 @@
 
 $cms= 'man';
 $ezer_local= $_SERVER['SERVER_NAME']=='chlapi.bean' ? 1 : 0;
-$index= $ezer_local ? "2index.php" : "index.php";
+$index= $ezer_local ? "2index.php" : "2index.php";
 
 //$secret= "WEBKEYNHCHEIYSERVANTAFVUOVKEYWEB";
 //$servant= $local_test
@@ -41,9 +41,10 @@ if ( count($_POST) ) {
   exit;
 }
 
-if ( $_SESSION['web']['fe_user']==5877 ) {
+$fe_level= isset($_SESSION['web']['fe_level']) ? $_SESSION['web']['fe_level'] : 0;
+if ( $fe_level && ($fe_level & 1) ) {
   chdir('man');
-  $fe_user= $be_user= 5877;
+  $fe_user= $be_user= $_SESSION['web']['fe_user'];
   require_once("man/man.php"); 
 }
 else {

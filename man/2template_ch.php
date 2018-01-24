@@ -260,6 +260,7 @@ __EOT;
           ? "http://setkani.bean:8080/fileadmin"
           : "https://www.setkani.org/fileadmin";
       $obsah= preg_replace("/(src|href)=(['\"])(?:\\/|)fileadmin/","$1=$2$fileadmin",$y->obsah);
+      $obsah= str_replace('$index',$index,$obsah);
       $nadpis= "<h1>$y->nadpis</h1>";
       $html.= "
         <div class='back'>
@@ -349,6 +350,7 @@ __EOJ;
   $n= isset($_GET['test']) ? $_GET['test'] : '3';
   $eb_link= <<<__EOJ
       <link rel="stylesheet" href="./man/{$n}chlapi.css" type="text/css" media="screen" charset="utf-8" />
+      <link rel="stylesheet" href="./man/web_edit.css" type="text/css" media="screen" charset="utf-8" />
       <link rel="stylesheet" href="./$client/licensed/font-awesome/css/font-awesome.min.css" type="text/css" media="screen" charset="utf-8" />
 __EOJ;
 
@@ -408,8 +410,8 @@ __EOD;
   $body=  <<<__EOD
     <div id='page'>
       <img id='logo' src='man/img/kriz.png' onclick="change_info();">
-      $bar_menu
       <div id='menu'>
+        $bar_menu
         $menu
       </div>
       <div id='user_mail' style="display:$fe_user_display">
@@ -438,7 +440,7 @@ __EOD;
   // dokončení stránky
   echo <<<__EOD
   $head
-  <body>
+  <body onload="jump_fokus();">
     <div id='web'>
       <div id='work'>
       $body

@@ -28,11 +28,14 @@ html {
     background-image: url(img/foto_home.jpg); background-size: cover;
     width: 100%; margin:0;
     font-size:10pt; font-family: sans-serif; }
+  #work { position: relative; }
   // styly Ezer kvůli zobrazení mapy
   #page { 
-    position: absolute; width: 100%; }
+    position: absolute; width: 100%; height: 0; }
   div.mapa.Panel3, div.mapa.Form3, div.mapa.Label3 {
-    position:absolute; top:0; width:100%; height:100%; z-index: -1; }
+    position: fixed; z-index: -1;
+    width:100%; height:100%; 
+  }
   img {
       max-width: 100%; }
 }
@@ -43,7 +46,7 @@ html {
   padding: 0.1em 0.6em; font-weight: bold; text-decoration: none; cursor: pointer; 
 }
 a.jump { 
-  .shadow-box; margin:0em 0.3em; background-color: @jump_b; color: @jump_c; 
+  .shadow-box; margin:0em 0.3em; background-color: @jump_b; color: @jump_c; text-align: center;
   &:hover {
     background-color: @text_b !important; color: @text_c !important; }
 }
@@ -60,22 +63,19 @@ div.filler { height: 2em; }
 // menu
 #menu {
   width:100%; text-align: right;
-  a.active {
-    background-color: @activ_b !important; color: @activ_c !important; }
-  a:hover {
-    background-color: @text_b !important; color: @text_c !important; }
-  span { 
-    vertical-align: middle; height: 2.2em;  display: table-cell;}
-
+  a {
+    &.active {
+      background-color: @activ_b !important; color: @activ_c !important; }
+    &:hover {
+      background-color: @text_b !important; color: @text_c !important; }
+    span { 
+      vertical-align: middle; height: 2.2em;  display: table-cell;}
+  }
   // top menu 
   #page_tm { 
-    border-top:.3em solid #F5CF85; margin-right: 2em;
+    margin-right: 2em;
     span { 
       height: 1.5em; }
-    &:hover { 
-      border-top-color: @text_b !important; }
-    &.active { 
-      border-top:.3em solid @activ_b; }
     a.jump {  
       border-radius: 0em 0em .8em .8em; 
       &.admin, &.tester { 
@@ -132,10 +132,10 @@ div.filler { height: 2em; }
     margin-bottom: 0.5em;
   }
   &#clanek2 {
-    width: 40em; }
+    max-width: 40em; }
   // přihlášení
   &#user_mail {
-    width: 29em; padding: 0; position: absolute; right: -1em; top: 2em;
+    max-width: 29em; padding: 0; position: absolute; right: -1em; top: 2em;
     span#user_mail_head {
       display: block; width:100%; text-align:center; height: 2em;
       background-color: @activ_b; border-radius:.4em .4em 0 0; color:@activ_c; font-weight:bold; }
@@ -163,7 +163,7 @@ div.filler { height: 2em; }
 
 // abstrakty
 #list {
-  margin-top: 1em;
+  margin-top: 1em; text-align: center;
   div.abstr {
     width: 33.3%; display: inline-block; vertical-align: top; 
     a.abstrakt {
@@ -178,10 +178,13 @@ div.filler { height: 2em; }
 // vlákno
 #vlakno {
   clear: both;
-  padding-right: 1em;  
+  /*padding-right: 1em;*/  
   div.clanek {
     background-color: @text_b; color: @text_c;
-    overflow: auto; margin: 0.5em; position: relative; .shadow-box; }
+    overflow: auto; margin: 0.5em; position: relative; .shadow-box; 
+    columns:35em 2; column-rule:1em solid @text_b; column-gap: 2em;
+    -moz-column-count:2 35em; -moz-column-rule:1em solid @text_b; -moz-column-gap: 2em; 
+  }
   div.galerie {
     background-color: @text_b; color: @text_c;
     overflow: hidden; margin: 0.5em; position: relative; border-radius: .8em; }
@@ -189,11 +192,12 @@ div.filler { height: 2em; }
 // kniha
 .kniha_bg {
   background-color: fadeout(@obal_b,30%); color: @obal_c;
-  display: block; clear: both; border-radius: .8em;
-  &:hover { 
-    background-color: fadeout(@obal_b,0%) !important; }
+  display: block; clear: both; border-radius: .8em; text-align: center;
+  a.jump { 
+    margin:1em; }
   div.kniha_br {
-    clear: both; padding: 1em 0; text-align: center; }
+    clear: both; padding: 1em 0; text-align: center; 
+  }
   div.kniha_hr {
     clear: both; padding: 1em 0; text-align: center; cursor: pointer;
   }
@@ -206,5 +210,69 @@ div.pdf {
 #sidebar {
   display:none; }
 #page-container {
-  background: transparent !important; position: relative !important; }
+  background: transparent !important; position: relative !important; 
+  width: -moz-fit-content; }
 
+// =============================================================================== responsive design 
+
+// ------------------------------------------------------------------------------- MV mobil na výšku 
+
+@media all and (max-width:30em) {
+  #page_tm::before { content:"M"; }
+  #menu { font-size:8pt; 
+    #page_hm a { max-width: 4em; white-space: wrap; overflow: hidden; }
+    #page_sm { top: 5.2em; }
+  }
+  #clanek2 {
+    margin:.5em;
+  }
+  #list {
+    div.abstr { width:100%; }}
+  #logo {
+    left: 0.1em; top: 0.1em; width: 5em; }
+  div.prezentace { 
+    zoom: 40%; -moz-transform: scale(0.4) translate(-76%, -79%);  }
+}
+// ------------------------------------------------------------------------------- MŠ mobil na šířku
+
+@media all and (min-width: 30em) and (max-width: 55em) {
+  #page_tm::before { content:"L"; }
+  #menu { font-size:9pt; 
+    #page_sm { top: 5.2em; }
+  }
+  #list {
+    div.abstr { width:50%; }
+  }
+  div.prezentace { 
+    zoom: 60%; -moz-transform: scale(0.6) translate(-26%, -35%); }
+}
+@media all and (min-width: 40em) and (max-width: 55em) {
+  div.prezentace { 
+    zoom: 78%; -moz-transform: scale(0.8) translate(-12%, -15%); }
+}
+
+// ---------------------------------------------------------------------------------------- T tablet 
+
+@media all and (min-width: 55em) and (max-width: 70em) {
+  #page_tm::before { content:"T"; }
+  #menu { font-size:9pt; 
+    #page_sm { top: 5.2em; }
+  }
+  #list {
+    div.abstr { width:33.3%; }
+  }
+}
+
+// ------------------------------------------------------------------------------ PC velká obrazovka 
+
+@media all and (min-width: 70em) {
+  #page_tm::before { content:"C"; }
+  #web { 
+    width:92em; margin: 0 auto; }
+  #menu { font-size:10pt; 
+    #page_sm { top: 5.2em; }
+  }
+  #list {
+    div.abstr { width:25%; }
+  }
+}

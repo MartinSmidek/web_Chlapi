@@ -12,12 +12,27 @@ function $() {
   Ezer.fce.error("MooTools $-call");
   return 1;
 }
+jQuery.fn.extend({
+  // ------------------------------------------------- + scrollIntoViewIfNeeded
+  Ezer_scrollIntoView: function() {
+    var target= this[0];
+    let rect = target.getBoundingClientRect(),
+        bound= this.parent()[0].getBoundingClientRect();
+    if (rect.bottom > bound.bottom) {
+        target.scrollIntoView(false);
+    }
+    else if (rect.top < bound.top) {
+        target.scrollIntoView(true);
+    }
+  }
+});
 // -------------------------------------------------------------------------------------- jump fokus
 function jump_fokus() {
   // najdi cíl podle priority
   var jump= jQuery('#fokus_part') || jQuery('#fokus_case') || jQuery('#fokus_page');
-//  if ( jump )
-//    jump.scrollIntoView(true);
+  if ( jump[0] )
+//    jump.Ezer_scrollIntoView();
+    jump[0].scrollIntoView(true);
   return 1;
 }
 // ----------------------------------------------------------------------------------------- context
