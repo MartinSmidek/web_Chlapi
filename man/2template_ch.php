@@ -153,9 +153,10 @@ function eval_menu($path) {
 // desc :: key [ = ids ]
 // ids  :: id1 [ / id2 ] , ...    -- id2 je klíč v lokální db pro ladění
 function eval_elem($desc) {
-  global $ezer_local, $index, $load_ezer;
+  global $CMS, $ezer_local, $index, $load_ezer;
   $elems= explode(';',$desc);
   $html= '';
+  $html= $CMS ? "<script>skup_mapka_off();</script>" : '';
   foreach ($elems as $elem) {
     list($typ,$ids)= explode('=',$elem.'=');
     // přemapování ids podle server/localhost
@@ -169,7 +170,6 @@ function eval_elem($desc) {
       $id= implode(',',$id);
     }
     $typ= str_replace(' ','',$typ);
-//    $html= $CMS ? "<script>skup_mapka_off();</script>" : '';
 
     switch ($typ) {
 
@@ -183,15 +183,28 @@ function eval_elem($desc) {
 __EOT;
       break;
 
+    case 'kalendar': # ----------------------------------------------- . kalendar
+      global $y;
+      ask_server((object)array('cmd'=>'kalendar'));
+      $html.= "<div class='back'><div id='clanek2' class='home'><table class='kalendar'>";
+      if ( count($y->akce) ) {
+        foreach ($y->akce as $a) {
+          $ys= "<a href='https://www.setkani.org'>YMCA Setkání</a>";
+          $fa= "<a href='https://www.familia.cz'>YMCA Familia</a>";
+          $txt= "přihlášku najdete na webu ";
+          $org= $a->org==1 ? "$txt $ys" : ($a->org==2 ? "$txt $fa" : '');
+          $anotace= $a->anotace ? "<br><i>$a->anotace</i>" : '';
+          $html.= "<tr><td>$a->oddo</td><td><b>$a->nazev</b>, $a->misto<br>$org$anotace</td></tr>";
+        }
+      }
+      $html.= "</table></div></div>";
+      break;
+
     case 'ppt':     # ------------------------------------------------ . ppt
       global $CMS;
-      $fname= "docs/$id.html";
+      $fname= "pdf/$id.html";
       if ( file_exists($fname) ) {
         $doc= file_get_contents($fname);
-//        $beg= '<div id=\"page-container\">';
-//        $end= '<div class=\"loading-indicator\">';
-//        $ok= preg_match("/$beg(.*)$end/u", $doc, $m);
-//        $m= $m;
         $html.= $doc;
       }
       break;
@@ -250,6 +263,19 @@ __EOT;
           ? "http://setkani.bean:8080/fileadmin"
           : "https://www.setkani.org/fileadmin";
       $html= preg_replace("/(src|href)=(['\"])(?:\\/|)fileadmin/","$1=$2$fileadmin",$html);
+      // vložení tranformované prezentace
+      // 1) z PPT uložené jako PDF s minimalizací pro web
+      // 2) pdf2htmlEX --use-cropbox 0 --fit-width 800 --embed CFIJO --bg-format jpg $fname.pdf
+      if ( $top ) {
+        $html= preg_replace_callback("/(###([\w\-]+)###)/",
+          function($m) {
+            $fname= "pdf/$m[2].html";
+            if ( file_exists($fname) ) {
+              return file_get_contents($fname);
+            }
+          }, 
+          $html);
+      }
       break;
 
     // clanek=pid -- samostatně zobrazený rozvinutý part
@@ -476,6 +502,11 @@ function ask_server($x) {
   global $y;
 //   $x->cmd= 'test';
   switch ( $x->cmd ) {
+  case 'kalendar': // --------------------------------------------------------------------- kalendar
+    $y= (object)array('anotace'=>'zatím nejsou naplánovány žádné akce');
+    servant("kalendar");
+    break;
+  
   case 'clanky':   // ----------------------------------------------------------------------- clanky
     $y= (object)array('msg'=>'neznámý článek');
     servant("clanky=$x->chlapi&back=$x->back"); // part.uid

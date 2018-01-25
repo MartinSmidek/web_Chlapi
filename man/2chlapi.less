@@ -28,6 +28,9 @@ html {
     background-image: url(img/foto_home.jpg); background-size: cover;
     width: 100%; margin:0;
     font-size:10pt; font-family: sans-serif; }
+  #web {
+    overflow: auto; height: 100%; width: 100%; position: fixed;
+  }
   #work { position: relative; }
   // styly Ezer kvůli zobrazení mapy
   #page { 
@@ -160,6 +163,16 @@ div.filler { height: 2em; }
       border:1px solid grey; padding:2px; font-size: 10pt; }
   }
 }
+// kalendář
+table.kalendar tr {
+  td {
+    margin-top: 1em; border-top: 1px solid silver; }
+  td:nth-child(1) { 
+    width: 8em; font-weight: bold; text-align: center; vertical-align: text-top; }
+  td:nth-child(2) p {
+    font-style: italic; margin: 0;
+  }
+}
 
 // abstrakty
 #list {
@@ -169,7 +182,7 @@ div.filler { height: 2em; }
     a.abstrakt {
       background-color: @abstr_b; color: @abstr_c;
       border-radius: .4em; margin: 0.5em; cursor: pointer; padding: .4em; .shadow-box;
-      display: block; text-decoration: none; overflow: hidden; height: 8.8em;
+      display: block; text-decoration: none; overflow: hidden; height: 8.8em; text-align: left;
       &:hover {
         background-color: @text_b !important; color: @text_c !important; }
     }
@@ -181,7 +194,7 @@ div.filler { height: 2em; }
   /*padding-right: 1em;*/  
   div.clanek {
     background-color: @text_b; color: @text_c;
-    overflow: auto; margin: 0.5em; position: relative; .shadow-box; 
+    overflow: auto; margin: 0.5em; position: relative; .shadow-box; text-align: left;
     columns:35em 2; column-rule:1em solid @text_b; column-gap: 2em;
     -moz-column-count:2 35em; -moz-column-rule:1em solid @text_b; -moz-column-gap: 2em; 
   }
@@ -191,7 +204,7 @@ div.filler { height: 2em; }
 }
 // kniha
 .kniha_bg {
-  background-color: fadeout(@obal_b,30%); color: @obal_c;
+  background-color: fadeout(@obal_b,70%); color: @obal_c;
   display: block; clear: both; border-radius: .8em; text-align: center;
   a.jump { 
     margin:1em; }

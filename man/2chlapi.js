@@ -308,6 +308,7 @@ var code= {
 function skup_mapka() {
   label= jQuery('div.cms_mapa');
   if ( label[0] ) {
+    label.css({display:'block'});
     label= label.data('ezer');
   }
   else {
@@ -332,12 +333,14 @@ function skup_mapka_(y) {
 // ---------------------------------------------------------------------------------- skup mapka_off
 // používá se jen v CMS
 function skup_mapka_off() {
-  if ( Ezer.version=='ezer3' ) {
-    jQuery('#skup0').css({display:'none'});
-    panel= Ezer.run.$.part.p;
-    label= panel.part.w.value.part.mapa;
-    jQuery(label.DOM_Block).css({display:'none'});
-  }
+  label= jQuery('div.cms_mapa');
+  label.css({display:'none'});
+//  if ( Ezer.version=='ezer3' ) {
+//    jQuery('#skup0').css({display:'none'});
+//    panel= Ezer.run.$.part.p;
+//    label= panel.part.w.value.part.mapa;
+//    jQuery(label.DOM_Block).css({display:'none'});
+//  }
 }  
 // ------------------------------------------------------------------------------------- skup dialog
 function skup_dialog(mark) {
