@@ -191,7 +191,7 @@ panel EDITOR [0,0,710,530] { title:' Úprava článku na webu', type:'popup'
     panel.display(2,'c'); 
     c.load(_key); 
     path.set(conc('/inc/c/',_key));                  // cesta pro přílohy
-    ask('session','web,inc_path',path.get);
+    ask('session','man,inc_path',path.get);
     join_drop(c.obsah);
     panel.modal(10,40) 
   ]}

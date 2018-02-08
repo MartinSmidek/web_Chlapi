@@ -16,11 +16,19 @@
                     "/man/fotorama/fotorama.css");
   $skin=      'ck';
   $abs_roots= array("/home/users/gandi/chlapi.online/web","C:/Ezer/beans/chlapi.online");
-  $rel_roots= array("http://chlapi.online","http://chlapi.bean:8080","man/fotorama/fotorama.css");
+  $rel_roots= array("http://chlapi.online","http://chlapi.bean:8080");
   
   // specifická část aplikace předávaná do options
   specific($template_meta,$template);
   
+  // (re)definice Ezer.options
+  $add_options= (object)array(
+    'to_trace' => 1,
+    'mini_debug' => 1,
+    'path_files_href' => "'$rel_roots[$ezer_local]'",
+    'path_files_s' => "'$abs_roots[$ezer_local]/'"  // absolutní cesta pro přílohy
+  );
+
   // (re)definice Ezer.options
   $add_pars= array(
     'favicon' => $ezer_local ? 'chlapi_ico_local.png' : 'chlapi_ico.png',    
@@ -44,7 +52,7 @@
         extraPlugins:'widget,filetools,embed',
         entities:true,  // →
         embed_provider: '//iframe.ly/api/oembed?url={url}&callback={callback}&api_key=313b5144bfdde37b95c235',
-        uploadUrl:'feb/upload.php?root=feb&type=Images',
+        uploadUrl:'man/upload.php?root=man&type=Images',
         stylesSet:[
           {name:'název',     element:'h1'},
           {name:'nadpis',    element:'h2'},
@@ -57,11 +65,6 @@
     }"
   );
   
-  // (re)definice Ezer.options
-  $add_options= array(
-    'to_trace' => 1,
-  );
-
   // je to aplikace se startem v podsložce a chceme mapy
   $_GET['gmap']= 1;
   require_once("../$kernel/ezer_main.php");

@@ -211,7 +211,7 @@ function eval_elem($desc) {
       ezer_connect('setkani');
       $ra= mysql_query("
           SELECT datum_od,datum_do,nazev,misto,web_text 
-          FROM chlapi_akce WHERE datum_od>NOW()");
+          FROM xakce WHERE datum_od>NOW()");
       while ( $ra && list($od,$do,$nazev,$misto,$text)=mysql_fetch_array($ra)) {
         $oddo= datum_oddo($od,$do);
         $y->akce[]= (object)array('od'=>$od,'nazev'=>$nazev,'misto'=>$misto,
