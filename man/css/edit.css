@@ -1,15 +1,18 @@
 /* styly pro editor */
 
 body { font-size:10pt; font-family: sans-serif; }
-
+div.cke_maximized { z-index: 100000 !important; }
 h1 { font-size:14pt; }
 h2 { font-size:12pt; }
 h3 { font-size:11pt;  }
+p.p-clear { clear:both; }
+hr { height: 6px; background: #900; border: none; clear: both; }
 
 span.zlute  { background-color:yellow; }
 span.zelene { background-color:lime; }
+span.neodkaz { background-color:silver; }
 
-img.shadow, p.shadow img { filter: drop-shadow(5px 5px 10px #567); }
+img.shadow, p.shadow img, span.shadow { filter: drop-shadow(5px 5px 10px #567); }
 
 body.cke_editable img { margin:.2em; height:auto !important; max-width:100%; }
 
@@ -33,7 +36,7 @@ figure.image-wide img, img.image-wide {max-width: 500px;height: auto;}
 /* Embed center style. */
 .embed-align-center {margin-left: auto;margin-right: auto;}
 
-div [data-oembed-url] {max-width: 426px;max-height: 240px;/*margin:0 auto;*/}
+/*div [data-oembed-url] {max-width: 426px;max-height: 240px;margin:0 auto;}*/
 
 .embed-240p{max-width: 426px;max-height: 240px;margin:0 auto;}
 .embed-360p{max-width: 640px;max-height: 360px;margin:0 auto;}

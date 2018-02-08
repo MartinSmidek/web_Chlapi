@@ -462,6 +462,72 @@ function admin_web($typ,$uid=0) { trace();
   return $h;
 }
 /** ===========================================================================================> WEB */
+# --------------------------------------------------------------------------------------- datum oddo
+function datum_oddo($x1,$x2) {
+  $d1= 0+substr($x1,8,2);
+  $d2= 0+substr($x2,8,2);
+  $m1= 0+substr($x1,5,2);
+  $m2= 0+substr($x2,5,2);
+  $r1= 0+substr($x1,0,4); 
+  $r2= 0+substr($x2,0,4);
+  $r= date('Y');
+  if ( $x1==$x2 ) {  //zacatek a konec je stejny den
+    $datum= "$d1. $m1" . ($r1!=$r ? ". $r1" : '');
+  }
+  elseif ( $r1==$r2 ) {
+    if ( $m1==$m2 ) { //zacatek a konec je stejny mesic
+      $datum= "$d1 - $d2. $m1. $r1";
+    }
+    else { //ostatni pripady
+      $datum= "$d1. $m1 - $d2. $m2. $r1";
+    }
+  }
+  else { //ostatni pripady
+    $datum= "$d1. $m1. $r1 - $d2. $m2. $r2";
+  }
+  return $datum;
+}
+# ------------------------------------------------------------------------------------ menu add_elem
+# přidá do menu další element
+function menu_add_elem($mid,$table) {
+  $elem= select("elem","menu","wid=2 AND mid=$mid");
+  query("INSERT INTO $table () VALUES ()");
+  $id= mysql_insert_id();
+  $elem= ($elem ? "$elem;" : '') . "$table=$id";
+  query("UPDATE menu SET elem='$elem' WHERE wid=2 AND mid=$mid");
+  return 1;
+}
+# --------------------------------------------------------------------------------------- menu shift
+# posune menu o jedno dolů (pro down=0 nahoru)
+function menu_shift($mid,$down) {
+  // zjistíme všechna menu na stejné úrovni
+  list($mid_top,$typ)= select("mid_top,abs(typ)","menu","mid=$mid");
+  $cond= $typ==2 && $mid_top ? "mid_top=$mid_top" : (
+    $typ==1 || $typ==0 ? "typ=$typ" : 0 );
+  $ms= select("GROUP_CONCAT(mid ORDER BY rank)","menu","wid=2 AND $cond");
+//                                              display("x:$ms");
+  $ms= explode(',',$ms);
+  $i= array_search($mid,$ms);
+  $last= count($ms)-1;
+  if ( $down ) { // dolů
+    if ( $i<$last ) {
+      $ms[$i]= $ms[$i+1];
+      $ms[$i+1]= $mid;
+    }
+  }
+  else { // nahoru
+    if ( $i>0 ) {
+      $ms[$i]= $ms[$i-1];
+      $ms[$i-1]= $mid;
+    }
+  }
+//                                              display("y:".implode(',',$ms));
+  foreach ($ms as $i=>$mi) {
+    $i1= $i+1;
+    query("UPDATE menu SET rank=$i1 WHERE wid=2 AND mid=$mi");
+  }
+  return 1;
+}
 # ---------------------------------------------------------------------------------------- menu save
 function menu_save($wid,$tree) {
   $walk= function ($node,$delv='') use (&$walk) {

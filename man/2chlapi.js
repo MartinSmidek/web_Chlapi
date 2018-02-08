@@ -27,21 +27,35 @@ jQuery.fn.extend({
   }
 });
 // -------------------------------------------------------------------------------------- jump fokus
-function jump_fokus() {
+// nastaví polohu stránky
+// zamění <span style='neodkaz'> na alert
+function jump_fokus(fe_level) {
   // najdi cíl podle priority
   var jump= jQuery('#fokus_part') || jQuery('#fokus_case') || jQuery('#fokus_page');
-  if ( jump[0] )
+  if ( jump[0] ) {
 //    jump.Ezer_scrollIntoView();
     jump[0].scrollIntoView(true);
+  }
+  if ( fe_level || Ezer && Ezer.web && Ezer.web.fe_user ) {
+    // zruší barevné označené odkazů pro nepřihlášené
+    jQuery('span.neodkaz').removeClass('neodkaz')
+  }
+  else {
+    // zamění <span style='neodkaz'> na alert
+    jQuery('span.neodkaz a').prop('href','#');
+    jQuery('span.neodkaz').prop('href','#').on('click',() => {
+      jQuery('div.neodkaz').fadeIn();
+    })
+  }
   return 1;
 }
 // ----------------------------------------------------------------------------------------- context
 // předá kontext _SESSION[web] a inicializuje aplikaci pod CMS
 function context(web) {
-  jQuery("#horni").addClass("admin");
-  jQuery("#dolni").addClass("admin");
-  jQuery("#StatusIcon_idle").hide();
-  admin(0);
+//  jQuery("#horni").addClass("admin");
+//  jQuery("#dolni").addClass("admin");
+//  jQuery("#StatusIcon_idle").hide();
+//  admin(0);
   Ezer.web= {};
   for (let [id,val] of Object.entries(web)) {
     Ezer.web[id]= val;
@@ -51,16 +65,10 @@ function context(web) {
 // ----------------------------------------------------------------------------------------- noadmin
 // zpřístupní ladící a administrátorské prvky pro a=1 znepřístupní pro a=0
 function admin(a) {
-  let state= a ? 'block' : 'none',
-      margin= a ? '30px' : '0px';
-  jQuery('div.admin').css({display:state});
-  jQuery('div.cms_page').css({top:margin});
-//  var logo=  jQuery('#logo'),
-//      work=  jQuery('#work'),
-//      dolni= jQuery('#dolni');
-//  if ( !a ) work.css({height:'inherit'});
-//  if ( logo ) logo.css({zIndex:a?99999:0});
-//  if ( dolni ) dolni.css({display:a && Ezer.options.to_trace ?'block':'none'});
+//  let state= a ? 'block' : 'none',
+//      margin= a ? '30px' : '0px';
+//  jQuery('div.admin').css({display:state});
+//  jQuery('div.cms_page').css({top:margin});
   return 1;
 }
 // ---------------------------------------------------------------------------------------------- go

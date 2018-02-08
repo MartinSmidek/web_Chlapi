@@ -10,10 +10,10 @@
   $app_name=  "chlapi.online";
   $app_login= 'Guest/';                   // zakomentovat pro automatické přihlášení 
   $app_root=  'man';
-  $app_js=    array("man/2chlapi.js","man/modernizr-custom.js",
-                    "man/fotorama/fotorama.js");
-  $app_css=   array("man/mini.css","man/3chlapi.css","man/web_edit.css",
-                    "man/fotorama/fotorama.css");
+  $app_js=    array("/man/2chlapi.js","/man/modernizr-custom.js",
+                    "/man/fotorama/fotorama.js");
+  $app_css=   array("/man/css/mini.css","/man/css/3chlapi.css","/man/css/edit.css",
+                    "/man/fotorama/fotorama.css");
   $skin=      'ck';
   $abs_roots= array("/home/users/gandi/chlapi.online/web","C:/Ezer/beans/chlapi.online");
   $rel_roots= array("http://chlapi.online","http://chlapi.bean:8080","man/fotorama/fotorama.css");
@@ -23,12 +23,37 @@
   
   // (re)definice Ezer.options
   $add_pars= array(
+    'favicon' => $ezer_local ? 'chlapi_ico_local.png' : 'chlapi_ico.png',    
     'template' => "user",
     'template_meta' => $template_meta,
     'template_body' => $template,
   'CKEditor' => "{
       version:'4.6',
-      Minimal:{toolbar:[['Bold','Italic','Source']]}
+      WEB:{
+        skin:'moono-lisa',
+        toolbar:[['Maximize','Styles','-','Bold','Italic','TextColor','BGColor', 'RemoveFormat',
+          '-','JustifyLeft','JustifyCenter','JustifyRight','JustifyBlock', 'Outdent', 'Indent', 'Blockquote',
+          '-','NumberedList','BulletedList','Table',
+          '-','Link','Unlink','HorizontalRule','Image','Embed',
+          '-','Source','ShowBlocks','RemoveFormat']],
+        // Configure the Enhanced Image plugin to use classes instead of styles and to disable the
+        // resizer (because image size is controlled by widget styles or the image takes maximum
+        // 100% of the editor width).
+        image2_alignClasses: [ 'image-align-left', 'image-align-center', 'image-align-right' ],
+        image2_disableResizer: false,
+        extraPlugins:'widget,filetools,embed',
+        entities:true,  // →
+        embed_provider: '//iframe.ly/api/oembed?url={url}&callback={callback}&api_key=313b5144bfdde37b95c235',
+        uploadUrl:'feb/upload.php?root=feb&type=Images',
+        stylesSet:[
+          {name:'název',     element:'h1'},
+          {name:'nadpis',    element:'h2'},
+          {name:'podnadpis', element:'h3'},
+          {name:'odstavec',  element:'p'},
+          {name:'odstavec!', element:'p',   attributes:{'class':'p-clear'}}
+        ],
+        contentsCss:'man/css/edit.css'
+      }
     }"
   );
   
@@ -80,7 +105,7 @@ __EOD;
     <div id='logo'>
       <button id='logoContinue' style='display:none;outline:3px solid orange;'>continue</button>
       <img class="StatusIcon" id="StatusIcon_idle" src="man/img/-logo.gif" />
-      <img class="StatusIcon" id="StatusIcon_server" src="man/img/+logo.gif" />
+      <!-- img class="StatusIcon" id="StatusIcon_server" src="man/img/+logo.gif" / -->
     </div>
   </div>
   <div id='ajax_bar'></div>
@@ -95,7 +120,7 @@ __EOD;
     <div id="kuk_err"></div>
     <div id="error"></div>
   </div>
-  <div id="dolni" style="display:none">
+  <div id="dolni">
     <div id="status_bar" style='width:100%;height:16px;padding: 1px 0pt 0pt'>
       <div id='status_left' style="float:left;"></div>
       <div id='status_center' style="float:left;"></div>

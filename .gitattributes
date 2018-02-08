@@ -7,8 +7,10 @@ man/2cms_fce.php -text
 man/2mini.php -text
 man/2template_ch.php -text
 man/2web_fce.php -text
-man/3chlapi.css -text
-man/3chlapi.css.map -text
+man/css/2chlapi.css -text
+man/css/2chlapi.less -text
+man/css/edit.css -text
+man/css/mini.css -text
 man/img/+logo.gif -text
 man/img/-logo.gif -text
 man/img/buben.png -text
@@ -22,4 +24,3 @@ man/man.inc.php -text
 man/man.php -text
 man/mini.css -text
 man/modernizr-custom.js -text
-man/web_edit.css -text

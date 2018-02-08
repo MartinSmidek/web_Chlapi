@@ -19,6 +19,7 @@ define(TESTER, 16);
 # -------------------------------------------------------------------------------------==> page
 function page($a,$b) { 
   global $CMS, $fe_user, $fe_level, $be_user;
+  global $edit_entity, $edit_id;
   $CMS= 1;
   $be_user= isset($_SESSION['web']['be_user']) ? $_SESSION['web']['be_user'] : 0;
   $fe_user= isset($_SESSION['web']['fe_user']) ? $_SESSION['web']['fe_user'] : 0;
@@ -27,7 +28,8 @@ function page($a,$b) {
   $elem= eval_menu($path);
   $html= eval_elem($elem);
   $page= show_page($html);
-  return $page;
+//  return $page;
+  return (object)array('html'=>$page,'edit'=>$edit_entity,'id'=>$edit_id);
 }
 # -------------------------------------------------------------------------------------==> def_menu
 // načte záznamy z tabulky MENU do kterých uživatel smí vidět
@@ -62,11 +64,11 @@ function read_menu() {
 # -------------------------------------------------------------------------------------==> eval_menu
 # path = [ mid, ...]
 function eval_menu($path) { 
-  global $CMS, $currpage, $fe_level, $tm_active, $ezer_local;
+  global $CMS, $currpage, $fe_level, $tm_active, $ezer_local, $index;
   global  $menu, $topmenu, $mainmenu, $submenu, $submenu_shift, $elem, $backref, $top;
   $prefix= $ezer_local
-      ? "http://chlapi.bean:8080/2index.php?page="
-      : "http://chlapi.online/2index.php?page=";
+      ? "http://chlapi.bean:8080/$index?page="
+      : "http://chlapi.online/$index?page=";
   $topmenu= $mainmenu= $submenu= '';
   $currpage= implode('!',$path);
   $top= array_shift($path);
@@ -101,7 +103,7 @@ function eval_menu($path) {
           : "href='{$prefix}$href!*'";
         $top= array_shift($path);
       }
-      $topmenu.= "<a $jmp class='jump$level$active'><span>$m->nazev</span></a>";
+      $topmenu.= $m->nazev ? "<a $jmp class='jump$level$active'><span>$m->nazev</span></a>" : '';
       break;
     case 1:                             // zobrazení main menu
       $n_main++;
@@ -154,6 +156,7 @@ function eval_menu($path) {
 // ids  :: id1 [ / id2 ] , ...    -- id2 je klíč v lokální db pro ladění
 function eval_elem($desc) {
   global $CMS, $ezer_local, $index, $load_ezer;
+  global $edit_entity, $edit_id;
   $elems= explode(';',$desc);
   $html= '';
   $html= $CMS ? "<script>skup_mapka_off();</script>" : '';
@@ -174,27 +177,72 @@ function eval_elem($desc) {
     switch ($typ) {
 
     // admin -- zobrazení/skrytí administrátorských nástrojů 
-    case 'admin':   # ------------------------------------------------ . admin
-      $load_ezer= true;
-      $cms_bar= $_SESSION['man']['cms_bar']= isset($_SESSION['man']['cms_bar']) 
-          ? 1-$_SESSION['man']['cms_bar'] : 1;
-      $html.= <<<__EOT
-        <script>admin($cms_bar);</script>
-__EOT;
+//    case 'admin':   # ------------------------------------------------ . admin
+//      $load_ezer= true;
+//      $cms_bar= $_SESSION['man']['cms_bar']= isset($_SESSION['man']['cms_bar']) 
+//          ? 1-$_SESSION['man']['cms_bar'] : 1;
+//      $html.= <<<__EOT
+//        <script>admin($cms_bar);</script>
+//__EOT;
+//      break;
+
+    case 'note': # ----------------------------------------------- . note
+      $html.= "<div style='background:white;color:black;text-align:center'>POZNAMKA</div>";
+      break;
+
+    case 'xclanek': # ------------------------------------------------ . xčlánek
+      $edit_entity= 'xclanek';
+      $edit_id= $id;
+      $obsah= select("web_text","xclanek","id_xclanek=$id");
+      $html.= "
+        <div class='back'>
+          <div id='clanek2' class='home'>
+            $obsah
+          </div>
+        </div>
+      ";
       break;
 
     case 'kalendar': # ----------------------------------------------- . kalendar
       global $y;
+      // zjistíme YS + FA
       ask_server((object)array('cmd'=>'kalendar'));
+      // přidáme lokálně zapsané akce
+      ezer_connect('setkani');
+      $ra= mysql_query("
+          SELECT datum_od,datum_do,nazev,misto,web_text 
+          FROM chlapi_akce WHERE datum_od>NOW()");
+      while ( $ra && list($od,$do,$nazev,$misto,$text)=mysql_fetch_array($ra)) {
+        $oddo= datum_oddo($od,$do);
+        $y->akce[]= (object)array('od'=>$od,'nazev'=>$nazev,'misto'=>$misto,
+            'oddo'=>$oddo,'text'=>$text);
+      }
+      // seřadíme podle data
+      uasort($y->akce,function($a,$b){return $a->od>$b->od?1:-1;});
+      // zformátujeme kalendář
       $html.= "<div class='back'><div id='clanek2' class='home'><table class='kalendar'>";
       if ( count($y->akce) ) {
         foreach ($y->akce as $a) {
-          $ys= "<a href='https://www.setkani.org'>YMCA Setkání</a>";
-          $fa= "<a href='https://www.familia.cz'>YMCA Familia</a>";
-          $txt= "přihlášku najdete na webu ";
-          $org= $a->org==1 ? "$txt $ys" : ($a->org==2 ? "$txt $fa" : '');
+          if ( $a->org ) {
+            $org=
+              $a->org==1 ? "YMCA Setkání" : (
+              $a->org==2 ? "YMCA Familia" : '');
+            $web= $a->url ? "<a href='$a->url' target='web'>$org</a>" : (
+              $a->org==1 ? "<a href='https://www.setkani.org'>$org</a>" : (
+              $a->org==2 ? "<a href='https://www.familia.cz'>$org</a>" : '')
+            );
+            $web= "přihlášku najdete na webu $web";
+          }
+          else {
+            $web= $a->text;
+          }
+          $oddo= $a->oddo;
+          if ( $a->obsazeno ) {
+            $web.= ", ale akce je <b>obsazena</b>";
+            $oddo= "<s>$oddo</s>";
+          }
           $anotace= $a->anotace ? "<br><i>$a->anotace</i>" : '';
-          $html.= "<tr><td>$a->oddo</td><td><b>$a->nazev</b>, $a->misto<br>$org$anotace</td></tr>";
+          $html.= "<tr><td>$oddo</td><td><b>$a->nazev</b>, $a->misto<br>$web$anotace</td></tr>";
         }
       }
       $html.= "</table></div></div>";
@@ -250,7 +298,7 @@ __EOT;
 
     // clanky=vzor získání abstraktů článků s danou hodnotou {tx_gncase.chlapi RLIKE vzor}
     case 'clanky':    # ------------------------------------------------ . clanky
-      global $y, $backref, $top, $links;
+      global $y, $backref, $top, $links, $CMS;
       $links= "fotorama";
       $html.= "<script>jQuery('.fotorama').fotorama();</script>";
       // získání pole abstraktů článků s danými ids 
@@ -269,10 +317,17 @@ __EOT;
       if ( $top ) {
         $html= preg_replace_callback("/(###([\w\-]+)###)/",
           function($m) {
+            global $CMS;
             $fname= "pdf/$m[2].html";
             if ( file_exists($fname) ) {
-              return file_get_contents($fname);
+              if ( $CMS )
+                return "<span class='sorry'>soubor $fname existuje, 
+                        ale jako administrátor jej neuvidíš (velký overhead)</span>";
+              else
+                return file_get_contents($fname);
             }
+            else
+              return "<span class='sorry'>soubor $fname neexistuje</span>";
           }, 
           $html);
       }
@@ -440,6 +495,17 @@ __EOD;
         $bar_menu
         $menu
       </div>
+      <div class='neodkaz' style="display:none">
+        <div id='clanek2'>
+          <p>Tento odkaz je bez přihlášení neaktivní.</p>
+          <p> Pokud chceš pokračovat na místo, kam ukazuje,  musíš být přihlášen.</p>
+          <p>K přihlašovacímu dialogu se dostaneš pomocí menu  v pravém horním rohu.</p>
+          <p>Přihlásit se můžeš pomocí mailové adresy, kterou jsi 
+          uvedl v přihlášce na akci MROP. Pokud ses této akce ještě nezúčastnil, 
+          přihlášení možné nebude.</p>
+          <a class='jump' onclick="jQuery('div.neodkaz').fadeOut();">Rozumím</a>
+        </div>
+      </div>
       <div id='user_mail' style="display:$fe_user_display">
         <span id='user_mail_head'>Přihlášení uživatele</span>
         <div>
@@ -464,9 +530,10 @@ __EOD;
     return $body;
   }
   // dokončení stránky
+  global $fe_level;
   echo <<<__EOD
   $head
-  <body onload="jump_fokus();">
+  <body onload="jump_fokus($fe_level);">
     <div id='web'>
       <div id='work'>
       $body
