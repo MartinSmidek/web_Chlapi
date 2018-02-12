@@ -14,6 +14,9 @@ panel p [0,0,*,*] { type:'main'
 //    function('return admin(0)');
     go_menu(last.get);
   }
+  proc opravit(_typ,_id) { 
+    eq('xclanek',_typ); EDITOR.Clanek(_id); refresh 
+  }
 # ----------------------------------------------------------------------------==> emulace událostí
   var page: object // {html,edit,id}
   proc cms_go(ref) { echo("přepnutí webu na ",ref); do_go.get; go(ref) }
@@ -52,10 +55,10 @@ panel p [0,0,*,*] { type:'main'
       proc onclick() { hide_all; cms_go(last.get) } }
     button [123,5,,] { skill:'a|a', title:"[fa-chevron-right]", format:'d'
       proc onclick() { hide_all } }
-        button [300,5,,] { title:"[fa-edit] Editovat zobrazený článek"
-      proc onclick() { 
-        eq('xclanek',page.get('edit')); EDITOR.Clanek(page.get('id')); refresh 
-    }}
+//    button [300,5,,] { title:"[fa-edit] Editovat zobrazený článek"
+//      proc onclick() { 
+//        eq('xclanek',page.get('edit')); EDITOR.Clanek(page.get('id')); refresh 
+//    }}
     button [-95,5,,] { skill:'a|a', title:"[fa-gears] CMS" 
       proc onclick() { hide_all; CMS.modal } }
     label verze [-150,8,40,] { title:'ezer', style:'font-size:10pt;color:white' } 

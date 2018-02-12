@@ -55,6 +55,12 @@ html img {
 a.cke_button {
   padding: 3px 4px !important;
 }
+a.cke_button_off:hover,
+a.cke_button_off:focus,
+a.cke_button_off:active {
+  border: none !important;
+  outline: 1px solid #bcbcbc;
+}
 .cke_combo_text {
   padding-left: 6px !important;
   line-height: 24px !important;
@@ -210,7 +216,7 @@ div.filler {
 #bar_items span:hover {
   background-color: #E6E1CF !important;
 }
-#clanek2,
+div.home,
 #user_mail,
 #skup0,
 #skup1,
@@ -226,26 +232,26 @@ div.filler {
   border-radius: 0.5em;
   box-shadow: -1px 1px 0px #567, 1px -1px 0px #567, -1px -1px 0px #567, 5px 5px 10px #567;
 }
-#clanek2 input,
+div.home input,
 #user_mail input,
 #skup0 input,
 #skup1 input,
 #skup2 input,
-#clanek2 textarea,
+div.home textarea,
 #user_mail textarea,
 #skup0 textarea,
 #skup1 textarea,
 #skup2 textarea {
   margin-bottom: 0.5em;
 }
-#clanek2#clanek2,
-#user_mail#clanek2,
-#skup0#clanek2,
-#skup1#clanek2,
-#skup2#clanek2 {
+div.home.home,
+#user_mail.home,
+#skup0.home,
+#skup1.home,
+#skup2.home {
   max-width: 40em;
 }
-#clanek2#user_mail,
+div.home#user_mail,
 #user_mail#user_mail,
 #skup0#user_mail,
 #skup1#user_mail,
@@ -256,7 +262,7 @@ div.filler {
   right: -1em;
   top: 2em;
 }
-#clanek2#user_mail span#user_mail_head,
+div.home#user_mail span#user_mail_head,
 #user_mail#user_mail span#user_mail_head,
 #skup0#user_mail span#user_mail_head,
 #skup1#user_mail span#user_mail_head,
@@ -270,21 +276,21 @@ div.filler {
   color: #FFFFFF;
   font-weight: bold;
 }
-#clanek2#user_mail span#user_mail_txt,
+div.home#user_mail span#user_mail_txt,
 #user_mail#user_mail span#user_mail_txt,
 #skup0#user_mail span#user_mail_txt,
 #skup1#user_mail span#user_mail_txt,
 #skup2#user_mail span#user_mail_txt {
   display: block;
 }
-#clanek2#user_mail div,
+div.home#user_mail div,
 #user_mail#user_mail div,
 #skup0#user_mail div,
 #skup1#user_mail div,
 #skup2#user_mail div {
   padding: 1em;
 }
-#clanek2#user_mail div #mail,
+div.home#user_mail div #mail,
 #user_mail#user_mail div #mail,
 #skup0#user_mail div #mail,
 #skup1#user_mail div #mail,
@@ -292,7 +298,7 @@ div.filler {
   left: 4em;
   width: 80%;
 }
-#clanek2#user_mail div #pin,
+div.home#user_mail div #pin,
 #user_mail#user_mail div #pin,
 #skup0#user_mail div #pin,
 #skup1#user_mail div #pin,
@@ -300,21 +306,21 @@ div.filler {
   right: 1em;
   width: 15%;
 }
-#clanek2#user_mail div button,
+div.home#user_mail div button,
 #user_mail#user_mail div button,
 #skup0#user_mail div button,
 #skup1#user_mail div button,
 #skup2#user_mail div button {
   margin: 0.5em 1em 0 0;
 }
-#clanek2#skup0,
+div.home#skup0,
 #user_mail#skup0,
 #skup0#skup0,
 #skup1#skup0,
 #skup2#skup0 {
   width: 18em;
 }
-#clanek2#skup1,
+div.home#skup1,
 #user_mail#skup1,
 #skup0#skup1,
 #skup1#skup1,
@@ -322,7 +328,7 @@ div.filler {
   max-width: 25em;
   display: none;
 }
-#clanek2#skup2,
+div.home#skup2,
 #user_mail#skup2,
 #skup0#skup2,
 #skup1#skup2,
@@ -330,7 +336,7 @@ div.filler {
   max-width: 25em;
   display: none;
 }
-#clanek2#skup2 input,
+div.home#skup2 input,
 #user_mail#skup2 input,
 #skup0#skup2 input,
 #skup1#skup2 input,
@@ -342,7 +348,7 @@ div.filler {
   padding: 2px;
   margin-bottom: 2px;
 }
-#clanek2#skup2 textarea,
+div.home#skup2 textarea,
 #user_mail#skup2 textarea,
 #skup0#skup2 textarea,
 #skup1#skup2 textarea,
@@ -482,7 +488,7 @@ div.pdf span.sorry {
   #menu #page_sm {
     top: 5.2em;
   }
-  #clanek2 {
+  div.home {
     margin: .5em;
   }
   #list div.abstr {

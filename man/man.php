@@ -58,7 +58,11 @@
           {name:'nadpis',    element:'h2'},
           {name:'podnadpis', element:'h3'},
           {name:'odstavec',  element:'p'},
-          {name:'odstavec!', element:'p',   attributes:{'class':'p-clear'}}
+          {name:'odstavec!', element:'p',    attributes:{'class':'p-clear'}},
+          {name:'neodkaz',   element:'span', attributes:{'class':'neodkaz'}},
+          {name:'stín',      element:'p',    attributes:{'class':'shadow'}},
+          {name:'stín/i',    element:'img',  attributes:{'class':'shadow'}},
+          {name:'odkaz',     element:'a',    attributes:{'class':'jump'}}
         ],
         contentsCss:'man/css/edit.css'
       }

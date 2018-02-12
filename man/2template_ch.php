@@ -69,6 +69,9 @@ function eval_menu($path) {
   $prefix= $ezer_local
       ? "http://chlapi.bean:8080/$index?page="
       : "http://chlapi.online/$index?page=";
+//  $prefix= $ezer_local
+//      ? "http://chlapi.bean:8080/"
+//      : "http://chlapi.online/";
   $topmenu= $mainmenu= $submenu= '';
   $currpage= implode('!',$path);
   $top= array_shift($path);
@@ -194,9 +197,16 @@ function eval_elem($desc) {
       $edit_entity= 'xclanek';
       $edit_id= $id;
       $obsah= select("web_text","xclanek","id_xclanek=$id");
+      $menu= '';
+      if ( $CMS ) {
+        $menu= " oncontextmenu=\"
+            Ezer.fce.contextmenu([
+              ['editovat článek',function(el){ opravit('xclanek',$id); }]
+            ],arguments[0]);return false;\"";
+      }
       $html.= "
-        <div class='back'>
-          <div id='clanek2' class='home'>
+        <div class='back' $menu>>
+          <div id='xclanek$id' class='home'>
             $obsah
           </div>
         </div>
@@ -218,7 +228,9 @@ function eval_elem($desc) {
             'oddo'=>$oddo,'text'=>$text);
       }
       // seřadíme podle data
-      uasort($y->akce,function($a,$b){return $a->od>$b->od?1:-1;});
+      usort($y->akce,function($a,$b) { 
+        return strnatcmp($a->od,$b->od);
+      });
       // zformátujeme kalendář
       $html.= "<div class='back'><div id='clanek2' class='home'><table class='kalendar'>";
       if ( count($y->akce) ) {
@@ -391,12 +403,12 @@ __EOJ;
   $script.= <<<__EOJ
     <script src="$client/licensed/jquery-3.2.1.min.js" type="text/javascript" charset="utf-8"></script>
     <script src="$client/licensed/jquery-ui.min.js" type="text/javascript" charset="utf-8"></script>
-    <script src="man/2chlapi.js" type="text/javascript" charset="utf-8"></script>
+    <script src="/man/2chlapi.js" type="text/javascript" charset="utf-8"></script>
 __EOJ;
   
   $script.= $links!='fotorama' ? '' : <<<__EOJ
-    <script src="man/fotorama/fotorama.js" type="text/javascript" charset="utf-8"></script>
-    <link rel="stylesheet" href="./man/fotorama/fotorama.css" type="text/css" media="screen" charset="utf-8">
+    <script src="/man/fotorama/fotorama.js" type="text/javascript" charset="utf-8"></script>
+    <link rel="stylesheet" href="/man/fotorama/fotorama.css" type="text/css" media="screen" charset="utf-8">
 __EOJ;
   
   // pokud není CMS nebude uživatel přihlášen - vstup do Ezer je přes _oninit
@@ -430,9 +442,9 @@ __EOJ;
 //      <link rel="stylesheet" href="./man/web_edit.css" type="text/css" media="screen" charset="utf-8" />
   $n= isset($_GET['test']) ? $_GET['test'] : '3';
   $eb_link= <<<__EOJ
-      <link rel="stylesheet" href="./man/{$n}chlapi.css" type="text/css" media="screen" charset="utf-8" />
-      <link rel="stylesheet" href="./man/web_edit.css" type="text/css" media="screen" charset="utf-8" />
-      <link rel="stylesheet" href="./$client/licensed/font-awesome/css/font-awesome.min.css" type="text/css" media="screen" charset="utf-8" />
+      <link rel="stylesheet" href="/man/css/{$n}chlapi.css" type="text/css" media="screen" charset="utf-8" />
+      <link rel="stylesheet" href="/man/css/edit.css" type="text/css" media="screen" charset="utf-8" />
+      <link rel="stylesheet" href="/$client/licensed/font-awesome/css/font-awesome.min.css" type="text/css" media="screen" charset="utf-8" />
 __EOJ;
 
   // head
@@ -496,7 +508,7 @@ __EOD;
         $menu
       </div>
       <div class='neodkaz' style="display:none">
-        <div id='clanek2'>
+        <div id='clanek2' class='home'>
           <p>Tento odkaz je bez přihlášení neaktivní.</p>
           <p> Pokud chceš pokračovat na místo, kam ukazuje,  musíš být přihlášen.</p>
           <p>K přihlašovacímu dialogu se dostaneš pomocí menu  v pravém horním rohu.</p>
@@ -648,5 +660,29 @@ function ask_server($x) {
   }
   return 1;
 }
-
+# --------------------------------------------------------------------------------------- datum oddo
+function datum_oddo($x1,$x2) {
+  $d1= 0+substr($x1,8,2);
+  $d2= 0+substr($x2,8,2);
+  $m1= 0+substr($x1,5,2);
+  $m2= 0+substr($x2,5,2);
+  $r1= 0+substr($x1,0,4); 
+  $r2= 0+substr($x2,0,4);
+  $r= date('Y');
+  if ( $x1==$x2 ) {  //zacatek a konec je stejny den
+    $datum= "$d1. $m1" . ($r1!=$r ? ". $r1" : '');
+  }
+  elseif ( $r1==$r2 ) {
+    if ( $m1==$m2 ) { //zacatek a konec je stejny mesic
+      $datum= "$d1 - $d2. $m1. $r1";
+    }
+    else { //ostatni pripady
+      $datum= "$d1. $m1 - $d2. $m2. $r1";
+    }
+  }
+  else { //ostatni pripady
+    $datum= "$d1. $m1. $r1 - $d2. $m2. $r2";
+  }
+  return $datum;
+}
 ?>

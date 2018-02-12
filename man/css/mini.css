@@ -65,7 +65,7 @@ div.Label3.cms_page { z-index: initial; }
 .drop_area_hover {
   background-color:#ffeed6; cursor:move; }
 .drop_area_run {
-  background:url(../skins/wb/ajax_wait.gif) no-repeat center center;
+  background:url(../../skins/wb/ajax_wait.gif) no-repeat center center;
   color:transparent !important; cursor:wait; }
 
 /* obecné barvy a hodnoty pro atributy css */
@@ -106,7 +106,7 @@ div.orange_input input { background-color:#f5cf85;  }
 /* layout */
 
 html,body {                                                                     background:silver
-  /*background:  #6f93c3 url(../skins/wb/body_bg.png) repeat-x;*/ }
+  /*background:  #6f93c3 url(../../skins/wb/body_bg.png) repeat-x;*/ }
 body {
   font-family:Arial,Helvetica,sans-serif; padding:0; margin:0; /*font-size:1em;*/
   position:static; overflow:hidden; }
@@ -129,7 +129,7 @@ textarea { resize: none; }
   width:100%; height:240px; z-index:998; border-top:1px solid navy;
   position:absolute; }
 .karta {
-  background:#7389ae url(../skins/wb/doc_menu.gif) no-repeat left center; color:#ffffff; overflow:hidden;
+  background:#7389ae url(../../skins/wb/doc_menu.gif) no-repeat left center; color:#ffffff; overflow:hidden;
   font-size:14px; font-weight:bold; margin:2px 0; padding:5px 50px; clear:both; white-space:nowrap; }
 
 /* login */
@@ -182,21 +182,21 @@ ul.MainMenu {
 .MainMenu li { _width:0; _height:23px;
  }
 .MainMenu li.Active {
-  background:url(../skins/wb/menu_on3.png) right top no-repeat; padding:0 6px 0 0; min-height:25px; }
+  background:url(../../skins/wb/menu_on3.png) right top no-repeat; padding:0 6px 0 0; min-height:25px; }
 .MainMenu .Active div {
-  background:url(../skins/wb/menu_on1.png) left top no-repeat; min-height:25px; }
+  background:url(../../skins/wb/menu_on1.png) left top no-repeat; min-height:25px; }
 .MainMenu .Pasive a:hover {
-  background-image:url(../skins/wb/menu_of2_hover.png); color:#000000; }
+  background-image:url(../../skins/wb/menu_of2_hover.png); color:#000000; }
 .MainMenu .Active a {
-  background-image:url(../skins/wb/menu_on2.png); }
+  background-image:url(../../skins/wb/menu_on2.png); }
 .MainMenu .Active a:hover {
-  background:transparent url(../skins/wb/menu_of3_hover.png) repeat-x scroll 0 0 !important; }
+  background:transparent url(../../skins/wb/menu_of3_hover.png) repeat-x scroll 0 0 !important; }
 .MainMenu .Pasive a {
   color:#4d4d4d; }
 
 ul.MainTabs {
   position:relative; height:30px; margin:0; padding:0; padding-top:2px; overflow:hidden;
-  background:transparent url(../skins/wb/submenu_bg.png) repeat-x scroll center top; }
+  background:transparent url(../../skins/wb/submenu_bg.png) repeat-x scroll center top; }
 .MainTabs li {
   margin:0; padding:0; height:100%; display:block; }
 .MainTabs a {
@@ -204,10 +204,10 @@ ul.MainTabs {
 .MainTabs a {
   color:navy !important; }
 .MainTabs .Active a {
-  background:transparent url(../skins/wb/menu_on_hover.png) repeat-x scroll 0 0 !important;
+  background:transparent url(../../skins/wb/menu_on_hover.png) repeat-x scroll 0 0 !important;
   color:navy; }
 .MainTabs a:hover {
-  background:transparent url(../skins/wb/menu_off_hover.png) repeat-x scroll 0 0 !important;  }
+  background:transparent url(../../skins/wb/menu_off_hover.png) repeat-x scroll 0 0 !important;  }
 .MainTabs span { }
 li#_help a {
   color:#ef7f13 !important; font-weight:bold !important; }
@@ -330,41 +330,41 @@ div.systable {
 div.PanelPopup div.body{
   font-size:11px; line-height: 13px;}
 div.PanelPopup div.top_ul {
-  background:url(../skins/wb/clientcide/stickyWinHTML/full.png) top left no-repeat; _background:url(../skins/wb/clientcide/stickyWinHTML/full.gif) top left no-repeat;
+  background:url(../../skins/wb/clientcide/stickyWinHTML/full.png) top left no-repeat; _background:url(../../skins/wb/clientcide/stickyWinHTML/full.gif) top left no-repeat;
   height:26px; width:15px; float:left}
 div.PanelPopup div.top_ur {
   position:relative; left:0px !important; left:-4px; height:26px;
-  background:url(../skins/wb/clientcide/stickyWinHTML/full.png) top right !important; _background:url(../skins/wb/clientcide/stickyWinHTML/full.gif) top right !important;
+  background:url(../../skins/wb/clientcide/stickyWinHTML/full.png) top right !important; _background:url(../../skins/wb/clientcide/stickyWinHTML/full.gif) top right !important;
   margin:0px 0px 0px 15px !important; margin-right:-4px; padding:0px}
 div.PanelPopup h1.caption {
   clear: none !important; margin:0px !important; overflow: hidden; padding:0 !important;
   font-weight:bold; color:white; font-size:14px !important; position:relative; top:8px !important;
   left:5px !important; float: left; height: 19px !important; width:initial !important; }
 div.PanelPopup div.middle, div.PanelPopup div.closeBody {
-  background:url(../skins/wb/clientcide/stickyWinHTML/body.png) top left repeat-y; _background:url(../skins/wb/clientcide/stickyWinHTML/body.gif) top left repeat-y;
+  background:url(../../skins/wb/clientcide/stickyWinHTML/body.png) top left repeat-y; _background:url(../../skins/wb/clientcide/stickyWinHTML/body.gif) top left repeat-y;
   margin:0px 20px 0px 0px !important;
   margin-bottom: -3px; position: relative; top: 0px !important; top: -3px;}
 div.PanelPopup div.body {
-  background:url(../skins/wb/clientcide/stickyWinHTML/body.png) top right repeat-y;
+  background:url(../../skins/wb/clientcide/stickyWinHTML/body.png) top right repeat-y;
   padding:8px 30px 8px 0px !important; margin-left:5px !important; position:relative; right:-20px !important; }
 div.PanelPopup div.bottom {
   clear:both }
 div.PanelPopup div.bottom_ll {
-  background:url(../skins/wb/clientcide/stickyWinHTML/full.png) bottom left no-repeat; _background:url(../skins/wb/clientcide/stickyWinHTML/full.gif) bottom left no-repeat;
+  background:url(../../skins/wb/clientcide/stickyWinHTML/full.png) bottom left no-repeat; _background:url(../../skins/wb/clientcide/stickyWinHTML/full.gif) bottom left no-repeat;
   width:15px; height:15px; float:left}
 div.PanelPopup div.bottom_lr {
-  background:url(../skins/wb/clientcide/stickyWinHTML/full.png) bottom right; _background:url(../skins/wb/clientcide/stickyWinHTML/full.gif) bottom right;
+  background:url(../../skins/wb/clientcide/stickyWinHTML/full.png) bottom right; _background:url(../../skins/wb/clientcide/stickyWinHTML/full.gif) bottom right;
   position:relative; left:0px !important; left:-4px; margin:0px 0px 0px 15px !important; margin-right:-4px; height:15px;
   z-index:-1;}
 div.PanelPopup div.closeButtons {
-  background:url(../skins/wb/clientcide/stickyWinHTML/body.png) top right repeat-y; _background:url(../skins/wb/clientcide/stickyWinHTML/body.gif) top right repeat-y;
+  background:url(../../skins/wb/clientcide/stickyWinHTML/body.png) top right repeat-y; _background:url(../../skins/wb/clientcide/stickyWinHTML/body.gif) top right repeat-y;
   text-align: center; padding: 0px 30px 8px 0px; margin-left:5px; position:relative; right:-20px}
 div.PanelPopup div.closeButton {
-  width:13px; height:13px; background:url(../skins/wb/clientcide/stickyWinHTML/closebtn.gif) no-repeat;
+  width:13px; height:13px; background:url(../../skins/wb/clientcide/stickyWinHTML/closebtn.gif) no-repeat;
   position: absolute; right: 0px; margin:10px 15px 0px 0px !important; cursor:pointer;top:0px}
 div.PanelPopup div.dragHandle {
   width:11px; height:22px; position:relative; top:5px; left:-3px; cursor: move;
-  background:url(../skins/wb/clientcide/stickyWinHTML/drag_corner.gif); float: left;}
+  background:url(../../skins/wb/clientcide/stickyWinHTML/drag_corner.gif); float: left;}
 
 /* klávesnice a změny */
 
@@ -523,7 +523,7 @@ ul.SelectDrop {
 .SelectDrop li.selected {
   background-color:#b2b4bf; }
 .SelectDrop li.li-sel {
-  color:#d30 !important; background-image:url(../skins/wb/srafa.png); background-repeat:repeat-x; }
+  color:#d30 !important; background-image:url(../../skins/wb/srafa.png); background-repeat:repeat-x; }
 .List {
   position:absolute; z-index:1; /*outline:1px dotted #fff;*/ overflow:auto; overflow-x:hidden; }
 .ListRow {
@@ -590,7 +590,7 @@ td.BrowseNoClmn img.sort {
 .BrowseSmart td.BrowseNoClmn {
   padding-left:0; border-left:0; width:0; }
 .BrowseSmart .tr-sel td.tr-odd, .BrowseSmart .tr-sel td.tr-even {
-  background-image:url(../skins/wb/srafa.png); background-repeat:repeat-x;  }
+  background-image:url(../../skins/wb/srafa.png); background-repeat:repeat-x;  }
 /* input */
 .BrowseSmart input.td_input {
   height:15px; position:relative; margin:-1px 2px -1px -3px; padding-left:2px;
@@ -646,7 +646,7 @@ td.BrowseNoClmn img.sort {
   position:absolute; top:-15px; right:0;
   background-color:#fb6; color:navy;  }
 #status_bar {
-  background:gray; /*#eee url(../skins/wb/foot_bg.png) repeat-x;*/ color:navy; position:absolute;
+  background:gray; /*#eee url(../../skins/wb/foot_bg.png) repeat-x;*/ color:navy; position:absolute;
   height:15px; top:-16px; width:100%; padding:1px 0 0;
   z-index:10; }
 #status_bar span {
@@ -731,7 +731,7 @@ span.chng_hlp {
 #kuk div.trace_hide {
   margin-left:70px; color:#777; height:13px; overflow:hidden; white-space:pre-line; }
 #kuk span.trace_on {
-  background:url(../skins/wb/tree.png) no-repeat 55px -104px; color:#777;
+  background:url(../../skins/wb/tree.png) no-repeat 55px -104px; color:#777;
   width:69px; margin:0; padding:0; float:left; left:0; }
 #kuk span.trace_click {
   background-color:#ddd; }
@@ -768,17 +768,17 @@ span.chng_hlp {
                    background-repeat: no-repeat; background-position: center left;
                    /*text-shadow: 2px 2px 1px #5e708e;*/ }
 .CMenu .CTitle, #Content h1
-         	{ padding-left: 50px; background-image: url(../skins/wb/doc_menu.gif);}
+         	{ padding-left: 50px; background-image: url(../../skins/wb/doc_menu.gif);}
 .CProperty .CTitle
-         	{ padding-left: 50px; background-image: url(../skins/wb/method.png);}
+         	{ padding-left: 50px; background-image: url(../../skins/wb/method.png);}
 .CFunction .CTitle
-         	{ padding-left: 60px; background-image: url(../skins/wb/function.png);}
+         	{ padding-left: 60px; background-image: url(../../skins/wb/function.png);}
 .CClass .CTitle
-         	{ padding-left: 40px; background-image: url(../skins/wb/class.png);}
+         	{ padding-left: 40px; background-image: url(../../skins/wb/class.png);}
 .CModule .CTitle
-         	{ padding-left: 40px; background-image: url(../skins/wb/doc_module.gif);}
+         	{ padding-left: 40px; background-image: url(../../skins/wb/doc_module.gif);}
 .CForm .CTitle
-         	{ padding-left: 40px; background-image: url(../skins/wb/doc_form.gif);
+         	{ padding-left: 40px; background-image: url(../../skins/wb/doc_form.gif);
                   background-color:#80a2cf ; }
 #Content pre    { font: 12px "Monaco", "Courier New", Monospace; background: #f5f5f5;
                   border: 1px solid #ddd; padding: 10px 15px; color: #444; margin-left: 30px;
@@ -824,7 +824,7 @@ h4.CHeading, .STitle
 /*help*/
 
 div.Form>div.ContextHelp {
-                  background:url(../skins/wb/clientcide/stickyWinHTML/body.png) scroll center bottom repeat-y;
+                  background:url(../../skins/wb/clientcide/stickyWinHTML/body.png) scroll center bottom repeat-y;
                   padding:10px 0 10px 10px; color:black; overflow:auto }
 .ContextHelp img{ padding:5px; overflow: auto; }
 .ContextHelp hr { clear:both; color:transparent }
