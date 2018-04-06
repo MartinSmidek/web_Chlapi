@@ -43,7 +43,7 @@ function read_menu() {
   $hst1= 'localhost';
   $nam1= $ezer_local ? 'gandi'    : 'gandi';
   $pas1= $ezer_local ? ''         : 'radost';
-  $db1=  $ezer_local ? 'setkani'  : 'ezerweb';
+  $db1=  $ezer_local ? 'chlapi'  : 'ezerweb';
   $ezer_db= array( /* lokální */
     'setkani'  =>  array(0,$hst1,$nam1,$pas1,'utf8',$db1),
   );
@@ -197,12 +197,13 @@ function eval_elem($desc) {
       $edit_entity= 'xclanek';
       $edit_id= $id;
       $obsah= select("web_text","xclanek","id_xclanek=$id");
+      $obsah= str_replace('$index',$index,$obsah);
       $menu= '';
       if ( $CMS ) {
         $menu= " oncontextmenu=\"
             Ezer.fce.contextmenu([
               ['editovat článek',function(el){ opravit('xclanek',$id); }]
-            ],arguments[0]);return false;\"";
+            ],arguments[0],0,0,'#xclanek$id');return false;\"";
       }
       $html.= "
         <div class='back' $menu>>
@@ -215,15 +216,19 @@ function eval_elem($desc) {
 
     case 'kalendar': # ----------------------------------------------- . kalendar
       global $y;
+      $edit_entity= 'kalendar';
+      $edit_id= 0;
       // zjistíme YS + FA
       ask_server((object)array('cmd'=>'kalendar'));
       // přidáme lokálně zapsané akce
       ezer_connect('setkani');
-      $ra= mysql_query("
-          SELECT datum_od,datum_do,nazev,misto,web_text 
-          FROM xakce WHERE datum_od>NOW()");
-      while ( $ra && list($od,$do,$nazev,$misto,$text)=mysql_fetch_array($ra)) {
+      $qa= "SELECT id_xakce,datum_od,datum_do,nazev,misto,web_text 
+          FROM xakce WHERE datum_od>NOW() ORDER BY datum_od";
+      $ra= mysql_query($qa);
+      while ( $ra && list($id,$od,$do,$nazev,$misto,$text)=mysql_fetch_array($ra)) {
         $oddo= datum_oddo($od,$do);
+        if ( !$edit_id )
+          $edit_id= $id;
         $y->akce[]= (object)array('od'=>$od,'nazev'=>$nazev,'misto'=>$misto,
             'oddo'=>$oddo,'text'=>$text);
       }
@@ -241,9 +246,9 @@ function eval_elem($desc) {
               $a->org==2 ? "YMCA Familia" : '');
             $web= $a->url ? "<a href='$a->url' target='web'>$org</a>" : (
               $a->org==1 ? "<a href='https://www.setkani.org'>$org</a>" : (
-              $a->org==2 ? "<a href='https://www.familia.cz'>$org</a>" : '')
+              $a->org==2 ? "<a href='http://www.familia.cz'>$org</a>" : '')
             );
-            $web= "přihlášku najdete na webu $web";
+            $web= "přihlášku najdeš na webu $web";
           }
           else {
             $web= $a->text;
@@ -254,7 +259,7 @@ function eval_elem($desc) {
             $oddo= "<s>$oddo</s>";
           }
           $anotace= $a->anotace ? "<br><i>$a->anotace</i>" : '';
-          $html.= "<tr><td>$oddo</td><td><b>$a->nazev</b>, $a->misto<br>$web$anotace</td></tr>";
+          $html.= "<tr><td>$oddo</td><td><b>$a->nazev</b>, $a->misto<br><i>$web$anotace</i></td></tr>";
         }
       }
       $html.= "</table></div></div>";
@@ -555,6 +560,26 @@ __EOD;
   </html>
 __EOD;
 }
+/** ========================================================================================> KLIENT */
+# dá další nebo předchozí akci
+function next_xakce($curr_id,$smer=1) {
+  $msg= '';
+  if ( $curr_id ) {
+    $curr_datum= select('datum_od','xakce',"id_xakce=$curr_id");
+    $rel= $smer==1 ? '<' : '>';
+    $mmm= $smer==1 ? 'MAX' : 'MIN';
+    $id= select1("SUBSTR($mmm(CONCAT(datum_od,id_xakce)),11)",'xakce',
+        "datum_od>NOW() AND datum_od $rel '$curr_datum'");
+    if ( !$id ) {
+      $id= $curr_id;
+      $msg= "To je ".($smer==1 ? 'první' : 'poslední')." připravovaná akce";
+    }
+  }
+  else {
+    $msg= "";
+  }
+  return (object)array('msg'=>$msg,'id'=>$id);
+}
 /** ========================================================================================> SERVER */
 # funkce na serveru přes AJAX
 function servant($qry,$context=null) {
@@ -670,7 +695,7 @@ function datum_oddo($x1,$x2) {
   $r2= 0+substr($x2,0,4);
   $r= date('Y');
   if ( $x1==$x2 ) {  //zacatek a konec je stejny den
-    $datum= "$d1. $m1" . ($r1!=$r ? ". $r1" : '');
+    $datum= "$d1. $m1. $r1"; // . ($r1!=$r ? ". $r1" : '');
   }
   elseif ( $r1==$r2 ) {
     if ( $m1==$m2 ) { //zacatek a konec je stejny mesic

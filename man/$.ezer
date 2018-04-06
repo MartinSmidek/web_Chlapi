@@ -22,29 +22,31 @@ panel p [0,0,*,*] { type:'main'
   proc cms_go(ref) { echo("přepnutí webu na ",ref); do_go.get; go(ref) }
   proc cms_menu(ref) { echo("přepnutí dle menu ",ref); do_go.get; go_menu(ref) }
   proc refresh() { cms_go(last.get); }
+  proc ask_page(a,b) {
+    page.set(ask('page',a,b));
+    w.page.set(page.get('html'));
+    f.editace.Init(page.get('edit'));
+  }
   proc go(ref) { 
     echo('go ',ref);
     history.set(last.get);
     last.set(ref);
     f.verze.set(sys('ezer','version')); 
-    page.set(ask('page',function("return Ezer.app_root;"),ref));
-    w.page.set(page.get('html'));
+    ask_page(function("return Ezer.app_root;"),ref);
     function("return jump_fokus();");
   }
   proc cms_go_case(pid) { var y:object, ref:text
     [ has_skill('a'); f.clr.get; clear ];
     y.set(ask('pid2menu',pid));
     f.verze.set(sys('ezer','version')); 
-    page.set(ask('page',function('mref',"history_push2(mref);return Ezer.app_root;",y.url),y.page));
-    w.page.set(page.get('html'));
+    ask_page(function('mref',"history_push2(mref);return Ezer.app_root;",y.url),y.page);
     function("return jump_fokus();");
   }
   proc go_menu(ref) { echo('go_menu ',ref);
     history.set(last.get);
     last.set(ref);
     f.verze.set(sys('ezer','version')); 
-    page.set(ask('page',function("return Ezer.app_root;"),ref));
-    w.page.set(page.get('html'));
+    ask_page(function("return Ezer.app_root;"),ref);
   }
 # ----------------------------------------------------------------------------==> control bar
   form _f [,,*,30] { css:'grey admin', style:'z-index:9999;position:sticky'
@@ -55,10 +57,16 @@ panel p [0,0,*,*] { type:'main'
       proc onclick() { hide_all; cms_go(last.get) } }
     button [123,5,,] { skill:'a|a', title:"[fa-chevron-right]", format:'d'
       proc onclick() { hide_all } }
-//    button [300,5,,] { title:"[fa-edit] Editovat zobrazený článek"
-//      proc onclick() { 
-//        eq('xclanek',page.get('edit')); EDITOR.Clanek(page.get('id')); refresh 
-//    }}
+    button editace [300,5,,] { 
+      proc Init(edt) {
+        eq('xclanek',edt); this.enable(1); this.set('[fa-edit] Editovat zobrazený článek')
+      | eq('kalendar',edt); this.enable(1); this.set('[fa-edit] Editovat kalendář')
+      | this.set('editace přes www.setkani.org'); this.enable(0)
+    }
+      proc onclick() { 
+        eq('xclanek',page.get('edit')); EDITOR.Clanek(page.get('id')); refresh 
+      | eq('kalendar',page.get('edit')); EDITOR.Kalendar(page.get('id')); refresh 
+    }}
     button [-95,5,,] { skill:'a|a', title:"[fa-gears] CMS" 
       proc onclick() { hide_all; CMS.modal } }
     label verze [-150,8,40,] { title:'ezer', style:'font-size:10pt;color:white' } 
@@ -189,6 +197,13 @@ panel EDITOR [0,0,710,530] { title:' Úprava článku na webu', type:'popup'
   var id:number,
       path:text
   use c: form _c [0,0,,] { tag:'c', format:'n' }
+  use k: form _k [0,0,,] { tag:'k', format:'n' }
+  proc Kalendar(_key) {
+    id.set(_key);
+    panel.display(2,'k'); 
+    [ _key; k.load(_key) | k.init ];
+    panel.modal(10,40) 
+  }
   proc Clanek(_key) {[
     id.set(_key);
     panel.display(2,'c'); 
@@ -204,6 +219,38 @@ panel EDITOR [0,0,710,530] { title:' Úprava článku na webu', type:'popup'
     UPLOAD.g.drop.Init;
     [ function('edit','drop',"edit.label_drop=drop; return 1;",obsah,UPLOAD.g.drop) ]
   }
+  # -----------------------------------------------------------------------------==> edit kalendář
+  # úprava kalendáře
+  form _k [10,10,710,460] {
+    button [0,5,,]  { title:"[fa-chevron-left]", help:'starší akce'
+      proc onclick() { next_xakce(1); }}
+    button [21,5,,] { title:"[fa-repeat]"          
+      proc onclick() { form.load(id.get) } }
+    button [43,5,,] { title:"[fa-chevron-right]", help:'novější akce'
+      proc onclick() { next_xakce(-1); }}
+    button  [-99,5,,] { title:'Nová akce', help:'vytvořit novou akci'
+      proc onclick() { form.init; }}
+    button  [-46,5,,] { title:'Uložit', help:'ukončit editor a uložit změny'
+      proc onclick() { 
+        form.same
+      | form.key; form.save; form.load; panel.hide(1); 
+      | form.insert; form.load; panel.hide(1); 
+      }}
+    button  [-1,5,,] { title:'Zpět', help:'ukončit editor bez uložení změn'
+      proc onclick() { panel.hide(0); }}
+    field [68,5,50,] { data:xakce.id_xakce, format:'o' }
+    // položky akce
+    field [0,40,85,] { type:'date', title:'^ode dne', data:xakce.datum_od }
+    field [95,40,85,] { type:'date', title:'^do dne', data:xakce.datum_do }
+    field [190,40,268,] { title:'^název', data:xakce.nazev }
+    field [470,40,240,] { title:'^místo', data:xakce.misto }
+    edit obsah [0,70,710,450] { type:'html', data:xakce.web_text, par:°{toolbar:'WEB'} }
+    // funkce
+    proc next_xakce(smer) { var y:object
+      y.set(ask('next_xakce',id.get,smer)); y.msg; warning(y.msg)
+    | id.set(y.id); form.load(y.id) 
+    }
+  }
   # -----------------------------------------------------------------------------==> edit clanek    
   # oprava textu článku
   form _c [10,10,710,460] {
@@ -218,7 +265,7 @@ panel EDITOR [0,0,710,530] { title:' Úprava článku na webu', type:'popup'
         UPLOAD.modal //(50,100)
       }
     }
-    edit obsah [0,40,710,480] { type:'html', data:xclanek.web_text, par:°{toolbar:'WEB'} }
+    edit obsah [0,40,712,480] { type:'html', data:xclanek.web_text, par:°{toolbar:'WEB'} }
   }
 }
 # ----------------------------------------------------------------------------==> UPLOAD
@@ -309,8 +356,8 @@ table xakce { key_id:'id_xakce', db:'setkani'
   number id_xakce { key:'primary' }
   text nazev
   text misto
-  date datum_od
-  date datum_do
+  date datum_od { sql_pipe:'sql_date1' }
+  date datum_do { sql_pipe:'sql_date1' }
   number web_stav
   text web_menu
   text web_text

@@ -33,6 +33,9 @@ html #page {
   width: 100%;
   height: 0;
 }
+html #page span.neodkaz {
+  background: none;
+}
 html div.mapa.Panel3,
 html div.mapa.Form3,
 html div.mapa.Label3 {

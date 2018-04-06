@@ -1,5 +1,5 @@
 <?php
-// <editor-fold defaultstate="collapsed" desc="EZER functions">
+// <editor-fold defaultstate="collapsed" desc="++++++++++++++++++++++++++ EZER functions">
 /** ==========================================================================================> EZER */
 function wu($x) { return $x; }
 # -------------------------------------------------------------------------------------- kolik_1_2_5
@@ -615,7 +615,7 @@ end:
   return $ret;
 }
 // </editor-fold>
-// <editor-fold defaultstate="collapsed" desc="CMS functions">
+// <editor-fold defaultstate="collapsed" desc="++++++++++++++++++++++++++ CMS functions">
 # ------------------------------------------------------------------------------------ login by_mail
 # VERIFIKACE
 #   pokud $x->verify pouze vrátí základní info o osobě (user,mrop,name) jinak jde o
