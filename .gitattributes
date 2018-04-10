@@ -1,11 +1,15 @@
 * text=auto !eol
+/chlapi.doxy -text
+doxygen/doxygen.md -text
+doxygen/mainpage.dox -text
+doxygen/procesy-login.md -text
+doxygen/procesy-prihlasky.md -text
+doxygen/procesy.md -text
 /index -text
 man/$.ezer -text
 man/2chlapi.js -text
-man/2cms_fce.php -text
 man/2mini.php -text
 man/2template_ch.php -text
-man/2web_fce.php -text
 man/css/2chlapi.css -text
 man/css/2chlapi.less -text
 man/css/3chlapi.css -text
@@ -23,5 +27,4 @@ man/img/man_local.png -text
 man/img/new.png -text
 man/man.inc.php -text
 man/man.php -text
-man/modernizr-custom.js -text
 man/upload.php -text

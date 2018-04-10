@@ -193,7 +193,7 @@ panel CMS [0,0,600,296] { type:'popup',  title:'CMS - definice menu',
   }
 }
 # ==========================================================================================> EDITOR
-panel EDITOR [0,0,710,530] { title:' Úprava článku na webu', type:'popup'
+panel EDITOR [0,0,710,530] { type:'popup'
   var id:number,
       path:text
   use c: form _c [0,0,,] { tag:'c', format:'n' }
@@ -202,6 +202,7 @@ panel EDITOR [0,0,710,530] { title:' Úprava článku na webu', type:'popup'
     id.set(_key);
     panel.display(2,'k'); 
     [ _key; k.load(_key) | k.init ];
+    panel.set_attrib('title','Úprava položky kalendáře');
     panel.modal(10,40) 
   }
   proc Clanek(_key) {[
@@ -211,6 +212,7 @@ panel EDITOR [0,0,710,530] { title:' Úprava článku na webu', type:'popup'
     path.set(conc('/inc/c/',_key));                  // cesta pro přílohy
     ask('session','man,inc_path',path.get);
     join_drop(c.obsah);
+    panel.set_attrib('title','Úprava článku');
     panel.modal(10,40) 
   ]}
   proc join_drop(obsah) {
@@ -228,6 +230,9 @@ panel EDITOR [0,0,710,530] { title:' Úprava článku na webu', type:'popup'
       proc onclick() { form.load(id.get) } }
     button [43,5,,] { title:"[fa-chevron-right]", help:'novější akce'
       proc onclick() { next_xakce(-1); }}
+    field [68,5,50,] { data:xakce.id_xakce, format:'o' }
+    label [120,7,400,] { title:"<== nalezni akci, kterou chceš upravit nebo založ novou ==>", 
+        format:'c', style:"font-weight:bold;color:darkgreen;background-color:#c0e2c2" }
     button  [-99,5,,] { title:'Nová akce', help:'vytvořit novou akci'
       proc onclick() { form.init; }}
     button  [-46,5,,] { title:'Uložit', help:'ukončit editor a uložit změny'
@@ -238,7 +243,6 @@ panel EDITOR [0,0,710,530] { title:' Úprava článku na webu', type:'popup'
       }}
     button  [-1,5,,] { title:'Zpět', help:'ukončit editor bez uložení změn'
       proc onclick() { panel.hide(0); }}
-    field [68,5,50,] { data:xakce.id_xakce, format:'o' }
     // položky akce
     field [0,40,85,] { type:'date', title:'^ode dne', data:xakce.datum_od }
     field [95,40,85,] { type:'date', title:'^do dne', data:xakce.datum_do }

@@ -11,7 +11,7 @@ function kolik_1_2_5($kolik,$tvary) { //trace();
 }
 # -------------------------------------------------------------------------------------------- trace
 # $note je poznámka uvedená za trasovací informací
-function trace($note='',$coding='') {
+function trace($note='') { //,$coding='') {
   global $trace, $totrace;
   if ( strpos($totrace,'u')===false ) return;
   $act= debug_backtrace();
@@ -616,6 +616,7 @@ end:
 }
 // </editor-fold>
 // <editor-fold defaultstate="collapsed" desc="++++++++++++++++++++++++++ CMS functions">
+/*
 # ------------------------------------------------------------------------------------ login by_mail
 # VERIFIKACE
 #   pokud $x->verify pouze vrátí základní info o osobě (user,mrop,name) jinak jde o
@@ -688,7 +689,7 @@ function login_by_mail($x, $y) { // přesunuto do mini.php aby bylo společné s
   $y->user = $ido;
   $y->mrop = $iniciace;
   $y->name = "$jmeno $prijmeni";
-  $PIN_alive = 24;              /** povolená doba života vydaného PIN v hodinách */
+  $PIN_alive = 24;          //    /** povolená doba života vydaného PIN v hodinách * /
   // diskuse PIN
   if ( !$x->pin && $pin && $diff<=$PIN_alive ) {
     // PIN nebyl uveden a starý byl ještě platný
@@ -742,5 +743,6 @@ function login_by_mail($x, $y) { // přesunuto do mini.php aby bylo společné s
 end:
   return;
 }
+*/
 // </editor-fold>
 ?>

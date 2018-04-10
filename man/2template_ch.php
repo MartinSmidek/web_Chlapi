@@ -11,11 +11,11 @@
  *  1 spravce DS správce Domu Setkání a osoby zodpovědné za provoz
  * 12 VPS	    aktivní vedoucí páry skupin, lektoři, organizátoři YMCA Setkání
  */
-define(ADMIN,   1);
-define(SUPER,   2);
-define(REDAKTOR,4);
-define(MROP,    8);
-define(TESTER, 16);
+define(ADMIN,   1); // a
+define(SUPER,   2); // s
+define(REDAKTOR,4); // e
+define(MROP,    8); // i
+define(TESTER, 16); // t
 # -------------------------------------------------------------------------------------==> page
 function page($a,$b) { 
   global $CMS, $fe_user, $fe_level, $be_user;
@@ -709,5 +709,28 @@ function datum_oddo($x1,$x2) {
     $datum= "$d1. $m1. $r1 - $d2. $m2. $r2";
   }
   return $datum;
+}
+# ------------------------------------------------------------------------------------------ session
+# getter a setter pro _SESSION
+function session($is,$value=null) {
+  $i= explode(',',$is);
+  if ( is_null($value) ) {
+    // getter
+    switch (count($i)) {
+    case 1: $value= $_SESSION[$i[0]]; break;
+    case 2: $value= $_SESSION[$i[0]][$i[1]]; break;
+    case 3: $value= $_SESSION[$i[0]][$i[1]][$i[2]]; break;
+    }
+  }
+  else {
+    // setter
+    switch (count($i)) {
+    case 1: $_SESSION[$i[0]]= $value; break;
+    case 2: $_SESSION[$i[0]][$i[1]]= $value; break;
+    case 3: $_SESSION[$i[0]][$i[1]][$i[2]]= $value; break;
+    }
+    $value= 1;
+  }
+  return $value;
 }
 ?>

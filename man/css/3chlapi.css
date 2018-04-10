@@ -212,6 +212,7 @@ div.filler {
   background-color: #FFFFFF;
   padding: .5em;
   display: block;
+  text-align: left;
 }
 #bar_items span.separator {
   border-top: 1px solid #999;

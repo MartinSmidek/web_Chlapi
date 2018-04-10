@@ -7,7 +7,7 @@ img.StatusIcon { filter: drop-shadow(3px 3px 3px #333); }
 }*/
 
 .Check3 { font-size: .8em; }
-div.Popup3 { background-color: #c0e2c2a8; }
+div.Popup3 { background-color: #c0e2c2d1; }
 div.MenuLeft3 { width: 210px; float: left; }  
 
 /* konec oprav kvůli webu */
@@ -459,7 +459,7 @@ div.datepicker_vista {
 .EditHtml {  /*border:1px dotted green;*/
   position:absolute; }
 
-button {
+button.Button3, button.Button {
   position:absolute; font-size:9pt; white-space:nowrap; z-index:1; padding:1px 4px; }
 @-moz-document url-prefix() { button { padding:0px 4px; } }
 button::-moz-focus-inner { border:0; padding:0; }

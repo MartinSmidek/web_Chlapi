@@ -10,7 +10,7 @@
   $app_name=  "chlapi.online";
   $app_login= 'Guest/';                   // zakomentovat pro automatické přihlášení 
   $app_root=  'man';
-  $app_js=    array("/man/2chlapi.js","/man/modernizr-custom.js",
+  $app_js=    array("/man/2chlapi.js", //"/man/modernizr-custom.js",
                     "/man/fotorama/fotorama.js");
   $app_css=   array("/man/css/mini.css","/man/css/3chlapi.css","/man/css/edit.css",
                     "/man/fotorama/fotorama.css");
