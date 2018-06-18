@@ -5,7 +5,7 @@ doxygen/mainpage.dox -text
 doxygen/procesy-login.md -text
 doxygen/procesy-prihlasky.md -text
 doxygen/procesy.md -text
-/index -text
+/index.php -text
 man/$.ezer -text
 man/2chlapi.js -text
 man/2mini.php -text

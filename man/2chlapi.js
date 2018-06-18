@@ -225,8 +225,25 @@ function me_login__(y) {
     jQuery('#user_mail').html(y.msg);
   }
   if ( y && y.fe_user ) {
+    // pro editory umožni potlačit editační režim
+    if ( y.level & 4 ) {
+      jQuery('a.noedit').css({display:'inline-block'});
+    }
+    else {
+      refresh();
+    }
+  }
+}
+function me_noedit(no) {
+  if ( no ) {
+    ask({cmd:'me_noedit'},me_noedit__);
+  }
+  else {
     refresh();
   }
+}
+function me_noedit__(y) {
+  refresh();
 }
 //function me_ip(then) {
 //  then.run(then.page,'-'); return;                              // vypnutí

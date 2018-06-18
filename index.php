@@ -2,7 +2,7 @@
 
 $cms= 'man';
 $ezer_local= $_SERVER['SERVER_NAME']=='chlapi.bean' ? 1 : 0;
-$index= $ezer_local ? "2index.php" : "2index.php";
+$index= $ezer_local ? "index.php" : "index.php";
 
 //$secret= "WEBKEYNHCHEIYSERVANTAFVUOVKEYWEB";
 //$servant= $local_test

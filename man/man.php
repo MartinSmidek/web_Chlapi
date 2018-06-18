@@ -12,7 +12,7 @@
   $app_root=  'man';
   $app_js=    array("/man/2chlapi.js", //"/man/modernizr-custom.js",
                     "/man/fotorama/fotorama.js");
-  $app_css=   array("/man/css/mini.css","/man/css/3chlapi.css","/man/css/edit.css",
+  $app_css=   array("/man/css/mini.css","/man/css/2chlapi.css","/man/css/edit.css",
                     "/man/fotorama/fotorama.css");
   $skin=      'ck';
   $abs_roots= array("/home/users/gandi/chlapi.online/web","C:/Ezer/beans/chlapi.online");

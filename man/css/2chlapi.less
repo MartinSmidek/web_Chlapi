@@ -83,7 +83,8 @@ div.podpis {
   text-align: right; font-style: italic; clear: both; }
 // ------------------------------------------------------------------------------------- logo + menu
 div.filler { height: 2em; }
-// logo
+// logo, motto jen někdy
+#motto { display:none; }
 #logo {
   .shadow-img(); 
   position: absolute; left: 0.5em; top: 0.5em; width: 6em; }
@@ -99,6 +100,7 @@ div.filler { height: 2em; }
       vertical-align: middle; height: 2.2em;  display: table-cell;}
   }
   // top menu 
+  /*#page_tm::before { color:white; }*/
   #page_tm { 
     margin-right: 2em;
     span { 
@@ -259,6 +261,12 @@ div.pdf {
 
 // =============================================================================== responsive design 
 
+// ------------------------------------------------------------------------------- zobrazit motto
+
+@media all and (min-width:47em) {
+  #motto { display:block; position: absolute; left: 6.5em; top: 2em; color:#bac59d; .shadow-txt } 
+}
+
 // ------------------------------------------------------------------------------- MV mobil na výšku 
 
 @media all and (max-width:30em) {
@@ -310,7 +318,7 @@ div.pdf {
 // ------------------------------------------------------------------------------ PC velká obrazovka 
 
 @media all and (min-width: 70em) {
-  #page_tm::before { content:"C"; }
+#page_tm::before { content:"C"; }
   #web { 
     width:92em; margin: 0 auto; }
   #menu { font-size:10pt; 

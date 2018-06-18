@@ -19,7 +19,7 @@ define(TESTER, 16); // t
 # -------------------------------------------------------------------------------------==> page
 function page($a,$b) { 
   global $CMS, $fe_user, $fe_level, $be_user;
-  global $edit_entity, $edit_id;
+//  global $edit_entity, $edit_id;
   $CMS= 1;
   $be_user= isset($_SESSION['web']['be_user']) ? $_SESSION['web']['be_user'] : 0;
   $fe_user= isset($_SESSION['web']['fe_user']) ? $_SESSION['web']['fe_user'] : 0;
@@ -29,7 +29,8 @@ function page($a,$b) {
   $html= eval_elem($elem);
   $page= show_page($html);
 //  return $page;
-  return (object)array('html'=>$page,'edit'=>$edit_entity,'id'=>$edit_id);
+//  return (object)array('html'=>$page,'edit'=>$edit_entity,'id'=>$edit_id);
+  return (object)array('html'=>$page);
 }
 # -------------------------------------------------------------------------------------==> def_menu
 // načte záznamy z tabulky MENU do kterých uživatel smí vidět
@@ -158,8 +159,8 @@ function eval_menu($path) {
 // desc :: key [ = ids ]
 // ids  :: id1 [ / id2 ] , ...    -- id2 je klíč v lokální db pro ladění
 function eval_elem($desc) {
-  global $CMS, $ezer_local, $index, $load_ezer;
-  global $edit_entity, $edit_id;
+  global $CMS, $ezer_local, $index, $load_ezer, $fe_level;
+//  global $edit_entity, $edit_id;
   $elems= explode(';',$desc);
   $html= '';
   $html= $CMS ? "<script>skup_mapka_off();</script>" : '';
@@ -194,8 +195,8 @@ function eval_elem($desc) {
       break;
 
     case 'xclanek': # ------------------------------------------------ . xčlánek
-      $edit_entity= 'xclanek';
-      $edit_id= $id;
+//      $edit_entity= 'xclanek';
+//      $edit_id= $id;
       $obsah= select("web_text","xclanek","id_xclanek=$id");
       $obsah= str_replace('$index',$index,$obsah);
       $menu= '';
@@ -206,7 +207,7 @@ function eval_elem($desc) {
             ],arguments[0],0,0,'#xclanek$id');return false;\"";
       }
       $html.= "
-        <div class='back' $menu>>
+        <div class='back' $menu>
           <div id='xclanek$id' class='home'>
             $obsah
           </div>
@@ -216,7 +217,7 @@ function eval_elem($desc) {
 
     case 'kalendar': # ----------------------------------------------- . kalendar
       global $y;
-      $edit_entity= 'kalendar';
+//      $edit_entity= 'kalendar';
       $edit_id= 0;
       // zjistíme YS + FA
       ask_server((object)array('cmd'=>'kalendar'));
@@ -236,8 +237,15 @@ function eval_elem($desc) {
       usort($y->akce,function($a,$b) { 
         return strnatcmp($a->od,$b->od);
       });
+      $menu= '';
+      if ( $CMS ) {
+        $menu= " oncontextmenu=\"
+            Ezer.fce.contextmenu([
+              ['editovat kalendář',function(el){ opravit('kalendar',$edit_id); }]
+            ],arguments[0],0,0,'#xclanek$id');return false;\"";
+      }
       // zformátujeme kalendář
-      $html.= "<div class='back'><div id='clanek2' class='home'><table class='kalendar'>";
+      $html.= "<div class='back' $menu><div id='clanek2' class='home'><table class='kalendar'>";
       if ( count($y->akce) ) {
         foreach ($y->akce as $a) {
           if ( $a->org ) {
@@ -284,12 +292,15 @@ __EOT;
 
     case 'skupiny': # ------------------------------------------------ . skupiny
       $load_ezer= true;
+      $tabulku= $fe_level
+          ? "<a target='tab' href='https://docs.google.com/spreadsheets/d/1mp-xXrF1I0PAAXexDH5FA-n5L71r5y0Qsg75cU82X-4/edit#gid=0'>Tabulku</a>"
+          : "Tabulku";
       $html.= <<<__EOT
         <div id='skup0' class="skup">V mapě ČR jsou zobrazena místa, na kterých se
           muži scházejí v malých skupinách, aby si pomáhali ... Pokud bydlíš poblíž
           nějaké skupiny a chceš vědět víc, klikni na její umístění.
           <br>
-          Seznam skupin spravuje Lukáš Novotný - lenochod<i class='fa fa-at'></i>tiscali.cz 
+          $tabulku seznamu skupin spravuje Lukáš Novotný - lenochod<i class='fa fa-at'></i>tiscali.cz 
         </div>
         <div id="skup1"></div>
         <div id="skup2"></div>
@@ -399,6 +410,16 @@ function show_page($html) {
   $script= '';
   $client= "./ezer3/client";
 
+  // Google Analytics
+  $GoogleAnalytics= $ezer_local ? '' : <<<__EOD
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+    ga('create', 'UA-99235788-2', 'auto');
+    ga('send', 'pageview');
+__EOD;
+
   // gmaps
   $api_key= "AIzaSyAq3lB8XoGrcpbCKjWr8hJijuDYzWzImXo"; // Google Maps JavaScript API 'answer-test'
   $script.= !$load_ezer ? '' : <<<__EOJ
@@ -433,6 +454,7 @@ __EOJ
         _oninit: 'skup_mapka',
         skin: 'db'
       };
+    $GoogleAnalytics
     </script>
 __EOJ;
 
@@ -445,7 +467,7 @@ __EOJ;
 __EOJ;
 
 //      <link rel="stylesheet" href="./man/web_edit.css" type="text/css" media="screen" charset="utf-8" />
-  $n= isset($_GET['test']) ? $_GET['test'] : '3';
+  $n= isset($_GET['test']) ? $_GET['test'] : '2';
   $eb_link= <<<__EOJ
       <link rel="stylesheet" href="/man/css/{$n}chlapi.css" type="text/css" media="screen" charset="utf-8" />
       <link rel="stylesheet" href="/man/css/edit.css" type="text/css" media="screen" charset="utf-8" />
@@ -453,7 +475,7 @@ __EOJ;
 __EOJ;
 
   // head
-  $icon= $ezer_local ? "man/img/chlapi_ico_local.png" : "man/img/chlapi_ico.png";
+  $icon= $ezer_local ? "/man/img/chlapi_ico_local.png" : "/man/img/chlapi_ico.png";
   $head=  <<<__EOD
   <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
   <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en" dir="ltr">
@@ -507,7 +529,10 @@ __EOD;
     $fe_user_display= 'none';
   $body=  <<<__EOD
     <div id='page'>
-      <img id='logo' src='man/img/kriz.png' onclick="change_info();">
+      <img id='logo' src='/man/img/kriz.png' onclick="change_info();">
+      <div id='motto'>Mladý muž, který neumí plakat, je barbar.
+          <br>Starý muž, který se neumí smát, je hlupák.
+      </div>
       <div id='menu'>
         $bar_menu
         $menu
@@ -535,6 +560,8 @@ __EOD;
           <br>
           <a class='jump' onclick="me_login('$currpage');">Přihlásit</a>
           <a class='jump' onclick="jQuery('#user_mail').hide();">Zpět</a>
+          <a class='jump noedit' onclick="me_noedit(1);">chci prohlížet</a>
+          <a class='jump noedit' onclick="me_noedit(0);">chci editovat</a>
         </div>
       </div>
       $filler
@@ -572,7 +599,10 @@ function next_xakce($curr_id,$smer=1) {
         "datum_od>NOW() AND datum_od $rel '$curr_datum'");
     if ( !$id ) {
       $id= $curr_id;
-      $msg= "To je ".($smer==1 ? 'první' : 'poslední')." připravovaná akce";
+      $msg= "To je informace o ".($smer==1 ? 'první' : 'poslední').
+          " připravovaná akci - ostatní informace jsou do kalendáře importovány přímo z "
+          . "databáze akcí YMCA Setkání a YMCA Familia";
+      
     }
   }
   else {
@@ -618,7 +648,7 @@ function ask_server($x) {
   
   case 'akce':     // ------------------------------------------------------------------------- akce
     $y= (object)array('msg'=>'neznámá akce');
-    servant("akce=$x->chlapi&back=$x->back"); // part.uid
+    servant("akce=$x->chlapi&back=$x->back&groups={$_SESSION['web']['fe_usergroups']}"); // part.uid
     break;
   
   case 'knihy':   // ------------------------------------------------------------------------- knihy
@@ -659,7 +689,7 @@ function ask_server($x) {
     servant("cmd=me_login&mail=$x->mail&pin=$x->pin&web=$x->web");
     if ( isset($y->state) && $y->state=='ok') {
       // přihlas uživatele jako FE
-      $_SESSION['web']['fe_usergroups']= '4,6';
+      $_SESSION['web']['fe_usergroups']= '0,4,6';
       $_SESSION['web']['fe_userlevel']= 0;
       $_SESSION['web']['fe_user']= $y->user;
       $_SESSION['web']['fe_level']= $y->level | ($y->mrop ? MROP : 0);
@@ -667,6 +697,11 @@ function ask_server($x) {
       $y->fe_user= $y->user;
       $y->be_user= 0;
     } 
+    break;
+    
+  case 'me_noedit': // ---------------------------------------------------------------------- noedit
+    // zrušení možnosti editovat => plné prohlížení
+    $_SESSION['web']['fe_level']= $_SESSION['web']['fe_level'] & ~ADMIN & ~SUPER & ~REDAKTOR;
     break;
 
   case 'be_logout': // ---------------------------------------------------------------------- logout
