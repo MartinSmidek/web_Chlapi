@@ -66,7 +66,7 @@ function read_menu() {
 # path = [ mid, ...]
 function eval_menu($path) { 
   global $CMS, $currpage, $fe_level, $tm_active, $ezer_local, $index;
-  global  $menu, $topmenu, $mainmenu, $submenu, $submenu_shift, $elem, $backref, $top;
+  global  $menu, $topmenu, $mainmenu, $submenu, $submenu_shift, $elem, $curr_menu, $backref, $top;
   $prefix= $ezer_local
       ? "http://chlapi.bean:8080/$index?page="
       : "http://chlapi.online/$index?page=";
@@ -78,6 +78,7 @@ function eval_menu($path) {
   $top= array_shift($path);
   $main= $main_ref= $main_sub= 0;
   $elem= '';
+  $curr_menu= 0;
   $input= '';
   $tm_active= '';
   $n_subs= $n_main= $o_main= 0;  // počet submenu, počet mainmenu, pořadí aktivního mainmenu zprava
@@ -100,6 +101,7 @@ function eval_menu($path) {
       if ( $m->ref===$top ) {
         $active= ' active';
         $elem= $m->elem;
+        $curr_menu= $m;
 //        $top= array_pop($path);
         $tm_active= " class='active'";
         $backref= $CMS 
@@ -119,6 +121,7 @@ function eval_menu($path) {
         $o_main= $n_main;
         $active= $m->has_subs ? ' active subs' : ' active';
         $elem= $m->elem;
+        $curr_menu= $m;
         $backref= $CMS 
           ? "onclick=\"go(arguments[0],'page=$href!*','{$prefix}$href!*','$input',0);\""
           : "href='{$prefix}$href!*'";
@@ -134,6 +137,7 @@ function eval_menu($path) {
         if ( $top ? $m->ref===$top : $m->mid===$main_sub ) {
           $active= ' active';
           $elem= $m->elem;
+          $curr_menu= $m;
           $backref= $CMS 
             ? "onclick=\"go(arguments[0],'page=$href!*','{$prefix}$href!*','$input',0);\""
             : "href='{$prefix}$href!*'";
@@ -159,7 +163,7 @@ function eval_menu($path) {
 // desc :: key [ = ids ]
 // ids  :: id1 [ / id2 ] , ...    -- id2 je klíč v lokální db pro ladění
 function eval_elem($desc) {
-  global $CMS, $ezer_local, $index, $load_ezer, $fe_level;
+  global $CMS, $ezer_local, $index, $load_ezer, $fe_level, $curr_menu;
 //  global $edit_entity, $edit_id;
   $elems= explode(';',$desc);
   $html= '';
@@ -180,16 +184,6 @@ function eval_elem($desc) {
 
     switch ($typ) {
 
-    // admin -- zobrazení/skrytí administrátorských nástrojů 
-//    case 'admin':   # ------------------------------------------------ . admin
-//      $load_ezer= true;
-//      $cms_bar= $_SESSION['man']['cms_bar']= isset($_SESSION['man']['cms_bar']) 
-//          ? 1-$_SESSION['man']['cms_bar'] : 1;
-//      $html.= <<<__EOT
-//        <script>admin($cms_bar);</script>
-//__EOT;
-//      break;
-
     case 'note': # ----------------------------------------------- . note
       $html.= "<div style='background:white;color:black;text-align:center'>POZNAMKA</div>";
       break;
@@ -203,7 +197,9 @@ function eval_elem($desc) {
       if ( $CMS ) {
         $menu= " oncontextmenu=\"
             Ezer.fce.contextmenu([
-              ['editovat článek',function(el){ opravit('xclanek',$id); }]
+              ['editovat článek',function(el){ opravit('xclanek',$id); }],
+              ['přidat článek na začátek',function(el){ pridat('xclanek',$curr_menu->mid,1); }],
+              ['přidat článek na konec',function(el){ pridat('xclanek',$curr_menu->mid,0); }]
             ],arguments[0],0,0,'#xclanek$id');return false;\"";
       }
       $html.= "
@@ -531,7 +527,7 @@ __EOD;
     <div id='page'>
       <img id='logo' src='/man/img/kriz.png' onclick="change_info();">
       <div id='motto'>Mladý muž, který neumí plakat, je barbar.
-          <br>Starý muž, který se neumí smát, je hlupák.
+          <br>Starý muž, který se neumí smát, je blázen.
       </div>
       <div id='menu'>
         $bar_menu

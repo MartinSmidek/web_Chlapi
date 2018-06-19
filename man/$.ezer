@@ -1,6 +1,6 @@
 #pragma switch,if
 # Aplikace bez menu - pouze s hlavním panelem
-# (c) 2016-2017 Martin Šmídek <martin@smidek.eu>
+# (c) 2016-2018 Martin Šmídek <martin@smidek.eu>
 
 panel p [0,0,*,*] { type:'main'
   var do_go=1
@@ -16,6 +16,10 @@ panel p [0,0,*,*] { type:'main'
   }
   proc opravit(_typ,_id) { 
     eq('xclanek',_typ); EDITOR.Clanek(_id); refresh 
+  | eq('kalendar',_typ); EDITOR.Kalendar(_id); refresh 
+  }
+  proc pridat(_typ,_mid,_first) { 
+    eq('xclanek',_typ); ask('menu_add_elem',_mid,'xclanek',_first); refresh 
   }
 # ----------------------------------------------------------------------------==> emulace událostí
   var page: object // {html,edit,id}
@@ -25,7 +29,7 @@ panel p [0,0,*,*] { type:'main'
   proc ask_page(a,b) {
     page.set(ask('page',a,b));
     w.page.set(page.get('html'));
-    f.editace.Init(page.get('edit'));
+//    f.editace.Init(page.get('edit'));
   }
   proc go(ref) { 
     echo('go ',ref);
@@ -49,7 +53,7 @@ panel p [0,0,*,*] { type:'main'
     ask_page(function("return Ezer.app_root;"),ref);
   }
 # ----------------------------------------------------------------------------==> control bar
-  form _f [,,*,30] { css:'grey admin', style:'z-index:9999;position:sticky'
+  form _f [,,*,30] { css:'grey admin', style:'z-index:9999;position:fixed'
     proc hide_all() { CMS.hide }
     button [80,5,,]  { skill:'a|a', title:"[fa-chevron-left]"    
       proc onclick() { hide_all; go(history.get) } }
@@ -57,23 +61,23 @@ panel p [0,0,*,*] { type:'main'
       proc onclick() { hide_all; cms_go(last.get) } }
     button [123,5,,] { skill:'a|a', title:"[fa-chevron-right]", format:'d'
       proc onclick() { hide_all } }
-    button editace [300,5,,] { 
-      proc Init(edt) {
-        eq('xclanek',edt); this.enable(1); this.set('[fa-edit] Editovat zobrazený článek')
-      | eq('kalendar',edt); this.enable(1); this.set('[fa-edit] Editovat kalendář')
-      | this.set('editace přes www.setkani.org'); this.enable(0)
-    }
-      proc onclick() { 
-        eq('xclanek',page.get('edit')); EDITOR.Clanek(page.get('id')); refresh 
-      | eq('kalendar',page.get('edit')); EDITOR.Kalendar(page.get('id')); refresh 
-    }}
-    button [-95,5,,] { skill:'a|a', title:"[fa-gears] CMS" 
+//    button editace [300,5,,] { 
+//      proc Init(edt) {
+//        eq('xclanek',edt); this.enable(1); this.set('[fa-edit] Editovat zobrazený článek')
+//      | eq('kalendar',edt); this.enable(1); this.set('[fa-edit] Editovat kalendář')
+//      | this.set('editace přes www.setkani.org'); this.enable(0)
+//    }
+//      proc onclick() { 
+//        eq('xclanek',page.get('edit')); EDITOR.Clanek(page.get('id')); refresh 
+//      | eq('kalendar',page.get('edit')); EDITOR.Kalendar(page.get('id')); refresh 
+//    }}
+    button [-95,5,,] { skill:'a|a', title:"[fa-gears] menu" 
       proc onclick() { hide_all; CMS.modal } }
     label verze [-150,8,40,] { title:'ezer', style:'font-size:10pt;color:white' } 
     button [-35,5,,] { title:"odhlásit", style:'z-index:999'
       proc onclick() { var ref:text
         //logout;
-        ask('server',°{cmd:'be_logout'});
+        ask('ask_server',°{cmd:'be_logout'});
         ref.set(conc(function("return Ezer.web.index"),"?page=",last.get));
         function('ref',"location.href= ref;",ref);
     } }

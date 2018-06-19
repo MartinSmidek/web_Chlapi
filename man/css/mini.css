@@ -21,7 +21,8 @@ body { font-size:1em; }
 #stred { height:100%; }
 
 /* vygenerovaná stránka */
-div.cms_page { width:100%; z-index:2; height:100%; overflow:auto; }
+div.cms_page { width:100%; z-index:2; height:100%; overflow:auto; 
+ top:30px; height: calc(100% - 47px); }
 #page { z-index: 2; }
 
 /* mapa */

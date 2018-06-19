@@ -258,6 +258,8 @@ div.home.home,
 #skup1.home,
 #skup2.home {
   max-width: 40em;
+  width: calc(100vw - 6em);
+  min-height: 4em;
 }
 div.home#user_mail,
 #user_mail#user_mail,
@@ -320,6 +322,13 @@ div.home#user_mail div button,
 #skup1#user_mail div button,
 #skup2#user_mail div button {
   margin: 0.5em 1em 0 0;
+}
+div.home#user_mail a.noedit,
+#user_mail#user_mail a.noedit,
+#skup0#user_mail a.noedit,
+#skup1#user_mail a.noedit,
+#skup2#user_mail a.noedit {
+  display: none;
 }
 div.home#skup0,
 #user_mail#skup0,
@@ -457,6 +466,8 @@ table.kalendar tr td:nth-child(2) p {
   clear: both;
   padding: 1em 0;
   text-align: center;
+  color: #FFFFFF;
+  text-shadow: 3px 3px 3px #567, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
 }
 .kniha_bg div.kniha_hr {
   clear: both;
@@ -508,6 +519,7 @@ div.pdf span.sorry {
   }
   div.home {
     margin: .5em;
+    width: calc(100vw - 4.3em) !important;
   }
   #list div.abstr {
     width: 100%;
