@@ -18,6 +18,9 @@ panel p [0,0,*,*] { type:'main'
     eq('xclanek',_typ); EDITOR.Clanek(_id); refresh 
   | eq('kalendar',_typ); EDITOR.Kalendar(_id); refresh 
   }
+  proc zmenit(_mid,_typ1,_id,_typ2) { 
+    ask('menu_chng_elem',_mid,_typ1,_id,_typ2); refresh
+  }
   proc pridat(_typ,_mid,_first) { 
     eq('xclanek',_typ); ask('menu_add_elem',_mid,'xclanek',_first); refresh 
   }

@@ -14,6 +14,51 @@ span.neodkaz { background-color:silver; }
 
 img.shadow, p.shadow img, span.shadow { filter: drop-shadow(5px 5px 10px #567); }
 
+/* převzaté z 2chlapi */
+
+.jump {
+  display: inline-block;
+  border-radius: .4em;
+  padding: 0.1em 0.6em;
+  font-weight: bold;
+  text-decoration: none;
+  cursor: pointer;
+}
+a.jump {
+  box-shadow: -1px 1px 0px #567, 1px -1px 0px #567, -1px -1px 0px #567, 5px 5px 10px #567;
+  margin: 0em 0.3em;
+  background-color: #E6CF73;
+  color: #000000;
+  text-align: center;
+}
+a.jump:hover {
+  background-color: #FFFFFF !important;
+  color: #000000 !important;
+}
+span.neodkaz a.jump {
+  box-shadow: -1px 1px 0px #567, 1px -1px 0px #567, -1px -1px 0px #567, 5px 5px 10px #567;
+  margin: 0em 0.3em;
+  background-color: #CFDDE6;
+  color: #000000;
+  text-align: center;
+  display: inline-block;
+  border-radius: .4em;
+  padding: 0.1em 0.6em;
+  font-weight: bold;
+  text-decoration: none;
+  cursor: pointer;
+}
+span.neodkaz a.jump:hover {
+  background-color: #FFFFFF !important;
+  color: #000000 !important;
+}
+span.neodkaz a.jump a {
+  color: #000000;
+  text-decoration: none;
+}
+
+/* konec */
+
 body.cke_editable img { margin:.2em; height:auto !important; max-width:100%; }
 
 *.cke * {/* box-sizing: border-box; */}

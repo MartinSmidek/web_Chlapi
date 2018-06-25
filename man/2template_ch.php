@@ -67,12 +67,12 @@ function read_menu() {
 function eval_menu($path) { 
   global $CMS, $currpage, $fe_level, $tm_active, $ezer_local, $index;
   global  $menu, $topmenu, $mainmenu, $submenu, $submenu_shift, $elem, $curr_menu, $backref, $top;
+  global $prefix, $href, $input;
+//      ? "http://chlapi.bean:8080/$index?page="
+//      : "http://chlapi.online/$index?page=";
   $prefix= $ezer_local
-      ? "http://chlapi.bean:8080/$index?page="
-      : "http://chlapi.online/$index?page=";
-//  $prefix= $ezer_local
-//      ? "http://chlapi.bean:8080/"
-//      : "http://chlapi.online/";
+      ? "http://chlapi.bean:8080/"
+      : "http://chlapi.online/";
   $topmenu= $mainmenu= $submenu= '';
   $currpage= implode('!',$path);
   $top= array_shift($path);
@@ -163,11 +163,12 @@ function eval_menu($path) {
 // desc :: key [ = ids ]
 // ids  :: id1 [ / id2 ] , ...    -- id2 je klíč v lokální db pro ladění
 function eval_elem($desc) {
-  global $CMS, $ezer_local, $index, $load_ezer, $fe_level, $curr_menu;
+  global $CMS, $ezer_local, $index, $load_ezer, $fe_level, $curr_menu, $top;
 //  global $edit_entity, $edit_id;
   $elems= explode(';',$desc);
   $html= '';
   $html= $CMS ? "<script>skup_mapka_off();</script>" : '';
+  $clanky= false; // bude true, pokud stránka obsahuje články a abstrakty
   foreach ($elems as $elem) {
     list($typ,$ids)= explode('=',$elem.'=');
     // přemapování ids podle server/localhost
@@ -187,10 +188,9 @@ function eval_elem($desc) {
     case 'note': # ----------------------------------------------- . note
       $html.= "<div style='background:white;color:black;text-align:center'>POZNAMKA</div>";
       break;
-
-    case 'xclanek': # ------------------------------------------------ . xčlánek
-//      $edit_entity= 'xclanek';
-//      $edit_id= $id;
+    case 'aclanek': # ------------------------------------------------ . ačlánek - akstrakt
+      global $backref;
+      $clanky= true;
       $obsah= select("web_text","xclanek","id_xclanek=$id");
       $obsah= str_replace('$index',$index,$obsah);
       $menu= '';
@@ -198,7 +198,45 @@ function eval_elem($desc) {
         $menu= " oncontextmenu=\"
             Ezer.fce.contextmenu([
               ['editovat článek',function(el){ opravit('xclanek',$id); }],
-              ['přidat článek na začátek',function(el){ pridat('xclanek',$curr_menu->mid,1); }],
+              ['-zobrazit jako článek',function(el){ zmenit($curr_menu->mid,'aclanek',$id,'xclanek'); }],
+              ['-nový článek na začátek',function(el){ pridat('xclanek',$curr_menu->mid,1); }],
+              ['nový článek na konec',function(el){ pridat('xclanek',$curr_menu->mid,0); }]
+            ],arguments[0],0,0,'#xclanek$id');return false;\"";
+      }
+      $jmp= str_replace('*',$id,$backref);
+      if ( $top==$id ) {
+        // zobrazit jako plný článek
+        $html.= "
+          <div class='back' $menu>
+            <div id='xclanek$id' class='home'>
+              $obsah
+            </div>
+          </div>";
+      }
+      else {
+        // zobrazit jako abstrakt
+        $obsah= x_shorting($obsah);
+        $html.= "
+          <div class='back' $menu>
+            <a id='xclanek$id' class='aclanek home' $jmp>
+              $obsah
+            </a>
+          </div>";
+      }
+      break;
+
+    case 'xclanek': # ------------------------------------------------ . xčlánek
+      $clanky= true;
+
+      $obsah= select("web_text","xclanek","id_xclanek=$id");
+      $obsah= str_replace('$index',$index,$obsah);
+      $menu= '';
+      if ( $CMS ) {
+        $menu= " oncontextmenu=\"
+            Ezer.fce.contextmenu([
+              ['editovat článek',function(el){ opravit('xclanek',$id); }],
+              ['-zobrazit jako abstrakt',function(el){ zmenit($curr_menu->mid,'xclanek',$id,'aclanek'); }],
+              ['-přidat článek na začátek',function(el){ pridat('xclanek',$curr_menu->mid,1); }],
               ['přidat článek na konec',function(el){ pridat('xclanek',$curr_menu->mid,0); }]
             ],arguments[0],0,0,'#xclanek$id');return false;\"";
       }
@@ -527,7 +565,7 @@ __EOD;
     <div id='page'>
       <img id='logo' src='/man/img/kriz.png' onclick="change_info();">
       <div id='motto'>Mladý muž, který neumí plakat, je barbar.
-          <br>Starý muž, který se neumí smát, je blázen.
+          <br>Starý muž, který se neumí smát, je pitomec.
       </div>
       <div id='menu'>
         $bar_menu
@@ -763,5 +801,88 @@ function session($is,$value=null) {
     $value= 1;
   }
   return $value;
+}
+/** ==========================================================================================> TEXT */
+# -------------------------------------------------------------------------------------- x first_img
+# vrátí první obrázek s doplněnými atributy, nebo ''
+function x_first_img ($html,$size=1) { //trace();
+  global $ezer_path_root, $FREE;
+  $h= '';
+  $is1= preg_match('/<img[^>]+>/i',$html, $m);
+  if ( !$is1 ) goto video;
+//                                                 debug($m,htmlentities($m[0]));
+  $is2= preg_match('/src=(["\'][^"\']*["\'])/i',$m[0], $src);
+  if ( !$is2 ) goto video;
+//                                                 debug($src,1);
+  // našli jsme a zjístíme, zda existuje
+  $url= trim(str_replace("'",'"',$src[1])," '\"");
+  // překlad na globální odkazy pro ty lokální (pro servant.php)
+  $http= $FREE && preg_match("/^fileadmin/",$url) ? "https://www.setkani.org/" : '';
+  $h= "<div style='max-height:{$size}em;overflow:hidden;float:left;margin-right:4px'>
+         <img src='$http$url' style='width:{$size}em'>
+       </div>";
+video:
+  // pokusíme se najít youtube default obrázek
+  if ( !$h ) {
+    $is= preg_match("~data-oembed-url=\"(?:http://youtu.be/|https?://www.youtube.com/watch\?v=)(.*)\"~iU",$html, $m);
+//                                                 debug($m,$is);
+    if ( $is ) {
+      $h= "<div style='max-height:{$size}em;overflow:hidden;float:left'>
+             <img src='https://img.youtube.com/vi/$m[1]/hqdefault.jpg' style='width:{$size}em'>
+           </div>";
+    }
+  }
+//   if ( $FREE ) $h= "is1=$is1, is2=$is2, http=$http ".$h;
+  return $h;
+}
+# --------------------------------------------------------------------------------------- x shorting
+# EPRIN
+# zkrátí text na $n znaků s ohledem na html-entity jako je &nbsp;
+function x_shorting ($text,$n=200) { //trace();
+  $img= '';
+  $stext= xi_shorting ($text,$img,$n);
+  if ( $img ) {
+    $stext= $img ? "<div>$img$stext ...</div>" : "$stext ...";
+  }
+  return $stext;
+}
+function xi_shorting ($text,&$img,$n=200) { //trace();
+  // náhrada <h.> za <i>
+  $text= str_replace('<',' <', $text);
+  $text= preg_replace("/\<(\/|)h3>/si",' <$1i> ', $text);
+  // hrubé zkrácení textu
+  $stext= mb_substr(strip_tags($text,''),0,$n);
+  // odstranění poslední (případně přeříznuté) html-entity
+  $in= mb_strlen($stext);
+  $ia= mb_strrpos($stext,'&');
+  if ( $ia!==false )
+    $stext= mb_substr($stext,0,$in-$ia<10 ? $ia : $in);
+  $im= mb_strrpos($stext,' ');
+  if ( $im!==false )
+    $stext= mb_substr($stext,0,$im);
+  $stext= closetags($stext);
+  $stext= preg_replace("/\s+/iu",' ', $stext);
+  $img= x_first_img($text,8);
+  $stext.= " &hellip;";
+  return $stext;
+}
+function closetags($html) {
+  preg_match_all('#<(?!meta|img|br|hr|input\b)\b([a-z]+)(?: .*)?(?<![/|/ ])>#iU', $html, $result);
+  $openedtags = $result[1];
+  preg_match_all('#</([a-z]+)>#iU', $html, $result);
+  $closedtags = $result[1];
+  $len_opened = count($openedtags);
+  if (count($closedtags) == $len_opened) {
+    return $html;
+  }
+  $openedtags = array_reverse($openedtags);
+  for ($i=0; $i < $len_opened; $i++) {
+    if (!in_array($openedtags[$i], $closedtags)) {
+      $html .= '</'.$openedtags[$i].'>';
+    } else {
+      unset($closedtags[array_search($openedtags[$i], $closedtags)]);
+    }
+  }
+  return $html;
 }
 ?>

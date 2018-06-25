@@ -11,7 +11,13 @@ function opravit(typ,id) {
   Ezer.run.$.part.p._call(0,'opravit',typ,id);
   return 1;
 }
-// ---------------------------------------------------------------------------------- přidat clanek
+// ----------------------------------------------------------------------------------- změnit clanek
+// změní typ elementu z typ1 na typ2
+function zmenit(mid,typ1,id,typ2) {
+  Ezer.run.$.part.p._call(0,'zmenit',mid,typ1,id,typ2);
+  return 1;
+}
+// ----------------------------------------------------------------------------------- přidat clanek
 function pridat(typ,mid,first) {
   Ezer.run.$.part.p._call(0,'pridat',typ,mid,first);
   return 1;

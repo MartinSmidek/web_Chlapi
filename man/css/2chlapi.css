@@ -154,6 +154,9 @@ div.filler {
   height: 2.2em;
   display: table-cell;
 }
+#menu a.tester {
+  outline: 3px dotted #CFDDE6;
+}
 #menu #page_tm {
   margin-right: 2em;
 }
@@ -162,9 +165,6 @@ div.filler {
 }
 #menu #page_tm a.jump {
   border-radius: 0em 0em .8em .8em;
-}
-#menu #page_tm a.jump.tester {
-  outline: 3px dotted #CFDDE6;
 }
 #menu #page_hm {
   margin: 0.4em 2em;
@@ -225,6 +225,7 @@ div.filler {
   background-color: #E6E1CF !important;
 }
 div.home,
+a.home,
 #user_mail,
 #skup0,
 #skup1,
@@ -241,11 +242,13 @@ div.home,
   box-shadow: -1px 1px 0px #567, 1px -1px 0px #567, -1px -1px 0px #567, 5px 5px 10px #567;
 }
 div.home input,
+a.home input,
 #user_mail input,
 #skup0 input,
 #skup1 input,
 #skup2 input,
 div.home textarea,
+a.home textarea,
 #user_mail textarea,
 #skup0 textarea,
 #skup1 textarea,
@@ -253,6 +256,7 @@ div.home textarea,
   margin-bottom: 0.5em;
 }
 div.home.home,
+a.home.home,
 #user_mail.home,
 #skup0.home,
 #skup1.home,
@@ -262,6 +266,7 @@ div.home.home,
   min-height: 4em;
 }
 div.home#user_mail,
+a.home#user_mail,
 #user_mail#user_mail,
 #skup0#user_mail,
 #skup1#user_mail,
@@ -273,6 +278,7 @@ div.home#user_mail,
   top: 2em;
 }
 div.home#user_mail span#user_mail_head,
+a.home#user_mail span#user_mail_head,
 #user_mail#user_mail span#user_mail_head,
 #skup0#user_mail span#user_mail_head,
 #skup1#user_mail span#user_mail_head,
@@ -287,6 +293,7 @@ div.home#user_mail span#user_mail_head,
   font-weight: bold;
 }
 div.home#user_mail span#user_mail_txt,
+a.home#user_mail span#user_mail_txt,
 #user_mail#user_mail span#user_mail_txt,
 #skup0#user_mail span#user_mail_txt,
 #skup1#user_mail span#user_mail_txt,
@@ -294,6 +301,7 @@ div.home#user_mail span#user_mail_txt,
   display: block;
 }
 div.home#user_mail div,
+a.home#user_mail div,
 #user_mail#user_mail div,
 #skup0#user_mail div,
 #skup1#user_mail div,
@@ -301,6 +309,7 @@ div.home#user_mail div,
   padding: 1em;
 }
 div.home#user_mail div #mail,
+a.home#user_mail div #mail,
 #user_mail#user_mail div #mail,
 #skup0#user_mail div #mail,
 #skup1#user_mail div #mail,
@@ -309,6 +318,7 @@ div.home#user_mail div #mail,
   width: 80%;
 }
 div.home#user_mail div #pin,
+a.home#user_mail div #pin,
 #user_mail#user_mail div #pin,
 #skup0#user_mail div #pin,
 #skup1#user_mail div #pin,
@@ -317,6 +327,7 @@ div.home#user_mail div #pin,
   width: 15%;
 }
 div.home#user_mail div button,
+a.home#user_mail div button,
 #user_mail#user_mail div button,
 #skup0#user_mail div button,
 #skup1#user_mail div button,
@@ -324,6 +335,7 @@ div.home#user_mail div button,
   margin: 0.5em 1em 0 0;
 }
 div.home#user_mail a.noedit,
+a.home#user_mail a.noedit,
 #user_mail#user_mail a.noedit,
 #skup0#user_mail a.noedit,
 #skup1#user_mail a.noedit,
@@ -331,6 +343,7 @@ div.home#user_mail a.noedit,
   display: none;
 }
 div.home#skup0,
+a.home#skup0,
 #user_mail#skup0,
 #skup0#skup0,
 #skup1#skup0,
@@ -338,6 +351,7 @@ div.home#skup0,
   width: 18em;
 }
 div.home#skup1,
+a.home#skup1,
 #user_mail#skup1,
 #skup0#skup1,
 #skup1#skup1,
@@ -346,6 +360,7 @@ div.home#skup1,
   display: none;
 }
 div.home#skup2,
+a.home#skup2,
 #user_mail#skup2,
 #skup0#skup2,
 #skup1#skup2,
@@ -354,6 +369,7 @@ div.home#skup2,
   display: none;
 }
 div.home#skup2 input,
+a.home#skup2 input,
 #user_mail#skup2 input,
 #skup0#skup2 input,
 #skup1#skup2 input,
@@ -366,6 +382,7 @@ div.home#skup2 input,
   margin-bottom: 2px;
 }
 div.home#skup2 textarea,
+a.home#skup2 textarea,
 #user_mail#skup2 textarea,
 #skup0#skup2 textarea,
 #skup1#skup2 textarea,
@@ -397,6 +414,15 @@ table.kalendar tr td:nth-child(2) p {
   font-style: italic;
   margin: 0;
 }
+a.aclanek {
+  background-color: #E6E1CF;
+  color: #000000;
+  text-decoration: none;
+}
+a.aclanek:hover {
+  background-color: #FFFFFF !important;
+  color: #000000 !important;
+}
 #list {
   margin-top: 1em;
   text-align: center;
@@ -410,8 +436,8 @@ table.kalendar tr td:nth-child(2) p {
   background-color: #E6E1CF;
   color: #000000;
   border-radius: .4em;
-  margin: 0.5em;
   cursor: pointer;
+  margin: 0.5em;
   padding: .4em;
   box-shadow: -1px 1px 0px #567, 1px -1px 0px #567, -1px -1px 0px #567, 5px 5px 10px #567;
   display: block;

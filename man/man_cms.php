@@ -20,6 +20,22 @@ function menu_add_elem($mid,$table,$first=0) {
   query("UPDATE menu SET elem='$elem' WHERE wid=2 AND mid=$mid");
   return 1;
 }
+# ----------------------------------------------------------------------------------- menu chng_elem
+# přidá do menu další element
+function menu_chng_elem($mid,$typ1,$id,$typ2) {
+  $desc= select("elem","menu","wid=2 AND mid=$mid");
+  $elems= explode(';',$desc);
+  for ($i= 0; $i<count($elems); $i++) {
+    list($typx,$idx)= explode('=',$elems[$i]);
+    if ( $typx==$typ1 && $idx==$id ) {
+      $elems[$i]= "$typ2=$id";
+      $desc= implode(';',$elems);
+      query("UPDATE menu SET elem='$desc' WHERE wid=2 AND mid=$mid");
+      break;
+    }
+  }
+  return 1;
+}
 # --------------------------------------------------------------------------------------- menu shift
 # posune menu o jedno dolů (pro down=0 nahoru)
 function menu_shift($mid,$down) {
