@@ -84,7 +84,7 @@ div.podpis {
 // ------------------------------------------------------------------------------------- logo + menu
 div.filler { height: 2em; }
 // logo, motto jen někdy
-#motto { display:none; }
+#motto { display:none; position: absolute; color:#bac59d; .shadow-txt }
 #logo {
   .shadow-img(); 
   position: absolute; left: 0.5em; top: 0.5em; width: 6em; }
@@ -150,17 +150,31 @@ div.filler { height: 2em; }
 }
 
 // ---------------------------------------------------------------------------------------- elementy
+// sloupce
+div.sloupce {
+  /*outline: 1px dotted yellow;*/
+  float: right; margin-top:.5em;
+  div.back {
+    display: inline-block;
+  }
+  a.aclanek {
+    background: url(more.png) bottom right no-repeat, 
+                linear-gradient(to bottom right, @abstr_b 50%, @activ_b 75%);
+    overflow: hidden;
+    text-align: left;
+  }
+}
 // speciální články
 // home page
 div.home, a.home, #user_mail, #skup0, #skup1, #skup2 {
   background-color: @text_b; color: @text_c; 
-  float: right; margin: 1em 2em; max-width: 100%; z-index: 1;
+  float: right; margin: .4em 2em; max-width: 100%; z-index: 1;
   line-height: 1.5; padding: 1em; border-radius: 0.5em; .shadow-box;  
   input, textarea {
     margin-bottom: 0.5em;
   }
   &.home {
-    max-width: 40em; width: calc(100vw - 6em); min-height: 4em; }
+    max-width: 40em; width: calc(100vw - 6em); min-height: 7.7em; }
   // přihlášení
   &#user_mail {
     max-width: 29em; padding: 0; position: absolute; right: -1em; top: 2em;
@@ -208,8 +222,9 @@ table.kalendar tr {
 
 // abstrakty
 a.aclanek {
-  background-color: @abstr_b; color: @abstr_c;
-  text-decoration: none; 
+  /*background-color: @abstr_b;*/ 
+  color: @abstr_c; height: 7.7em;
+  text-decoration: none; cursor: pointer; 
   &:hover {
     background-color: @text_b !important; color: @text_c !important; }
 }
@@ -243,7 +258,7 @@ a.aclanek {
 }
 // kniha
 .kniha_bg {
-  background-color: fadeout(@obal_b,70%); color: @obal_c;
+  background-color: fadeout(@obal_b,30%); color: @obal_c;
   display: block; clear: both; border-radius: .8em; text-align: center;
   a.jump { 
     margin:1em; }
@@ -269,13 +284,38 @@ div.pdf {
 
 // =============================================================================== responsive design 
 
+// ------------------------------------------------------------------------------- počet sloupců
+
+@media all and (min-width:112em) {
+  div.sloupce { columns: 3; width: 133em; margin-right: 3em; }
+}
+@media all and (min-width:78em) and (max-width: 112em) {
+  div.sloupce { columns: 2; width: 89em; margin-right: 3em; }
+}
+@media all and (min-width: 40em) and (max-width: 78em) {
+  div.sloupce { columns: 1; width: 44em; margin-right: 2em; }
+}
+@media all and (max-width: 40em) {
+  div.sloupce { width: 100%; }
+  a.home { margin-left: .5em; }
+  a.home.home { width: calc(100vw - 4.5em); }
+} 
+
 // ------------------------------------------------------------------------------- zobrazit motto
 
-@media all and (min-width:47em) {
-  #motto { display:block; position: absolute; left: 6.5em; top: 2em; color:#bac59d; .shadow-txt } 
+@media all and (max-width:43em)  {
+  #motto { display:none; } 
 }
 
-// ------------------------------------------------------------------------------- MV mobil na výšku 
+@media all and (min-width: 43em) and (max-width:50em) {
+  #motto { display:block; left: 6.2em; top: 1.4em; font-size: 14px; font-stretch: condensed; }
+}
+
+@media all and (min-width:50em)  {
+  #motto { display:block; left: 5.5em; top: 1em; font-size: 16px; } 
+}
+
+// ------------------------------------------------------------------------------- M mobil na výšku 
 
 @media all and (max-width:30em) {
   #page_tm::before { content:"M"; }
@@ -293,7 +333,7 @@ div.pdf {
   div.prezentace { 
     zoom: 40%; -moz-transform: scale(0.4) translate(-76%, -79%);  }
 }
-// ------------------------------------------------------------------------------- MŠ mobil na šířku
+// ------------------------------------------------------------------------------- L mobil na šířku
 
 @media all and (min-width: 30em) and (max-width: 55em) {
   #page_tm::before { content:"L"; }
@@ -322,16 +362,12 @@ div.pdf {
     div.abstr { width:33.3%; }
   }
 }
-
 // ------------------------------------------------------------------------------ PC velká obrazovka 
 
 @media all and (min-width: 70em) {
-#page_tm::before { content:"C"; }
-  #web { 
-    width:92em; margin: 0 auto; }
-  #menu { font-size:10pt; 
-    #page_sm { top: 5.2em; }
-  }
+  #page_tm::before { content:"C"; }
+  #web { width:92em; margin: 0 auto; }
+  #menu { font-size:10pt;  #page_sm { top: 5.2em; } }
   #list {
     div.abstr { width:25%; }
   }

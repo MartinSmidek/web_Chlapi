@@ -168,7 +168,7 @@ function eval_elem($desc) {
   $elems= explode(';',$desc);
   $html= '';
   $html= $CMS ? "<script>skup_mapka_off();</script>" : '';
-  $clanky= false; // bude true, pokud stránka obsahuje články a abstrakty
+  $layout= ''; // default layout stránky 
   foreach ($elems as $elem) {
     list($typ,$ids)= explode('=',$elem.'=');
     // přemapování ids podle server/localhost
@@ -185,17 +185,21 @@ function eval_elem($desc) {
 
     switch ($typ) {
 
-    case 'note': # ----------------------------------------------- . note
+    case 'layout':  # ----------------------------------------------- . layout
+      $layout= $id;
+      break;
+    
+    case 'note':    # ----------------------------------------------- . note
       $html.= "<div style='background:white;color:black;text-align:center'>POZNAMKA</div>";
       break;
+    
     case 'aclanek': # ------------------------------------------------ . ačlánek - akstrakt
       global $backref;
-      $clanky= true;
       $obsah= select("web_text","xclanek","id_xclanek=$id");
       $obsah= str_replace('$index',$index,$obsah);
       $menu= '';
       if ( $CMS ) {
-        $menu= " oncontextmenu=\"
+        $menu= " title='$id' oncontextmenu=\"
             Ezer.fce.contextmenu([
               ['editovat článek',function(el){ opravit('xclanek',$id); }],
               ['-zobrazit jako článek',function(el){ zmenit($curr_menu->mid,'aclanek',$id,'xclanek'); }],
@@ -208,7 +212,7 @@ function eval_elem($desc) {
         // zobrazit jako plný článek
         $html.= "
           <div class='back' $menu>
-            <div id='xclanek$id' class='home'>
+            <div id='fokus_part' class='home'>
               $obsah
             </div>
           </div>";
@@ -218,7 +222,7 @@ function eval_elem($desc) {
         $obsah= x_shorting($obsah);
         $html.= "
           <div class='back' $menu>
-            <a id='xclanek$id' class='aclanek home' $jmp>
+            <a class='aclanek home' $jmp>
               $obsah
             </a>
           </div>";
@@ -226,13 +230,11 @@ function eval_elem($desc) {
       break;
 
     case 'xclanek': # ------------------------------------------------ . xčlánek
-      $clanky= true;
-
       $obsah= select("web_text","xclanek","id_xclanek=$id");
       $obsah= str_replace('$index',$index,$obsah);
       $menu= '';
       if ( $CMS ) {
-        $menu= " oncontextmenu=\"
+        $menu= " title='$id' oncontextmenu=\"
             Ezer.fce.contextmenu([
               ['editovat článek',function(el){ opravit('xclanek',$id); }],
               ['-zobrazit jako abstrakt',function(el){ zmenit($curr_menu->mid,'xclanek',$id,'aclanek'); }],
@@ -367,7 +369,17 @@ __EOT;
       $patt= $top ? "$id!$top" : $id;
       ask_server((object)array('cmd'=>'clanky','chlapi'=>$patt,'back'=>$backref)); 
       // úzké abstrakty
-      $html.= str_replace("abstr-line","abstr",$y->obsah);
+      $html= $y->obsah;
+//      $html= substr($html,50,100);
+//      $html.= str_replace("abstr-line","abstr",$y->obsah);
+      $html= strtr($html,array(
+//          "id='list' class='x'"  => "class='sloupce'",
+          "class='abstr-line'"   => "class='back'",
+          "class='abstr-line x'" => "class='back'",
+          "class='abstrakt  x '" => "class='aclanek home'",
+          "class='abstrakt x'"   => "class='aclanek home'",
+          "<hr style='clear:both;border:none'>"  => "<hr style='clear:both;display:none'>"
+      ));
       // překlad na globální odkazy do setkani.(org|bean)
       $fileadmin= $ezer_local 
           ? "http://setkani.bean:8080/fileadmin"
@@ -431,6 +443,9 @@ __EOT;
       ";
       break;
     }
+  }
+  if ( $layout ) {
+    $html= "<div class='$layout'>$html</div>";
   }
   return $html;
 }
@@ -566,6 +581,7 @@ __EOD;
       <img id='logo' src='/man/img/kriz.png' onclick="change_info();">
       <div id='motto'>Mladý muž, který neumí plakat, je barbar.
           <br>Starý muž, který se neumí smát, je pitomec.
+          <br>Richard Rohr
       </div>
       <div id='menu'>
         $bar_menu
@@ -838,7 +854,7 @@ video:
 # --------------------------------------------------------------------------------------- x shorting
 # EPRIN
 # zkrátí text na $n znaků s ohledem na html-entity jako je &nbsp;
-function x_shorting ($text,$n=200) { //trace();
+function x_shorting ($text,$n=500) { //trace();
   $img= '';
   $stext= xi_shorting ($text,$img,$n);
   if ( $img ) {
@@ -846,12 +862,13 @@ function x_shorting ($text,$n=200) { //trace();
   }
   return $stext;
 }
-function xi_shorting ($text,&$img,$n=200) { //trace();
+function xi_shorting ($text,&$img,$n=300) { //trace();
   // náhrada <h.> za <i>
   $text= str_replace('<',' <', $text);
-  $text= preg_replace("/\<(\/|)h3>/si",' <$1i> ', $text);
+  $text= preg_replace("/\<(\/|)h1>/si",' <$1b> ', $text);
+  $text= preg_replace("/\<(\/|)h2>/si",' <$1i> ', $text);
   // hrubé zkrácení textu
-  $stext= mb_substr(strip_tags($text,''),0,$n);
+  $stext= mb_substr(strip_tags($text,'<b><i>'),0,$n);
   // odstranění poslední (případně přeříznuté) html-entity
   $in= mb_strlen($stext);
   $ia= mb_strrpos($stext,'&');
