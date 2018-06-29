@@ -1,7 +1,7 @@
 /* global Web, Ezer */
 
 // ---------------------------------------------------------------------------------------------- //
-// uživatelské funkce aplikace Ezer/MAN specifické pro chlapi.online                              //
+// uživatelské funkce aplikace Ezer/MAN specifické pro chlapi.online/.cz                          //
 //                                                                                                //
 // CMS/Ezer                                             (c) 2016 Martin Šmídek <martin@smidek.eu> //
 // ---------------------------------------------------------------------------------------------- //
@@ -226,7 +226,7 @@ function me_login(page) {
 //}
 //function me_login_(page,myip) {
   var mail= jQuery('#mail').val(), pin= jQuery('#pin').val();
-  ask({cmd:'me_login',mail:mail,pin:pin,page:page,web:'chlapi.online'},me_login__);
+  ask({cmd:'me_login',mail:mail,pin:pin,page:page,web:'chlapi.cz'},me_login__);
 }
 function me_login__(y) {
   if ( y && y.txt ) {
@@ -423,7 +423,7 @@ function skup_dialog2(mark) {
 }
 // ----------------------------------------------------------------------------------- skup sendmail
 function skup_sendmail(psc,skupina) {
-  var to= geo.emails[psc], reply, subj, body, msg, chlapi_online= "chlapi.online";
+  var to= geo.emails[psc], reply, subj, body, msg, chlapi_online= "chlapi.cz";
   reply= jQuery('#skup_from').val();
   subj= "SeSkup: Dotaz na organizátora skupiny";
   body= jQuery('#skup_body').val();
@@ -433,7 +433,7 @@ function skup_sendmail(psc,skupina) {
   body= "<b>Odesílatel:</b> "+reply+"<br><b>Zpráva:</b><br> "+body+"<hr>\
     POZOR: pokud budeš odpovídat, pohlídej prosím, aby odpověď šla na mail "+reply+" a ne na answer@setkani.org ...\
     <br><br>\
-    <i>Tento mail byl zaslán ze stránky <a href='http://${chlapi_online}?skupiny'>chlapi.online?skupiny</a>\
+    <i>Tento mail byl zaslán ze stránky <a href='http://${chlapi_online}?skupiny'>chlapi.cz?skupiny</a>\
        po kliknutí na ikonu tvojí chlapské skupiny '"+skupina+"'. Tvůj mail byl získán z tabulky\
        chlapských skupin. Pokud myslíš, že něco není v pořádku, obrať se prosím na správce\
        aplikace <a href='mailto:martin@smidek.eu'>Martina Šmídka</a>.</i>";

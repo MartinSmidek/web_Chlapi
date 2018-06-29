@@ -16,7 +16,7 @@
                     "/man/fotorama/fotorama.css");
   $skin=      'ck';
   $abs_roots= array("/home/users/gandi/chlapi.online/web","C:/Ezer/beans/chlapi.online");
-  $rel_roots= array("http://chlapi.online","http://chlapi.bean:8080");
+  $rel_roots= array("http://www.chlapi.cz","http://chlapi.bean:8080");
   
   // specifická část aplikace předávaná do options
   specific($template_meta,$template);

@@ -72,7 +72,9 @@ function eval_menu($path) {
 //      : "http://chlapi.online/$index?page=";
   $prefix= $ezer_local
       ? "http://chlapi.bean:8080/"
-      : "http://chlapi.online/";
+      : "http://www.chlapi.cz/";
+//      ? "http://chlapi.bean:8080/"
+//      : "http://chlapi.online/";
   $topmenu= $mainmenu= $submenu= '';
   $currpage= implode('!',$path);
   $top= array_shift($path);
