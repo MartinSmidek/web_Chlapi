@@ -9,6 +9,31 @@
 /** ===========================================================================================> WEB */
 # ------------------------------------------------------------------------------------ menu add_elem
 # přidá do menu další element
+function menu_copy_elem($from,$pid,$mid,$type) {
+  global $y, $ezer_local;
+  $first= true;
+  // získej kopii článku
+  ask_server((object)array('cmd'=>'clanek','pid'=>$pid));
+  $fileadmin= $ezer_local 
+      ? "http://setkani.bean:8080/fileadmin"
+      : "https://www.setkani.org/fileadmin";
+  // uprav odkazy
+  $obsah= preg_replace("/(src|href)=(['\"])(?:\\/|)fileadmin/","$1=$2$fileadmin",$y->obsah);
+  $clanek= "<h1>$y->nadpis</h1>$obsah";
+  $clanek= str_replace("'","\\'",$clanek);
+  query("INSERT INTO xclanek (web_text) VALUES ('$clanek')");
+  $id= mysql_insert_id();
+  // přidej do menu.elem
+  $elem= select("elem","menu","wid=2 AND mid=$mid");
+  if ( $first )
+    $elem= "$type=$id" . ($elem ? ";$elem" : '');
+  else
+    $elem= ($elem ? "$elem;" : '') . "$type=$id";
+  query("UPDATE menu SET elem='$elem' WHERE wid=2 AND mid=$mid");
+  return 1;
+}
+# ------------------------------------------------------------------------------------ menu add_elem
+# přidá do menu další element
 function menu_add_elem($mid,$table,$first=0) {
   $elem= select("elem","menu","wid=2 AND mid=$mid");
   query("INSERT INTO $table () VALUES ()");

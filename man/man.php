@@ -7,8 +7,7 @@
   $ezer_local= preg_match('/^\w+\.bean$/',$_SERVER["SERVER_NAME"])?1:0;
 
   // parametry aplikace MAN
-  $app_name=  "chlapi.online";
-  $app_login= 'Guest/';                   // zakomentovat pro automatické přihlášení 
+  $app_name=  "chlapi.cz";
   $app_root=  'man';
   $app_js=    array("/man/2chlapi.js", //"/man/modernizr-custom.js",
                     "/man/fotorama/fotorama.js");
@@ -18,6 +17,20 @@
   $abs_roots= array("/home/users/gandi/chlapi.online/web","C:/Ezer/beans/chlapi.online");
   $rel_roots= array("http://www.chlapi.cz","http://chlapi.bean:8080");
   
+  // určení uživatele podle session.web.fe_user
+  require_once("../$kernel/server/ae_slib.php");
+  require_once '2template_ch.php';
+  db_connect();
+  $username= select("username","_user","id_user={$_SESSION['web']['fe_user']}");
+  if ( $username ) {
+    $app_login= "$username/";
+  }
+  else {
+    // nebo odmítnutí přihlášení
+    session_destroy();
+    header("Location: $rel_roots[$ezer_local]"); 
+  }
+
   // specifická část aplikace předávaná do options
   specific($template_meta,$template);
   
@@ -31,11 +44,12 @@
 
   // (re)definice Ezer.options
   $add_pars= array(
+    'log_login' => false,   // nezapisovat standardně login do _touch (v ezer2.php)
     'favicon' => $ezer_local ? 'chlapi_ico_local.png' : 'chlapi_ico.png',    
     'template' => "user",
     'template_meta' => $template_meta,
     'template_body' => $template,
-  'CKEditor' => "{
+    'CKEditor' => "{
       version:'4.6',
       WEB:{
         skin:'moono-lisa',
@@ -49,7 +63,7 @@
         // 100% of the editor width).
         image2_alignClasses: [ 'image-align-left', 'image-align-center', 'image-align-right' ],
         image2_disableResizer: false,
-        extraPlugins:'widget,filetools,embed',
+        extraPlugins:'widget,filetools,embed', // ezer
         entities:true,  // →
         embed_provider: '//iframe.ly/api/oembed?url={url}&callback={callback}&api_key=313b5144bfdde37b95c235',
         uploadUrl:'man/upload.php?root=man&type=Images',
@@ -72,6 +86,7 @@
   // je to aplikace se startem v podsložce a chceme mapy
   $_GET['gmap']= 1;
   require_once("../$kernel/ezer_main.php");
+  log_login('r','');
   
 function specific(&$template_meta,&$template) {
   $debugger= '';
@@ -126,6 +141,14 @@ __EOD;
     <div id="warning"></div>
     <div id="kuk_err"></div>
     <div id="error"></div>
+  </div>
+  <div id="popup_mask3"></div>
+  <div id="top_mask3">
+    <div id="popup3">
+      <div class="pop_head"></div>
+      <div class="pop_body"></div>
+      <div class="pop_tail"></div>
+    </div>
   </div>
   <div id="dolni">
     <div id="status_bar" style='width:100%;height:16px;padding: 1px 0pt 0pt'>

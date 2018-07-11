@@ -1,6 +1,7 @@
 <?php
 
 $cms= 'man';
+date_default_timezone_set('Europe/Prague');
 $ezer_local= $_SERVER['SERVER_NAME']=='chlapi.bean' ? 1 : 0;
 $index= $ezer_local ? "index.php" : "index.php";
 
@@ -43,6 +44,7 @@ if ( count($_POST) ) {
 
 $fe_level= isset($_SESSION['web']['fe_level']) ? $_SESSION['web']['fe_level'] : 0;
 if ( $fe_level && ($fe_level & 1) ) {
+  // ----------------------------------------- cms
   chdir('man');
   $fe_user= $be_user= $_SESSION['web']['fe_user'];
   require_once("man/man.php"); 

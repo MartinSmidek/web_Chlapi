@@ -40,15 +40,7 @@ function read_menu() {
   // výpočet fe_level podle záznamu v ezer_db2.osoba.web_level a 
   $fe_level= isset($_SESSION['web']['fe_level']) ? $_SESSION['web']['fe_level'] : 0;
   // connect
-  $ezer_local= preg_match('/^.*\.(bean)$/',$_SERVER["SERVER_NAME"]);
-  $hst1= 'localhost';
-  $nam1= $ezer_local ? 'gandi'    : 'gandi';
-  $pas1= $ezer_local ? ''         : 'radost';
-  $db1=  $ezer_local ? 'chlapi'  : 'ezerweb';
-  $ezer_db= array( /* lokální */
-    'setkani'  =>  array(0,$hst1,$nam1,$pas1,'utf8',$db1),
-  );
-  ezer_connect('setkani');
+  db_connect();
   // načtení menu
   $menu= array();
   $mn= mysql_qry("SELECT * FROM menu WHERE wid=2 ORDER BY typ,rank");
@@ -201,7 +193,7 @@ function eval_elem($desc) {
       $obsah= str_replace('$index',$index,$obsah);
       $menu= '';
       if ( $CMS ) {
-        $menu= " title='$id' oncontextmenu=\"
+        $menu= " title='abstrakt $id' oncontextmenu=\"
             Ezer.fce.contextmenu([
               ['editovat článek',function(el){ opravit('xclanek',$id); }],
               ['-zobrazit jako článek',function(el){ zmenit($curr_menu->mid,'aclanek',$id,'xclanek'); }],
@@ -236,7 +228,7 @@ function eval_elem($desc) {
       $obsah= str_replace('$index',$index,$obsah);
       $menu= '';
       if ( $CMS ) {
-        $menu= " title='$id' oncontextmenu=\"
+        $menu= " title='článek $id' oncontextmenu=\"
             Ezer.fce.contextmenu([
               ['editovat článek',function(el){ opravit('xclanek',$id); }],
               ['-zobrazit jako abstrakt',function(el){ zmenit($curr_menu->mid,'xclanek',$id,'aclanek'); }],
@@ -371,11 +363,8 @@ __EOT;
       $patt= $top ? "$id!$top" : $id;
       ask_server((object)array('cmd'=>'clanky','chlapi'=>$patt,'back'=>$backref)); 
       // úzké abstrakty
-      $html= $y->obsah;
-//      $html= substr($html,50,100);
-//      $html.= str_replace("abstr-line","abstr",$y->obsah);
+      $html.= $y->obsah;
       $html= strtr($html,array(
-//          "id='list' class='x'"  => "class='sloupce'",
           "class='abstr-line'"   => "class='back'",
           "class='abstr-line x'" => "class='back'",
           "class='abstrakt  x '" => "class='aclanek home'",
@@ -391,6 +380,15 @@ __EOT;
       // 1) z PPT uložené jako PDF s minimalizací pro web
       // 2) pdf2htmlEX --use-cropbox 0 --fit-width 800 --embed CFIJO --bg-format jpg $fname.pdf
       if ( $top ) {
+        if ( $CMS ) {
+          $menu= " title='setkani.org: $top' oncontextmenu=\"
+              Ezer.fce.contextmenu([
+                ['zcizit článek setkání/$top',function(el){ zcizit('setkani',$top,$curr_menu->mid); }]
+              ],arguments[0],0,0,'#clanek$top');return false;\"";
+          $html= strtr($html,array(
+              "id='clanek$top'"   => "id='clanek$top' $menu"
+          ));
+        }
         $html= preg_replace_callback("/(###([\w\-]+)###)/",
           function($m) {
             global $CMS;
@@ -409,6 +407,50 @@ __EOT;
       }
       break;
 
+    // clanky=vzor získání abstraktů článků s danou hodnotou {tx_gncase.chlapi RLIKE vzor}
+//    case 'clanky':    # ------------------------------------------------ . clanky
+//      global $y, $backref, $top, $links, $CMS;
+//      $links= "fotorama";
+//      $html.= "<script>jQuery('.fotorama').fotorama();</script>";
+//      // získání pole abstraktů článků s danými ids 
+//      $patt= $top ? "$id!$top" : $id;
+//      ask_server((object)array('cmd'=>'clanky','chlapi'=>$patt,'back'=>$backref)); 
+//      // úzké abstrakty
+//      $html= $y->obsah;
+//      $html= strtr($html,array(
+//          "class='abstr-line'"   => "class='back'",
+//          "class='abstr-line x'" => "class='back'",
+//          "class='abstrakt  x '" => "class='aclanek home'",
+//          "class='abstrakt x'"   => "class='aclanek home'",
+//          "<hr style='clear:both;border:none'>"  => "<hr style='clear:both;display:none'>"
+//      ));
+//      // překlad na globální odkazy do setkani.(org|bean)
+//      $fileadmin= $ezer_local 
+//          ? "http://setkani.bean:8080/fileadmin"
+//          : "https://www.setkani.org/fileadmin";
+//      $html= preg_replace("/(src|href)=(['\"])(?:\\/|)fileadmin/","$1=$2$fileadmin",$html);
+//      // vložení tranformované prezentace
+//      // 1) z PPT uložené jako PDF s minimalizací pro web
+//      // 2) pdf2htmlEX --use-cropbox 0 --fit-width 800 --embed CFIJO --bg-format jpg $fname.pdf
+//      if ( $top ) {
+//        $html= preg_replace_callback("/(###([\w\-]+)###)/",
+//          function($m) {
+//            global $CMS;
+//            $fname= "pdf/$m[2].html";
+//            if ( file_exists($fname) ) {
+//              if ( $CMS )
+//                return "<span class='sorry'>soubor $fname existuje, 
+//                        ale jako administrátor jej neuvidíš (velký overhead)</span>";
+//              else
+//                return file_get_contents($fname);
+//            }
+//            else
+//              return "<span class='sorry'>soubor $fname neexistuje</span>";
+//          }, 
+//          $html);
+//      }
+//      break;
+
     // clanek=pid -- samostatně zobrazený rozvinutý part
     case 'clanek':  # ------------------------------------------------ . clanek
       global $y;
@@ -420,7 +462,7 @@ __EOT;
       $obsah= str_replace('$index',$index,$obsah);
       $nadpis= "<h1>$y->nadpis</h1>";
       $html.= "
-        <div class='back'>
+        <div class='back' title='setkani.org: $id'>
           <div id='clanek2' class='home'>
             $nadpis
             $obsah
@@ -534,7 +576,7 @@ __EOJ;
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=11" />
     <meta name="viewport" content="width=device-width,user-scalable=yes,initial-scale=1" />
-    <title>CHLAPI</title>
+    <title>chlapi.cz</title>
     <link rel="shortcut icon" href="$icon" />
     $script
     $eb_link
@@ -748,7 +790,15 @@ function ask_server($x) {
       $_SESSION['web']['fe_username']= $y->name;
       $y->fe_user= $y->user;
       $y->be_user= 0;
-    } 
+      if ( !($y->level & REDAKTOR) ) {
+        // pokud to není redaktor zapiš me_login 
+        log_login('u',$x->mail);
+      }
+    }
+    else {
+      // zapiš problém s me_login
+      log_login('-',$x->mail);
+    }
     break;
     
   case 'me_noedit': // ---------------------------------------------------------------------- noedit
@@ -757,12 +807,8 @@ function ask_server($x) {
     break;
 
   case 'be_logout': // ---------------------------------------------------------------------- logout
-    $_SESSION['web']= array();
-    $_SESSION['web']['fe_user']= 0;
-    $_SESSION['web']['fe_level']= 0;
-    $_SESSION['web']['be_user']= 0;
-    unset($_SESSION['ans']);
-    unset($_SESSION['cms']);
+    unset($_SESSION['web']);
+    unset($_SESSION['man']);
     session_write_close();
     $y->fe_user= 0;
     $y->be_user= 0;
@@ -819,6 +865,120 @@ function session($is,$value=null) {
     $value= 1;
   }
   return $value;
+}
+# --------------------------------------------------------------------------------------- db connect
+# připojí databázi
+function db_connect() { 
+  global $ezer_db;
+  $ezer_local= preg_match('/^.*\.(bean)$/',$_SERVER["SERVER_NAME"]);
+  $hst1= 'localhost';
+  $nam1= $ezer_local ? 'gandi'    : 'gandi';
+  $pas1= $ezer_local ? ''         : 'radost';
+  $db1=  $ezer_local ? 'chlapi'  : 'ezerweb';
+  $ezer_db= array( /* lokální */
+    'setkani'  =>  array(0,$hst1,$nam1,$pas1,'utf8',$db1),
+  );
+  ezer_connect('setkani');
+}
+/** =========================================================================================> ADMIN */
+# --------------------------------------------------------------------------------------- log report
+# vrátí seznam 
+# - změn obsahu
+# - chybných pokusů o přihlášení do chlapi.online
+function log_report($par) { trace();
+  $html= "";
+  switch ($par->cmd) {
+  case 'obsah':    // -------------------------------------- obsah
+    $dnu= $par->days;
+    $html.= "<dl>";
+    $cr= mysql_qry("
+      SELECT kdo,kdy,jak,tab,id_tab
+      FROM log
+      WHERE kdy > DATE_SUB(NOW(),INTERVAL $dnu DAY)
+      ORDER BY kdy DESC
+    ");
+    while ( $cr && (list($kdo,$kdy,$jak,$tab,$id_tab)= mysql_fetch_row($cr)) ) {
+      $jak= $jak=='u' ? 'oprava' : ($jak=='i' ? 'vložení' : ($jak=='d' ? 'smazání' : '?'));
+      $co= $tab=='c' ? 'článku' : 'akce';
+      $txt= $tab=='c' ? log_show('xclanek',$id_tab) : "akce $id_tab";
+      $html.= "<dt>$kdy <b>$kdo</b></dt><dd>$jak $co $txt</dd>";
+    }
+    $html.= "</dl>";
+    break;
+  case 'me_login': // -------------------------------------- přihlášení
+    $html.= "<dl>";
+    $cr= mysql_qry("
+      SELECT day,time,msg
+      FROM _touch
+      WHERE module='app' AND menu='me_login'
+      ORDER BY day DESC, time desc
+    ");
+    while ( $cr && (list($day,$time,$msg)= mysql_fetch_row($cr)) ) {
+      list($ok,$mail,$ip,$os,$brow1,$brow2,$txt)= explode('|',$msg);
+      if ( $ok=='ko' && $par->typ=='ko' || $ok=='ok' && $par->typ=='ok' )
+        $html.= "<dt>$day $time <b>$mail</b></dt><dd>$ok $ip $os $brow1 $brow2 <i>$txt</i></dd>";
+    }
+    $html.= "</dl>";
+    break;
+  }
+  return $html;
+}
+# ----------------------------------------------------------------------------------------- log show
+# zobrazí náhled článku
+function log_show($tab,$id_tab) { 
+  $html= "$id_tab";
+  switch ($tab) {
+  case 'xclanek':  
+  $obsah= select("web_text","xclanek","id_xclanek=$id_tab");
+  $obsah= str_replace('$index',$index,$obsah);
+  // zobrazit jako abstrakt
+  $obsah= x_shorting($obsah);
+  $html= "
+    <div class='back'>
+      <a class='aclanek home'>
+        $obsah
+      </a>
+    </div>";
+    $html= "<a onclick=\"Ezer.fce.alert(`$html`)\">$id_tab</a>";
+    break;
+  }
+  return $html;
+}
+# ---------------------------------------------------------------------------------------- log obsah
+# zapíše informace o změně obsahu
+# jak= i/u/d   tab=a/c   id=id_xclanek/id_xakce
+function log_obsah($jak,$tab,$id_tab) { 
+  global $USER;
+  $kdo= $USER->id_osoba;
+  $kdy= date('Y-m-d H:i:s');
+  $menu= $ok=='r' ? 'login' : 'me_login';
+  db_connect();
+  $qry= "INSERT INTO log (kdo,kdy,jak,tab,id_tab)
+         VALUES ('$kdo','$kdy','$jak','$tab','$id_tab')";
+  $res= mysql_qry($qry);
+  return 1;
+}
+# ---------------------------------------------------------------------------------------- log login
+# zapíše informace o přihlášení
+# ok= u pri uživatele, r pro redaktora, - pro chybu
+function log_login($ok,$mail) { 
+  global $USER, $y;
+  $day= date('Y-m-d');
+  $time= date('H:i:s');
+  $ip= isset($_SERVER['HTTP_X_FORWARDED_FOR'])
+      ? $_SERVER['HTTP_X_FORWARDED_FOR'] : $_SERVER['REMOTE_ADDR'];
+  $browser= $_SERVER['HTTP_USER_AGENT'];
+  $txt= str_replace("'","\\'",$y->txt);
+  $menu= $ok=='r' ? 'login' : 'me_login';
+  $info= $ok=='u'
+      ? "$y->user|$mail|$ip|{$_SESSION['platform']}|{$_SESSION['browser']}|$browser" : (
+         $ok=='r'
+      ? "$y->username"    
+      : "0|$mail|$ip||||$txt");
+  db_connect();
+  $qry= "INSERT INTO _touch (day,time,module,menu,msg)
+         VALUES ('$day','$time','app','$menu','$info')";
+  $res= mysql_qry($qry);
 }
 /** ==========================================================================================> TEXT */
 # -------------------------------------------------------------------------------------- x first_img
