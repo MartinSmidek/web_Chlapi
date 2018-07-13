@@ -2,7 +2,7 @@
 # Aplikace bez menu - pouze s hlavním panelem
 # (c) 2016-2018 Martin Šmídek <martin@smidek.eu>
 
-panel p [0,0,*,*] { type:'main'
+panel p [0,0,*,*] { type:'main', _sys:'man'
   var do_go=1
   var last='home'  //'home'
   var history: array, top=-1
@@ -11,7 +11,8 @@ panel p [0,0,*,*] { type:'main'
   proc onstart() { var gets:object
     gets.set(function('return Ezer.get;'));
     last.set(cconc(gets.page,gets.page,'home'));
-//    function('return admin(0)');
+    // zapisuj každý klik hned
+    function('Ezer.sys.ezer.activity.touch_limit=1; return 1;');
     go_menu(last.get);
   }
   proc opravit(_typ,_id) { 
@@ -62,11 +63,11 @@ panel p [0,0,*,*] { type:'main'
 # ----------------------------------------------------------------------------==> control bar
   form _f [,,*,30] { css:'grey admin', style:'z-index:9999;position:fixed'
     proc hide_all() { CMS.hide; ADMIN.hide; REDAKCE.hide }
-    button [80,5,,]  { skill:'a|a', title:"[fa-chevron-left]"    
+    button [80,5,,]  { skill:'r|r', title:"[fa-chevron-left]"    
       proc onclick() { hide_all; go(history.get) } }
-    button [101,5,,] { skill:'a|a', title:"[fa-repeat]"          
+    button [101,5,,] { skill:'r|r', title:"[fa-repeat]"          
       proc onclick() { hide_all; cms_go(last.get) } }
-    button [123,5,,] { skill:'a|a', title:"[fa-chevron-right]", format:'d'
+    button [123,5,,] { skill:'r|r', title:"[fa-chevron-right]", format:'d'
       proc onclick() { hide_all } }
 //    button editace [300,5,,] { 
 //      proc Init(edt) {
@@ -78,12 +79,12 @@ panel p [0,0,*,*] { type:'main'
 //        eq('xclanek',page.get('edit')); EDITOR.Clanek(page.get('id')); refresh 
 //      | eq('kalendar',page.get('edit')); EDITOR.Kalendar(page.get('id')); refresh 
 //    }}
-    button [-95,5,,] { skill:'a|a', title:"[fa-gears] menu" 
+    button [-95,5,,] { skill:'r|a', title:"[fa-gears] menu" 
       proc onclick() { hide_all; CMS.modal(10,40) } }
     label verze [-313,8,40,] { title:'ezer', style:'font-size:10pt;color:white' } 
-    button [-238,5,,] { skill:'a|a', title:"[fa-file-text] přehledy" 
+    button [-238,5,,] { skill:'r|r', title:"[fa-file-text] přehledy" 
       proc onclick() { hide_all; ADMIN.modal(10,40) } }
-    button [-160,5,,] { skill:'a|a', title:"[fa-user-circle] redakce" 
+    button [-160,5,,] { skill:'r|a', title:"[fa-user-circle] redakce" 
       proc onclick() { hide_all; REDAKCE.modal(10,40) } }
     button [-35,5,,] { title:"odhlásit", style:'z-index:999'
       proc onclick() { var ref:text
@@ -92,7 +93,7 @@ panel p [0,0,*,*] { type:'main'
         ref.set(conc(function("return Ezer.web.index"),"?page=",last.get));
         function('ref',"location.href= ref;",ref);
     } }
-    button [-10,5,,] { skill:'a|a', title:"[fa-bars]"           proc onclick() { hide_all; } }
+    button [-10,5,,] { skill:'r|r', title:"[fa-bars]"           proc onclick() { hide_all; } }
   }
 # ----------------------------------------------------------------------------==> page
   form _w [,,*,*] { style:"position:initial"
@@ -101,7 +102,8 @@ panel p [0,0,*,*] { type:'main'
   }
 }
 # ----------------------------------------------------------------------------==> CMS
-panel CMS [0,0,600,396] { type:'popup',  title:'CMS - definice menu', style:"min-width:590px"
+panel CMS [0,0,600,396] { type:'popup',  title:'CMS - definice menu', 
+    style:"min-width:590px", _sys:'cms'
     css:'dialog', par:°{min_top:30}
   var web=2, from_table= 1
   use a: area a_ 
@@ -201,14 +203,15 @@ panel CMS [0,0,600,396] { type:'popup',  title:'CMS - definice menu', style:"min
     field ref [6,203,79,] { title:"^ref" }
     field nazev [97,203,146,] { title:"^název" }
     field title [256,203,127,] { title:"^title" }
-    field elem [5,242,378,] { title:"^definice obsahu" }
+    edit elem [5,242,378,60] { title:"^definice obsahu" }
     proc onchanged(elem) {
       echo(elem.id); a.curr_data.set(elem.get,elem.id); elem.plain;
     }
   }
 }
 # ----------------------------------------------------------------------------==> ADMIN
-panel ADMIN [0,0,*,465] { title:'Aktivita CMS', type:'popup', css:'dialog_menu'
+panel ADMIN [0,0,600,465] { title:'Aktivita CMS', type:'popup', css:'dialog_menu', 
+    style:"min-width:590px", _sys:'adm'
   proc onfirstfocus() { m.o.d.click }
   menu m { type:'left', format:'f'
     menu o {title:'Změny obsahu',type:'group'
@@ -351,7 +354,8 @@ panel ADMIN [0,0,*,465] { title:'Aktivita CMS', type:'popup', css:'dialog_menu'
   }
 }
 # ----------------------------------------------------------------------------==> REDAKCE
-panel REDAKCE [0,0,1270,510] {type:'popup', title:'Redakce', css:'dialog_full', skill:'a|a'
+panel REDAKCE [0,0,840,510] {type:'popup', title:'Redakce', css:'dialog_full', 
+    style:"min-width:830px", skill:'a|a', _sys:'red'
 
   const sys_users_list = 22
   const sys_users_skills = 16
@@ -625,7 +629,7 @@ panel REDAKCE [0,0,1270,510] {type:'popup', title:'Redakce', css:'dialog_full', 
   }
 }
 # ==========================================================================================> EDITOR
-panel EDITOR [0,0,710,530] { type:'popup'
+panel EDITOR [0,0,710,530] { type:'popup', style:"min-width:700px", _sys:'edi'
   var id:number,
       path:text
   use c: form _c [0,0,,] { tag:'c', format:'n' }
@@ -701,11 +705,13 @@ panel EDITOR [0,0,710,530] { type:'popup'
         UPLOAD.modal //(50,100)
       }
     }
+    select  [-171,5,100,] { type:'map', title:'text uvidí', help:'zobrazí se jen pro ...'
+        options:skill_level.skill_name, value:'0', data:xclanek.web_skill }
     edit obsah [0,40,712,480] { type:'html', data:xclanek.web_text, par:°{toolbar:'WEB'} }
   }
 }
 # ----------------------------------------------------------------------------==> UPLOAD
-panel UPLOAD [0,0,400,130] { title:' Nahrát soubor', type:'popup', css:'dialog'
+panel UPLOAD [0,0,400,130] { title:' Nahrát soubor', type:'popup', css:'dialog', _sys:'upl'
   var ckeditor:object,
       path:text
   use g: form _g [10,0,,]
@@ -800,6 +806,7 @@ table xakce { key_id:'id_xakce', db:'setkani'
 }
 table xclanek { key_id:'id_xclanek', db:'setkani'
   number id_xclanek { key:'primary' }
+  number web_skill
   text web_text
 }
 table _help {  key_id:'id_help'                     // tabulka _help je v databázi aplikace
@@ -845,4 +852,17 @@ table _skill { key_id:'id_skill', db:'ezer_system'
 //  text old { help:'původní hodnota' }
 //  text val { help:'původní hodnota' }
 //}
+table _cis { key_id:'id_cis'
+  number id_cis
+  text druh,
+  text data,
+  text zkratka,
+  number poradi,
+  text hodnota,
+  text popis,
+  text barva,
+  text ikona
+}
+map skill_level: table _skill { where:"id_skill IN (0,8,16)", order:'id_skill', key_id:'id_skill' }
+
 

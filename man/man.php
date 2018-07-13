@@ -24,6 +24,7 @@
   $username= select("username","_user","id_user={$_SESSION['web']['fe_user']}");
   if ( $username ) {
     $app_login= "$username/";
+    log_login('r'); // (be_)login 
   }
   else {
     // nebo odmítnutí přihlášení
@@ -56,7 +57,7 @@
         toolbar:[['Maximize','Styles','-','Bold','Italic','TextColor','BGColor', 'RemoveFormat',
           '-','JustifyLeft','JustifyCenter','JustifyRight','JustifyBlock', 'Outdent', 'Indent', 'Blockquote',
           '-','NumberedList','BulletedList','Table',
-          '-','Link','Unlink','HorizontalRule','Image','Embed',
+          '-','Anchor','Link','Unlink','HorizontalRule','Image','Embed',
           '-','Source','ShowBlocks','RemoveFormat']],
         // Configure the Enhanced Image plugin to use classes instead of styles and to disable the
         // resizer (because image size is controlled by widget styles or the image takes maximum
@@ -86,7 +87,6 @@
   // je to aplikace se startem v podsložce a chceme mapy
   $_GET['gmap']= 1;
   require_once("../$kernel/ezer_main.php");
-  log_login('r','');
   
 function specific(&$template_meta,&$template) {
   $debugger= '';

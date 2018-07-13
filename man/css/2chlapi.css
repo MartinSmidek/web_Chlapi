@@ -235,10 +235,18 @@ div.sloupce {
 div.sloupce div.back {
   display: inline-block;
 }
-div.sloupce a.aclanek {
-  background: url(more.png) bottom right no-repeat, linear-gradient(to bottom right, #E6E1CF 50%, #807340 75%);
+div.sloupce a.aclanek,
+div.sloupce a.aclanek_nojump {
   overflow: hidden;
   text-align: left;
+  max-height: 7em;
+}
+div.sloupce a.aclanek {
+  background: url(more.png) bottom right no-repeat, linear-gradient(to bottom right, #E6E1CF 50%, #807340 75%);
+}
+div.sloupce a.aclanek_nojump {
+  cursor: pointer;
+  background: url(no_more.png) bottom right no-repeat, linear-gradient(to bottom right, #E6E1CF 50%, #807340 75%);
 }
 div.home,
 a.home,

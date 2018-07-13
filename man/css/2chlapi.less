@@ -157,11 +157,19 @@ div.sloupce {
   div.back {
     display: inline-block;
   }
+  a.aclanek,a.aclanek_nojump {
+    overflow: hidden;
+    text-align: left;
+    max-height: 7em;
+  }
   a.aclanek {
     background: url(more.png) bottom right no-repeat, 
                 linear-gradient(to bottom right, @abstr_b 50%, @activ_b 75%);
-    overflow: hidden;
-    text-align: left;
+  }
+  a.aclanek_nojump {
+    cursor: pointer;
+    background: url(no_more.png) bottom right no-repeat, 
+                linear-gradient(to bottom right, @abstr_b 50%, @activ_b 75%);
   }
 }
 // speciální články

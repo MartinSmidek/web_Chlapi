@@ -1,7 +1,5 @@
 /* popup panely */
 div.Popup3 {
-  max-width: calc(100% - 210px);   
-  min-width: calc(100% - 80px);   
   left: 20px;  
   background: #c0e2c2db;
 }
@@ -12,8 +10,27 @@ div.Popup3 div.pop_body.dialog_menu {
 #popup3 {
   width: fit-content !important; /* kvůli zobrazení abstraktů v admin */
 }
+#popup_mask3 {
+  z-index: 0 !important;
+}
 div.Popup3 div.pop_body.dialog_full {
   z-index: -1;
+}
+
+/* malá obrazovka */
+@media all and (max-width: 1024px) {
+  div.Popup3 {
+    min-width: calc(100% - 80px);   
+    max-width: calc(100% - 210px);   
+  }
+}
+
+/* velká obrazovka */
+@media all and (min-width: 1024px) {
+  div.Popup3 {
+    min-width: unset;   
+    max-width: unset;   
+  }
 }
 
 /* oprava kvůli webu */

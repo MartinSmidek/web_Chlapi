@@ -189,7 +189,7 @@ function eval_elem($desc) {
     
     case 'aclanek': # ------------------------------------------------ . ačlánek - akstrakt
       global $backref;
-      $obsah= select("web_text","xclanek","id_xclanek=$id");
+      list($obsah,$xskill)= select("web_text,web_skill","xclanek","id_xclanek=$id");
       $obsah= str_replace('$index',$index,$obsah);
       $menu= '';
       if ( $CMS ) {
@@ -202,7 +202,7 @@ function eval_elem($desc) {
             ],arguments[0],0,0,'#xclanek$id');return false;\"";
       }
       $jmp= str_replace('*',$id,$backref);
-      if ( $top==$id ) {
+      if ( $top==$id && (!$xskill || $fe_level & $xskill) ) {
         // zobrazit jako plný článek
         $html.= "
           <div class='back' $menu>
@@ -214,9 +214,16 @@ function eval_elem($desc) {
       else {
         // zobrazit jako abstrakt
         $obsah= x_shorting($obsah);
+        $styl= 'aclanek';
+        $neodkaz= '';
+        if ( $xskill && !($fe_level & $xskill) ) {
+          $jmp= '';
+          $neodkaz= "onclick=\"jQuery('div.neodkaz').fadeIn();\"";
+          $styl= 'aclanek_nojump';
+        }
         $html.= "
-          <div class='back' $menu>
-            <a class='aclanek home' $jmp>
+          <div class='back' $menu $neodkaz>
+            <a class='$styl home' $jmp>
               $obsah
             </a>
           </div>";
@@ -224,7 +231,10 @@ function eval_elem($desc) {
       break;
 
     case 'xclanek': # ------------------------------------------------ . xčlánek
-      $obsah= select("web_text","xclanek","id_xclanek=$id");
+      list($obsah,$xskill)= select("web_text,web_skill","xclanek","id_xclanek=$id");
+      if ( $xskill && !($fe_level & $xskill) ) {
+        break;
+      }
       $obsah= str_replace('$index',$index,$obsah);
       $menu= '';
       if ( $CMS ) {
@@ -407,50 +417,6 @@ __EOT;
       }
       break;
 
-    // clanky=vzor získání abstraktů článků s danou hodnotou {tx_gncase.chlapi RLIKE vzor}
-//    case 'clanky':    # ------------------------------------------------ . clanky
-//      global $y, $backref, $top, $links, $CMS;
-//      $links= "fotorama";
-//      $html.= "<script>jQuery('.fotorama').fotorama();</script>";
-//      // získání pole abstraktů článků s danými ids 
-//      $patt= $top ? "$id!$top" : $id;
-//      ask_server((object)array('cmd'=>'clanky','chlapi'=>$patt,'back'=>$backref)); 
-//      // úzké abstrakty
-//      $html= $y->obsah;
-//      $html= strtr($html,array(
-//          "class='abstr-line'"   => "class='back'",
-//          "class='abstr-line x'" => "class='back'",
-//          "class='abstrakt  x '" => "class='aclanek home'",
-//          "class='abstrakt x'"   => "class='aclanek home'",
-//          "<hr style='clear:both;border:none'>"  => "<hr style='clear:both;display:none'>"
-//      ));
-//      // překlad na globální odkazy do setkani.(org|bean)
-//      $fileadmin= $ezer_local 
-//          ? "http://setkani.bean:8080/fileadmin"
-//          : "https://www.setkani.org/fileadmin";
-//      $html= preg_replace("/(src|href)=(['\"])(?:\\/|)fileadmin/","$1=$2$fileadmin",$html);
-//      // vložení tranformované prezentace
-//      // 1) z PPT uložené jako PDF s minimalizací pro web
-//      // 2) pdf2htmlEX --use-cropbox 0 --fit-width 800 --embed CFIJO --bg-format jpg $fname.pdf
-//      if ( $top ) {
-//        $html= preg_replace_callback("/(###([\w\-]+)###)/",
-//          function($m) {
-//            global $CMS;
-//            $fname= "pdf/$m[2].html";
-//            if ( file_exists($fname) ) {
-//              if ( $CMS )
-//                return "<span class='sorry'>soubor $fname existuje, 
-//                        ale jako administrátor jej neuvidíš (velký overhead)</span>";
-//              else
-//                return file_get_contents($fname);
-//            }
-//            else
-//              return "<span class='sorry'>soubor $fname neexistuje</span>";
-//          }, 
-//          $html);
-//      }
-//      break;
-
     // clanek=pid -- samostatně zobrazený rozvinutý part
     case 'clanek':  # ------------------------------------------------ . clanek
       global $y;
@@ -620,22 +586,26 @@ __EOD;
   // body   - mapa je vložena do BlockMain pod #work
   if ( $CMS )
     $fe_user_display= 'none';
+  $go_home= $CMS 
+      ? "onclick=\"go(arguments[0],'page=home','{$prefix}home','',0);\""
+      : "href='{$prefix}home'";
+
   $body=  <<<__EOD
     <div id='page'>
-      <img id='logo' src='/man/img/kriz.png' onclick="change_info();">
+      <a $go_home style="cursor:pointer"><img id='logo' src='/man/img/kriz.png'></a>
       <div id='motto'>Mladý muž, který neumí plakat, je barbar.
           <br>Starý muž, který se neumí smát, je pitomec.
-          <br>Richard Rohr
+          <br><i>Richard Rohr</i>
       </div>
       <div id='menu'>
         $bar_menu
         $menu
       </div>
       <div class='neodkaz' style="display:none">
-        <div id='clanek2' class='home'>
-          <p>Tento odkaz je bez přihlášení neaktivní.</p>
-          <p> Pokud chceš pokračovat na místo, kam ukazuje,  musíš být přihlášen.</p>
-          <p>K přihlašovacímu dialogu se dostaneš pomocí menu  v pravém horním rohu.</p>
+        <div id='clanek2' class='home' style="background:#CFDDE6">
+          <p>Modré <span class='neodkaz'><a class='jump'>odkazy</a></span> jsou bez přihlášení neaktivní.</p>
+          <p> Pokud chceš vidět úplné texty článků, musíš být přihlášen.</p>
+          <p>K přihlašovacímu dialogu se dostaneš pomocí menu <i class="fa fa-bars"></i> v pravém horním rohu.</p>
           <p>Přihlásit se můžeš pomocí mailové adresy, kterou jsi 
           uvedl v přihlášce na akci MROP. Pokud ses této akce ještě nezúčastnil, 
           přihlášení možné nebude.</p>
@@ -804,9 +774,13 @@ function ask_server($x) {
   case 'me_noedit': // ---------------------------------------------------------------------- noedit
     // zrušení možnosti editovat => plné prohlížení
     $_SESSION['web']['fe_level']= $_SESSION['web']['fe_level'] & ~ADMIN & ~SUPER & ~REDAKTOR;
+    $y->user= $_SESSION['web']['fe_user'];
+    $y->username= $_SESSION['web']['fe_username'];
+    log_login('u',$x->mail);
     break;
 
   case 'be_logout': // ---------------------------------------------------------------------- logout
+    log_login('x');
     unset($_SESSION['web']);
     unset($_SESSION['man']);
     session_write_close();
@@ -892,16 +866,20 @@ function log_report($par) { trace();
     $dnu= $par->days;
     $html.= "<dl>";
     $cr= mysql_qry("
-      SELECT kdo,kdy,jak,tab,id_tab
-      FROM log
+      SELECT kdo,MAX(kdy),jak,tab,id_tab,IFNULL(username,kdo),COUNT(*) AS _krat
+      FROM log LEFT JOIN _user ON id_user=kdo
       WHERE kdy > DATE_SUB(NOW(),INTERVAL $dnu DAY)
+      GROUP BY tab,id_tab,kdo,DATE(kdy)
       ORDER BY kdy DESC
     ");
-    while ( $cr && (list($kdo,$kdy,$jak,$tab,$id_tab)= mysql_fetch_row($cr)) ) {
+    while ( $cr && (list($kdo,$kdy,$jak,$tab,$id_tab,$username,$krat)
+        = mysql_fetch_row($cr)) ) {
       $jak= $jak=='u' ? 'oprava' : ($jak=='i' ? 'vložení' : ($jak=='d' ? 'smazání' : '?'));
       $co= $tab=='c' ? 'článku' : 'akce';
       $txt= $tab=='c' ? log_show('xclanek',$id_tab) : "akce $id_tab";
-      $html.= "<dt>$kdy <b>$kdo</b></dt><dd>$jak $co $txt</dd>";
+      $krat= $krat==1 ? "" : " ($krat x)";
+      $html.= "$kdy <b>$username</b> - $jak $co $txt $krat<br>";
+//      $html.= "<dt>$kdy <b>$username</b></dt><dd>$jak $co $txt $krat</dd>";
     }
     $html.= "</dl>";
     break;
@@ -910,12 +888,12 @@ function log_report($par) { trace();
     $cr= mysql_qry("
       SELECT day,time,msg
       FROM _touch
-      WHERE module='app' AND menu='me_login'
+      WHERE module='log' AND menu='me_login'
       ORDER BY day DESC, time desc
     ");
     while ( $cr && (list($day,$time,$msg)= mysql_fetch_row($cr)) ) {
       list($ok,$mail,$ip,$os,$brow1,$brow2,$txt)= explode('|',$msg);
-      if ( $ok=='ko' && $par->typ=='ko' || $ok=='ok' && $par->typ=='ok' )
+//      if ( $ok=='ko' && $par->typ=='ko' || $ok=='ok' && $par->typ=='ok' )
         $html.= "<dt>$day $time <b>$mail</b></dt><dd>$ok $ip $os $brow1 $brow2 <i>$txt</i></dd>";
     }
     $html.= "</dl>";
@@ -949,7 +927,7 @@ function log_show($tab,$id_tab) {
 # jak= i/u/d   tab=a/c   id=id_xclanek/id_xakce
 function log_obsah($jak,$tab,$id_tab) { 
   global $USER;
-  $kdo= $USER->id_osoba;
+  $kdo= $USER->id_user;
   $kdy= date('Y-m-d H:i:s');
   $menu= $ok=='r' ? 'login' : 'me_login';
   db_connect();
@@ -960,24 +938,40 @@ function log_obsah($jak,$tab,$id_tab) {
 }
 # ---------------------------------------------------------------------------------------- log login
 # zapíše informace o přihlášení
-# ok= u pri uživatele, r pro redaktora, - pro chybu
-function log_login($ok,$mail) { 
+# ok= u pri uživatele, r pro redaktora, - pro chybu, x pro odhlášení redaktora
+# id_user pro přihlášeného redaktora (zapisuje se v man.php)
+function log_login($ok,$mail='') { 
   global $USER, $y;
   $day= date('Y-m-d');
   $time= date('H:i:s');
+  $abbr= '';
   $ip= isset($_SERVER['HTTP_X_FORWARDED_FOR'])
       ? $_SERVER['HTTP_X_FORWARDED_FOR'] : $_SERVER['REMOTE_ADDR'];
   $browser= $_SERVER['HTTP_USER_AGENT'];
-  $txt= str_replace("'","\\'",$y->txt);
-  $menu= $ok=='r' ? 'login' : 'me_login';
-  $info= $ok=='u'
-      ? "$y->user|$mail|$ip|{$_SESSION['platform']}|{$_SESSION['browser']}|$browser" : (
-         $ok=='r'
-      ? "$y->username"    
-      : "0|$mail|$ip||||$txt");
+  $id_user= $_SESSION['web']['fe_user'];
+  $abbr= $username= '';
   db_connect();
-  $qry= "INSERT INTO _touch (day,time,module,menu,msg)
-         VALUES ('$day','$time','app','$menu','$info')";
+  if ( $id_user ) {
+    list($abbr,$username)= select("abbr,username","_user","id_user='$id_user'");
+  }
+  if ( $ok=='x') {
+    // odhlášení
+    $menu= 'logout';
+    $msg= "$username|";
+  }
+  elseif ( $ok=='r') {
+    $menu= 'login';
+    $msg= "$username||$ip|{$_SESSION['platform']}|{$_SESSION['browser']}|$browser";
+  }
+  else { // $ok= u|-
+    $txt= str_replace("'","\\'",(isset($y->txt)?$y->txt:'?').(isset($y->msg)?$y->msg:'?'));
+    $menu= 'me_login';
+    $msg= $ok=='u'
+        ? "ok|$mail|$ip|{$_SESSION['platform']}|{$_SESSION['browser']}|$browser" 
+        : "ko|$mail|$ip||||$txt";
+  }
+  $qry= "INSERT INTO _touch (day,time,user,module,menu,msg)
+         VALUES ('$day','$time','$abbr','log','$menu','$msg')";
   $res= mysql_qry($qry);
 }
 /** ==========================================================================================> TEXT */
