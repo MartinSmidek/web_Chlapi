@@ -156,8 +156,8 @@ function eval_menu($path) {
 # -------------------------------------------------------------------------------------==> eval_elem
 // desc :: key [ = ids ]
 // ids  :: id1 [ / id2 ] , ...    -- id2 je klíč v lokální db pro ladění
-function eval_elem($desc) {
-  global $CMS, $ezer_local, $index, $load_ezer, $fe_level, $curr_menu, $top;
+function eval_elem($desc,$book=null) {
+  global $CMS, $ezer_local, $index, $load_ezer, $fe_level, $curr_menu, $top, $prefix;
 //  global $edit_entity, $edit_id;
   $elems= explode(';',$desc);
   $html= '';
@@ -181,8 +181,52 @@ function eval_elem($desc) {
 
     case 'layout':  # ----------------------------------------------- . layout
       $layout= $id;
-      break;
+      break; 
     
+    case 'xkniha':  # ----------------------------------------------- . layout
+      global $backref;
+      list($idk,$ida)= explode(',',$top);
+      list($nazev,$xelems)= select("nazev,xelems","xkniha","id_xkniha=$id");
+      $menu= '';
+      if ( $top && $idk==$id ) {
+        // otevřená kniha
+        if ( $CMS ) {
+          $menu= " title='kniha $idk' oncontextmenu=\"
+              Ezer.fce.contextmenu([
+                ['-nová kapitola na začátek',function(el){ pridat('xkniha.elem',$idk,1); }],
+                ['nová kapitola na konec',function(el){ pridat('xkniha.elem',$idk,0); }]
+              ],arguments[0],0,0,'#xclanek$id');return false;\"";
+        }
+        // nadpis
+        $html.= "
+          <div class='kniha_bg' id='fokus_page'>
+            <div class='kniha_br' $menu>
+              Začátek knihy <b>$nazev</b>
+            </div>";
+        // kapitoly
+        $top= $ida;
+        if ( $elems ) {
+          $html.= eval_elem($xelems,(object)array('open'=>true,'idk'=>$id));
+        }
+        // konec 
+        $html.= "
+            <div class='kniha_br'>
+              Konec knihy <b>$nazev</b>
+            </div>
+          </div>";
+      }
+      else {
+        // zavřená kniha
+        // zobrazení 1. kapitoly - musí to být aclanek
+        list($xelem)= explode(';',$xelems);
+        if ( $xelem ) {
+          $html.= "<div title='kniha $id'>";
+          $html.= eval_elem($xelem,(object)array('open'=>false,'idk'=>$id));
+          $html.= "</div>";
+        }
+      }
+      break;
+
     case 'note':    # ----------------------------------------------- . note
       $html.= "<div style='background:white;color:black;text-align:center'>POZNAMKA</div>";
       break;
@@ -192,16 +236,31 @@ function eval_elem($desc) {
       list($obsah,$xskill)= select("web_text,web_skill","xclanek","id_xclanek=$id");
       $obsah= str_replace('$index',$index,$obsah);
       $menu= '';
+      $idn= $book ? ($book->open ? "$book->idk,$id" : $book->idk) : $id;
       if ( $CMS ) {
-        $menu= " title='abstrakt $id' oncontextmenu=\"
-            Ezer.fce.contextmenu([
-              ['editovat článek',function(el){ opravit('xclanek',$id); }],
-              ['-zobrazit jako článek',function(el){ zmenit($curr_menu->mid,'aclanek',$id,'xclanek'); }],
-              ['-nový článek na začátek',function(el){ pridat('xclanek',$curr_menu->mid,1); }],
-              ['nový článek na konec',function(el){ pridat('xclanek',$curr_menu->mid,0); }]
-            ],arguments[0],0,0,'#xclanek$id');return false;\"";
+        $obsah= preg_replace("~href=\"(?:http://www.chlapi.cz/|/|(?!http://))(.*)\"~U", 
+              "onclick=\"go(arguments[0],'page=$1','$prefix$1','',0);\" title='$1'", 
+              $obsah);
+        if ( !$book  ) 
+          $menu= " title='abstrakt $idn' oncontextmenu=\"
+              Ezer.fce.contextmenu([
+                ['editovat článek',function(el){ opravit('xclanek',$id); }],
+                ['-zobrazit jako článek',function(el){ zmenit($curr_menu->mid,'aclanek',$id,'xclanek'); }],
+                ['-přidat fotky',function(el){ pridat('xfotky',$id); }],
+                ['-nový článek na začátek',function(el){ pridat('xclanek',$curr_menu->mid,1); }],
+                ['nový článek na konec',function(el){ pridat('xclanek',$curr_menu->mid,0); }]
+              ],arguments[0],0,0,'#xclanek$id');return false;\"";
+        elseif ( $book->open) 
+          $menu= " title='abstrakt $idn' oncontextmenu=\"
+              Ezer.fce.contextmenu([
+                ['editovat článek',function(el){ opravit('xclanek',$id); }],
+                ['-zobrazit jako článek',function(el){ zmenit($curr_menu->mid,'aclanek',$id,'xclanek'); }],
+                ['-přidat fotky',function(el){ pridat('xfotky',$id); }],
+                ['-nová kapitola na začátek',function(el){ pridat('xkniha.elem',$book->idk,1); }],
+                ['nová kapitola na konec',function(el){ pridat('xkniha.elem',$book->idk,0); }]
+              ],arguments[0],0,0,'#xclanek$id');return false;\"";
       }
-      $jmp= str_replace('*',$id,$backref);
+      $jmp= str_replace('*',$idn,$backref);
       if ( $top==$id && (!$xskill || $fe_level & $xskill) ) {
         // zobrazit jako plný článek
         $html.= "
@@ -238,6 +297,9 @@ function eval_elem($desc) {
       $obsah= str_replace('$index',$index,$obsah);
       $menu= '';
       if ( $CMS ) {
+        $obsah= preg_replace("~href=\"(?:http://www.chlapi.cz/|/|(?!http://))(.*)\"~U", 
+              "onclick=\"go(arguments[0],'page=$1','$prefix$1','',0);\" title='$1'", 
+              $obsah);
         $menu= " title='článek $id' oncontextmenu=\"
             Ezer.fce.contextmenu([
               ['editovat článek',function(el){ opravit('xclanek',$id); }],
@@ -953,6 +1015,8 @@ function log_login($ok,$mail='') {
   db_connect();
   if ( $id_user ) {
     list($abbr,$username)= select("abbr,username","_user","id_user='$id_user'");
+    // uvolni všechny uzamčené záznamy, které jsi zamkl
+    record_unlock ('xclanek',0,true);
   }
   if ( $ok=='x') {
     // odhlášení
@@ -973,6 +1037,40 @@ function log_login($ok,$mail='') {
   $qry= "INSERT INTO _touch (day,time,user,module,menu,msg)
          VALUES ('$day','$time','$abbr','log','$menu','$msg')";
   $res= mysql_qry($qry);
+}
+/** =========================================================================================> LOCKS */
+# -------------------------------------------------------------------------------------- record lock
+# pokud je rekord volný tj. table.locked=0 vrátí {kdo:''} a zapíše kdy kdo uzamkl
+# pokud je rekord zamknutý tj. table.locked=id_user vrátí {kdo:_user.username,kdy:datetime}
+function record_lock ($table,$id_table) {
+  $ret= (object)array();
+  list($kdo,$kdy)= select("lock_kdo,lock_kdy",$table,"id_$table=$id_table");
+  if ( $kdo ) {
+    // zamknutý záznam
+    $ret->kdo= select("username","_user","id_user='$kdo'") ?: "???";
+    $ret->kdy= sql_date($kdy);
+  }
+  else {
+    // volný záznam - zmkni jej
+    $ret->kdo= '';
+    $id_user= $_SESSION['web']['fe_user'];
+    query("UPDATE $table SET lock_kdo='$id_user',lock_kdy=NOW() WHERE id_$table=$id_table");
+  }
+  return $ret;
+}
+# ------------------------------------------------------------------------------------ record unlock
+# uvolni rekord
+# pokud je $unlock_all - uvolni všechny které jsi zamkl 
+#   (děje se při přihlášení a odhlášení tedy i přo refresh)
+function record_unlock ($table,$id_table,$unlock_all=false) {
+  if ( $unlock_all ) {
+    $id_user= $_SESSION['web']['fe_user'];
+    query("UPDATE $table SET lock_kdo=0,lock_kdy=NOW() WHERE lock_kdo='$id_user'");
+  }
+  else {
+    query("UPDATE $table SET lock_kdo=0,lock_kdy=NOW() WHERE id_$table=$id_table");
+  }
+  return 1;
 }
 /** ==========================================================================================> TEXT */
 # -------------------------------------------------------------------------------------- x first_img

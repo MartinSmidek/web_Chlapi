@@ -155,7 +155,8 @@ div.sloupce {
   /*outline: 1px dotted yellow;*/
   float: right; margin-top:.5em;
   div.back {
-    display: inline-block;
+    display: flex;
+    /*display: inline-block;*/
   }
   a.aclanek,a.aclanek_nojump {
     overflow: hidden;
@@ -215,7 +216,7 @@ div.home, a.home, #user_mail, #skup0, #skup1, #skup2 {
 }
 // upozornění pro nepřihlášené
 div.neodkaz {
-  position: fixed; margin-top: 1em;
+  position: fixed; margin-top: 1em; z-index: 2;
 }
 // kalendář
 table.kalendar tr {
@@ -265,11 +266,15 @@ a.aclanek {
     overflow: hidden; margin: 0.5em; position: relative; border-radius: .8em; }
 }
 // kniha
+div.kniha {
+  display: flex-inline;
+}
 .kniha_bg {
   background-color: fadeout(@obal_b,30%); color: @obal_c;
-  display: block; clear: both; border-radius: .8em; text-align: center;
-  a.jump { 
-    margin:1em; }
+  display: block; clear: both; border-radius: .8em; 
+  /*text-align: center;*/
+/*  a.jump { 
+    margin:1em; }*/
   div.kniha_br {
     clear: both; padding: 1em 0; text-align: center; color:@text_b; .shadow-txt
   }

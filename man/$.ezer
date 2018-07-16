@@ -2,7 +2,7 @@
 # Aplikace bez menu - pouze s hlavním panelem
 # (c) 2016-2018 Martin Šmídek <martin@smidek.eu>
 
-panel p [0,0,*,*] { type:'main', _sys:'man'
+panel p [0,0,*,*] { type:'main', _sys:'$'
   var do_go=1
   var last='home'  //'home'
   var history: array, top=-1
@@ -23,7 +23,8 @@ panel p [0,0,*,*] { type:'main', _sys:'man'
     ask('menu_chng_elem',_mid,_typ1,_id,_typ2); refresh
   }
   proc pridat(_typ,_mid,_first) { 
-    eq('xclanek',_typ); ask('menu_add_elem',_mid,'xclanek',_first); refresh 
+    eq('xclanek',_typ); ask('menu_add_elem',_mid,_typ,_first); refresh 
+  | eq('xkniha.elem',_typ); ask('menu_add_elem',_mid,_typ,_first); refresh 
   }
   proc zcizit(_typ,_pid,_mid) { 
     echo("kopírování článku setkani.part.id=",_pid);
@@ -641,15 +642,19 @@ panel EDITOR [0,0,710,530] { type:'popup', style:"min-width:700px", _sys:'edi'
     panel.set_attrib('title','Úprava položky kalendáře');
     panel.modal(10,40) 
   }
-  proc Clanek(_key) {[
-    id.set(_key);
+  proc Clanek(_key) { var lock:object
+  [ id.set(_key);
     panel.display(2,'c'); 
+    lock.set(ask('record_lock','xclanek',_key)); // selže, pokud již je editováno
+    not(lock.kdo);
     c.load(_key); 
     path.set(conc('/inc/c/',_key));                  // cesta pro přílohy
     ask('session','man,inc_path',path.get);
     join_drop(c.obsah);
     panel.set_attrib('title','Úprava článku');
     panel.modal(10,40) 
+  | lock.kdo;
+    alert("článek právě upravuje redaktor ",lock.kdo)
   ]}
   proc join_drop(obsah) {
     UPLOAD.ckeditor.set(obsah);
@@ -695,9 +700,15 @@ panel EDITOR [0,0,710,530] { type:'popup', style:"min-width:700px", _sys:'edi'
   # oprava textu článku
   form _c [10,10,710,460] {
     button  [-121,5,,] { title:'Uložit', help:'ukončit editor a uložit změny'
-      proc onclick() { form.save; ask('log_obsah','u','c',id.get); panel.hide(1); }}
+      proc onclick() { 
+        form.save; 
+        ask('record_unlock','xclanek',id.get);
+        ask('log_obsah','u','c',id.get); 
+        panel.hide(1); }}
     button  [-75,5,,] { title:'Zpět', help:'ukončit editor bez uložení změn'
-      proc onclick() { panel.hide(0); }}
+      proc onclick() { 
+        ask('record_unlock','xclanek',id.get);  
+        panel.hide(0); }}
     button app [-3,4,,] { title:'[fa-files-o] Přílohy', help:'seznam souborů sdružených s textem'
       proc onclick() {
         UPLOAD.ckeditor.set(obsah);
@@ -711,7 +722,8 @@ panel EDITOR [0,0,710,530] { type:'popup', style:"min-width:700px", _sys:'edi'
   }
 }
 # ----------------------------------------------------------------------------==> UPLOAD
-panel UPLOAD [0,0,400,130] { title:' Nahrát soubor', type:'popup', css:'dialog', _sys:'upl'
+panel UPLOAD [0,0,400,130] { title:' Nahrát soubor', type:'popup', style:"min-width:390px", 
+    css:'dialog', _sys:'upl'
   var ckeditor:object,
       path:text
   use g: form _g [10,0,,]
@@ -772,7 +784,8 @@ panel UPLOAD [0,0,400,130] { title:' Nahrát soubor', type:'popup', css:'dialog'
       | url; g.drop.loaded
     }}
   }
-  panel UPLOAD_URL [,,300,60] { type:'popup' title:'zadej url s přílohou' use ff:form _ff
+  panel UPLOAD_URL [,,300,60] { type:'popup' title:'zadej url s přílohou', style:"min-width:300px" 
+    use ff:form _ff
     proc onfocus() { ff.zip.init; ff.zip.focus }
     form _ff {
       field zip [0,0,300,] { format:'t' }

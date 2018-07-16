@@ -35,14 +35,28 @@ function menu_copy_elem($from,$pid,$mid,$type) {
 # ------------------------------------------------------------------------------------ menu add_elem
 # přidá do menu další element
 function menu_add_elem($mid,$table,$first=0) {
-  $elem= select("elem","menu","wid=2 AND mid=$mid");
-  query("INSERT INTO $table () VALUES ()");
-  $id= mysql_insert_id();
-  if ( $first )
-    $elem= "$table=$id" . ($elem ? ";$elem" : '');
-  else
-    $elem= ($elem ? "$elem;" : '') . "$table=$id";
-  query("UPDATE menu SET elem='$elem' WHERE wid=2 AND mid=$mid");
+  switch ($table) {
+  case 'xkniha.elem':  
+    $elem= select("xelems","xkniha","id_xkniha=$mid");
+    query("INSERT INTO xclanek () VALUES ()");
+    $id= mysql_insert_id();
+    if ( $first )
+      $elem= "aclanek=$id" . ($elem ? ";$elem" : '');
+    else
+      $elem= ($elem ? "$elem;" : '') . "aclanek=$id";
+    query("UPDATE xkniha SET xelems='$elem' WHERE id_xkniha=$mid");
+    break;
+  case 'xclanek':  
+    $elem= select("elem","menu","wid=2 AND mid=$mid");
+    query("INSERT INTO $table () VALUES ()");
+    $id= mysql_insert_id();
+    if ( $first )
+      $elem= "$table=$id" . ($elem ? ";$elem" : '');
+    else
+      $elem= ($elem ? "$elem;" : '') . "$table=$id";
+    query("UPDATE menu SET elem='$elem' WHERE wid=2 AND mid=$mid");
+    break;
+  }
   return 1;
 }
 # ----------------------------------------------------------------------------------- menu chng_elem

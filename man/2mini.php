@@ -584,14 +584,16 @@ function mail_send($reply_to,$address,$subject,$body) { trace(); display("mail_s
   $mail->SMTPSecure= "ssl"; // sets the prefix to the server
   $mail->Host= "smtp.gmail.com"; // sets GMAIL as the SMTP server
   $mail->Port= 465; // set the SMTP port for the GMAIL server
-  $mail->Username= "answer@setkani.org";
-  $mail->Password= "answer2017";
+//  $mail->Username= "answer@setkani.org";
+//  $mail->Password= "answer2017";
+  $mail->Username= "www.chlapi.cz@gmail.com";
+  $mail->Password= "kuroslepy";
   $mail->CharSet= "UTF-8";
   $mail->IsHTML(true);
   // zpětné adresy
   $mail->ClearReplyTos();
   $mail->AddReplyTo($reply_to);
-  $mail->SetFrom('answer@setkani.org', 'YMCA Setkání');
+  $mail->SetFrom('www.chlapi.cz@gmail.com', 'chlapi.cz');
   // vygenerování mailu
   $mail->Subject= $subject;
   $mail->Body= $body;

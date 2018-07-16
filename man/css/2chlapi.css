@@ -233,7 +233,8 @@ div.sloupce {
   margin-top: .5em;
 }
 div.sloupce div.back {
-  display: inline-block;
+  display: flex;
+  /*display: inline-block;*/
 }
 div.sloupce a.aclanek,
 div.sloupce a.aclanek_nojump {
@@ -423,6 +424,7 @@ a.home#skup2 textarea,
 div.neodkaz {
   position: fixed;
   margin-top: 1em;
+  z-index: 2;
 }
 table.kalendar tr td {
   margin-top: 1em;
@@ -503,16 +505,18 @@ a.aclanek:hover {
   position: relative;
   border-radius: .8em;
 }
+div.kniha {
+  display: flex-inline;
+}
 .kniha_bg {
   background-color: rgba(207, 221, 230, 0.7);
   color: #000000;
   display: block;
   clear: both;
   border-radius: .8em;
-  text-align: center;
-}
-.kniha_bg a.jump {
-  margin: 1em;
+  /*text-align: center;*/
+  /*  a.jump { 
+    margin:1em; }*/
 }
 .kniha_bg div.kniha_br {
   clear: both;
