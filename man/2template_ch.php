@@ -1,4 +1,5 @@
 <?php
+define(VERZE,   '19/7 9:43'); 
 /** seznam oprávnění - setkani_cis/druh=skupina - jejich relevantní součet je v $fe_level
  *   1   5 admin     administrátor stránek
  *   2   2 super     redaktor, který může editovat a mazat příspěvky jiných redaktorů
@@ -179,20 +180,31 @@ function eval_elem($desc,$book=null) {
 
     switch ($typ) {
 
+    case 'verze':   # ----------------------------------------------- . verze
+      $v= VERZE;
+      $html.= <<<__EOT
+        <script>alert("verze CMS je $v");</script>
+__EOT;
+      break; 
+    
     case 'layout':  # ----------------------------------------------- . layout
       $layout= $id;
       break; 
     
-    case 'xkniha':  # ----------------------------------------------- . layout
+    case 'akniha':  # ----------------------------------------------- . kniha
+    case 'xkniha':  
       global $backref;
       list($idk,$ida)= explode(',',$top);
-      list($nazev,$xelems)= select("nazev,xelems","xkniha","id_xkniha=$id");
+      list($nazev,$xelems,$xskill)= select("nazev,xelems,web_skill","xkniha","id_xkniha=$id");
+      $xskill= 0+$xskill;
+      $otevrena= $top && $idk==$id && (!$xskill || $fe_level & $xskill);
       $menu= '';
-      if ( $top && $idk==$id ) {
+      if ( $otevrena ) {
         // otevřená kniha
         if ( $CMS ) {
           $menu= " title='kniha $idk' oncontextmenu=\"
               Ezer.fce.contextmenu([
+                ['upravit název',function(el){ opravit('xkniha',$idk); }],
                 ['-nová kapitola na začátek',function(el){ pridat('xkniha.elem',$idk,1); }],
                 ['nová kapitola na konec',function(el){ pridat('xkniha.elem',$idk,0); }]
               ],arguments[0],0,0,'#xclanek$id');return false;\"";
@@ -201,7 +213,7 @@ function eval_elem($desc,$book=null) {
         $html.= "
           <div class='kniha_bg' id='fokus_page'>
             <div class='kniha_br' $menu>
-              Začátek knihy <b>$nazev</b>
+              <b>$nazev</b>
             </div>";
         // kapitoly
         $top= $ida;
@@ -221,7 +233,8 @@ function eval_elem($desc,$book=null) {
         list($xelem)= explode(';',$xelems);
         if ( $xelem ) {
           $html.= "<div title='kniha $id'>";
-          $html.= eval_elem($xelem,(object)array('open'=>false,'idk'=>$id));
+          $html.= eval_elem($xelem,(object)array(
+              'open'=>false,'idk'=>$id/*,'tit'=>$nazev*/,'skill'=>$xskill));
           $html.= "</div>";
         }
       }
@@ -231,18 +244,27 @@ function eval_elem($desc,$book=null) {
       $html.= "<div style='background:white;color:black;text-align:center'>POZNAMKA</div>";
       break;
     
-    case 'aclanek': # ------------------------------------------------ . ačlánek - akstrakt
-      global $backref;
+    case 'aclanek': # ------------------------------------------------ . ačlánek - abstrakt
+      global $backref, $links;
+      $links= "fotorama";
+      $html.= "<script>jQuery('.fotorama').fotorama();</script>";
       list($obsah,$xskill)= select("web_text,web_skill","xclanek","id_xclanek=$id");
+      $xskill= 0+$xskill;
       $obsah= str_replace('$index',$index,$obsah);
-      $menu= '';
-      $idn= $book ? ($book->open ? "$book->idk,$id" : $book->idk) : $id;
+      $menu= $note= '';
+      $idn= $id;
+      if ( $book ) {
+        $idn= $book->open ? "$book->idk,$id" : $book->idk;
+        $xskill= $book->skill ? $book->skill | $xskill : $xskill; 
+      }
+      $plny= $top==$id && (!$xskill || $fe_level & $xskill);
+      $co= $plny ? 'článek' : 'abstrakt';
       if ( $CMS ) {
-        $obsah= preg_replace("~href=\"(?:http://www.chlapi.cz/|/|(?!http://))(.*)\"~U", 
+        $obsah= preg_replace("~href=\"(?:http://www.chlapi.cz/|/|(?!https?://))(.*)\"~U", 
               "onclick=\"go(arguments[0],'page=$1','$prefix$1','',0);\" title='$1'", 
               $obsah);
         if ( !$book  ) 
-          $menu= " title='abstrakt $idn' oncontextmenu=\"
+          $menu= " title='$co $idn' oncontextmenu=\"
               Ezer.fce.contextmenu([
                 ['editovat článek',function(el){ opravit('xclanek',$id); }],
                 ['-zobrazit jako článek',function(el){ zmenit($curr_menu->mid,'aclanek',$id,'xclanek'); }],
@@ -251,7 +273,7 @@ function eval_elem($desc,$book=null) {
                 ['nový článek na konec',function(el){ pridat('xclanek',$curr_menu->mid,0); }]
               ],arguments[0],0,0,'#xclanek$id');return false;\"";
         elseif ( $book->open) 
-          $menu= " title='abstrakt $idn' oncontextmenu=\"
+          $menu= " title='$co $idn' oncontextmenu=\"
               Ezer.fce.contextmenu([
                 ['editovat článek',function(el){ opravit('xclanek',$id); }],
                 ['-zobrazit jako článek',function(el){ zmenit($curr_menu->mid,'aclanek',$id,'xclanek'); }],
@@ -261,7 +283,7 @@ function eval_elem($desc,$book=null) {
               ],arguments[0],0,0,'#xclanek$id');return false;\"";
       }
       $jmp= str_replace('*',$idn,$backref);
-      if ( $top==$id && (!$xskill || $fe_level & $xskill) ) {
+      if ( $plny ) {
         // zobrazit jako plný článek
         $html.= "
           <div class='back' $menu>
@@ -269,10 +291,39 @@ function eval_elem($desc,$book=null) {
               $obsah
             </div>
           </div>";
+        // pokud jsou fotky, přidáme
+        $rf= mysql_qry("SELECT id_xfotky,nazev,seznam,path FROM xfotky WHERE id_xclanek=$id");
+        while ($rf && list($fid,$nazev,$seznam,$path)=mysql_fetch_row($rf)) {
+          if ( $CMS ) {
+            $note= "<span style='float:right;color:red;font-style:italic;font-size:x-small'>
+                  ... zjednodušené zobrazení fotogalerie pro editaci</span>";
+            $menu= " title='fotky $fid' oncontextmenu=\"
+                Ezer.fce.contextmenu([
+                  ['organizovat fotky',function(el){ opravit('xfotky',$fid); }],
+                  ['kopírovat ze setkání',function(el){ zcizit('fotky',$fid,0); }],
+                  ['... jen test',function(el){ zcizit('fotky',$fid,1); }]
+                ],arguments[0],0,0,'#xclanek$id');return false;\"";
+          }
+          $galery= show_fotky2($fid,$seznam);
+          $html.= "
+            <div class='galery_obal' $menu>
+              <div id='xfotky$fid' class='galerie'>
+                <div class='text'>
+                  <h1>&nbsp;&nbsp;&nbsp;$nazev $note</h1>
+                  $galery
+                  <div class='podpis'>podpis</div>
+                </div>
+              </div>
+            </div>
+          ";
+        }
       }
       else {
         // zobrazit jako abstrakt
         $obsah= x_shorting($obsah);
+        if ( $book->tit ) {
+          $obsah= "<b>$book->tit</b> $obsah";
+        }
         $styl= 'aclanek';
         $neodkaz= '';
         if ( $xskill && !($fe_level & $xskill) ) {
@@ -297,7 +348,7 @@ function eval_elem($desc,$book=null) {
       $obsah= str_replace('$index',$index,$obsah);
       $menu= '';
       if ( $CMS ) {
-        $obsah= preg_replace("~href=\"(?:http://www.chlapi.cz/|/|(?!http://))(.*)\"~U", 
+        $obsah= preg_replace("~href=\"(?:http://www.chlapi.cz/|/|(?!https?://))(.*)\"~U", 
               "onclick=\"go(arguments[0],'page=$1','$prefix$1','',0);\" title='$1'", 
               $obsah);
         $menu= " title='článek $id' oncontextmenu=\"
@@ -430,13 +481,13 @@ __EOT;
     case 'clanky':    # ------------------------------------------------ . clanky
       global $y, $backref, $top, $links, $CMS;
       $links= "fotorama";
-      $html.= "<script>jQuery('.fotorama').fotorama();</script>";
+      $ys_html= "<script>jQuery('.fotorama').fotorama();</script>";
       // získání pole abstraktů článků s danými ids 
       $patt= $top ? "$id!$top" : $id;
       ask_server((object)array('cmd'=>'clanky','chlapi'=>$patt,'back'=>$backref)); 
       // úzké abstrakty
-      $html.= $y->obsah;
-      $html= strtr($html,array(
+      $ys_html.= $y->obsah;
+      $ys_html= strtr($ys_html,array(
           "class='abstr-line'"   => "class='back'",
           "class='abstr-line x'" => "class='back'",
           "class='abstrakt  x '" => "class='aclanek home'",
@@ -447,21 +498,26 @@ __EOT;
       $fileadmin= $ezer_local 
           ? "http://setkani.bean:8080/fileadmin"
           : "https://www.setkani.org/fileadmin";
-      $html= preg_replace("/(src|href)=(['\"])(?:\\/|)fileadmin/","$1=$2$fileadmin",$html);
+      $ys_html= preg_replace("/(src|href)=(['\"])(?:\\/|)fileadmin/","$1=$2$fileadmin",$ys_html);
       // vložení tranformované prezentace
       // 1) z PPT uložené jako PDF s minimalizací pro web
       // 2) pdf2htmlEX --use-cropbox 0 --fit-width 800 --embed CFIJO --bg-format jpg $fname.pdf
       if ( $top ) {
         if ( $CMS ) {
-          $menu= " title='setkani.org: $top' oncontextmenu=\"
+          $ys_kniha= preg_match("~id='fokus_page'~", $ys_html);
+          $co= "setkani_".($ys_kniha?"k":"c");
+          $cosi= $ys_kniha?'knihy':'článku';
+          $menu= " title='".($ys_kniha?'kniha':'článek')." setkani.org: $top' oncontextmenu=\"
               Ezer.fce.contextmenu([
-                ['zcizit článek setkání/$top',function(el){ zcizit('setkani',$top,$curr_menu->mid); }]
+                ['kopie $cosi ze setkání/$top',function(el){ zcizit('$co',$top,$curr_menu->mid); }],
+                ['... jen test',function(el){ zcizit('?$co',$top,$curr_menu->mid); }]
               ],arguments[0],0,0,'#clanek$top');return false;\"";
-          $html= strtr($html,array(
-              "id='clanek$top'"   => "id='clanek$top' $menu"
+          $ys_html= strtr($ys_html,array(
+              "id='fokus_page'"  => "id='fokus_page' $menu",
+              "id='clanek$top'"  => "id='clanek$top' $menu"
           ));
         }
-        $html= preg_replace_callback("/(###([\w\-]+)###)/",
+        $ys_html= preg_replace_callback("/(###([\w\-]+)###)/",
           function($m) {
             global $CMS;
             $fname= "pdf/$m[2].html";
@@ -475,8 +531,9 @@ __EOT;
             else
               return "<span class='sorry'>soubor $fname neexistuje</span>";
           }, 
-          $html);
+          $ys_html);
       }
+      $html.= $ys_html;
       break;
 
     // clanek=pid -- samostatně zobrazený rozvinutý part
@@ -736,6 +793,71 @@ function next_xakce($curr_id,$smer=1) {
   }
   return (object)array('msg'=>$msg,'id'=>$id);
 }
+/** =========================================================================================> FOTKY */
+# --------------------------------------------------------------------------------==> . show fotky 2
+# uid určuje složku
+function show_fotky2($fid,$lst,$back_href='') {
+  global $CMS, $href0, $clear;
+  if ( $CMS ) return show_fotky($fid,$lst,$back_href);
+  $lstx= $lst;
+  $h= '';
+  $fs= explode(',',$lstx);
+  $last= count($fs)-1;
+  $ih= "<div class='fotorama'
+    data-allowfullscreen='native'
+    data-caption='true'
+    data-width='100%'
+    xdata-ratio='800/400'
+    data-nav='thumbs'
+    data-x-autoplay='true'
+  >";
+  for ($i= 0; $i<$last; $i+=2) {
+    $mini= "inc/f/$fid/..$fs[$i]";
+    $open= "inc/f/$fid/.$fs[$i]";
+    $orig= "inc/f/$fid/$fs[$i]";
+    if ( file_exists($mini) ) {
+      $mini= str_replace(' ','%20',$mini);
+      $title= '';
+      if ( $fs[$i+1] ) {
+        $title= $fs[$i+1];
+        $title= strtr($title,array('##44;'=>',',"'"=>'"','~'=>'-'));
+        $title= " data-caption='$title'";
+      }
+      $i2= $i/2;
+      $ih.= "<img src='$open' $title>";
+    }
+  }
+  $ih.= "</div>";
+  return $ih;
+}
+# ----------------------------------------------------------------------------------==> . show fotky
+# uid určuje složku
+function show_fotky($fid,$lst,$back_href) { 
+  global $CMS, $href0, $clear;
+  $lstx= $lst;
+//  popup("Prohlížení fotografií","$fid~$lstx",$back_href,'foto');
+  $h= '';
+  $fs= explode(',',$lstx);
+  $last= count($fs)-1;
+  for ($i= 0; $i<$last; $i+=2) {
+    $mini= "inc/f/$fid/..$fs[$i]";
+    $open= "inc/f/$fid/.$fs[$i]";
+    $orig= "inc/f/$fid/$fs[$i]";
+    if ( file_exists($mini) ) {
+      $mini= str_replace(' ','%20',$mini);
+      $title= $fs[$i];
+      if ( $fs[$i+1] ) {
+        $title= $fs[$i+1];
+        $title= strtr($title,array('##44;'=>',',"'"=>'"','~'=>'-'));
+      }
+      $i2= $i/2;
+      $onclick= $CMS ? '' : " onclick=\"foto_show(arguments[0],$i2);return false;\"";
+      $h.= " <span data-foto-n='$i2' title='$title' $onclick
+               class='foto foto_cms' style='background-image:url($mini)'></span>";
+    }
+  }
+  return $h;
+}
 /** ========================================================================================> SERVER */
 # funkce na serveru přes AJAX
 function servant($qry,$context=null) {
@@ -769,7 +891,7 @@ function ask_server($x) {
   
   case 'clanky':   // ----------------------------------------------------------------------- clanky
     $y= (object)array('msg'=>'neznámý článek');
-    servant("clanky=$x->chlapi&back=$x->back"); // part.uid
+    servant("clanky=$x->chlapi&back=$x->back&groups={$_SESSION['web']['fe_usergroups']}"); // part.uid
     break;
   
   case 'akce':     // ------------------------------------------------------------------------- akce
@@ -779,31 +901,39 @@ function ask_server($x) {
   
   case 'knihy':   // ------------------------------------------------------------------------- knihy
     $y= (object)array('msg'=>'neznámá kniha');
-    servant("knihy=$x->chlapi&back=$x->back"); // part.uid
+    servant("knihy=$x->chlapi&back=$x->back&groups={$_SESSION['web']['fe_usergroups']}"); // part.uid
     break;
   
   case 'clanek':   // ----------------------------------------------------------------------- clanek
     $y= (object)array('msg'=>'neznámý článek');
-    servant("clanek=$x->pid"); // part.uid
+    servant("clanek=$x->pid&groups={$_SESSION['web']['fe_usergroups']}"); // part.uid
+    break;
+  
+  case 'kapitoly':   // ------------------------------------------------------------------- kapitoly
+    $y= (object)array('msg'=>'neznámá kniha');
+    servant("kapitoly=$x->pid"); // part.uid
     break;
   
   case 'kniha':     // ----------------------------------------------------------------------- kniha
     $y= (object)array('msg'=>'neznámý článek');
-    servant("kniha=$x->cid&page=$x->page&kapitola=$x->kapitola"); // case.uid,part.uid
+    servant("kniha=$x->cid&page=$x->page&kapitola=$x->kapitola&groups={$_SESSION['web']['fe_usergroups']}"); // case.uid,part.uid
     break;
   
   case 'sendmail': // -------------------------------------------------------------------- send mail
-    // ask({cmd:'sendmail',to:to,reply:reply,subj:subj,body:body},skup_sendmail_);
-    $y->ok= emailIsValid($x->to,$err) ? 1 : 0;
-    if ( $y->ok ) {
-      $ret= mail_send($x->reply,$x->to,$x->subj,$x->body);
-      $_SESSION['ans']['phpmailer']= $ret;
-      $y->txt= $ret->err
-        ? "Mail se bohužel nepovedlo odeslat ($ret->err)"
-        : "mail byl odeslán organizátorům skupiny";
-    }
-    else {
-      $y->txt= "'$x->to' nevypadá jako mailová adresa ($err)";
+    $tos= preg_split("~[\s,;]~", $x->to,-1,PREG_SPLIT_NO_EMPTY);
+    foreach($tos as $to) {
+      $_SESSION['web']['phpmailer1']= $to;
+      $y->ok= emailIsValid($to,$err) ? 1 : 0;
+      if ( $y->ok ) {
+        $ret= mail_send($x->reply,$to,$x->subj,$x->body);
+        $_SESSION['web']['phpmailer2']= $ret;
+        $y->txt= $ret->err
+          ? "Mail se bohužel nepovedlo odeslat ($ret->err)"
+          : "mail byl odeslán organizátorům skupiny";
+      }
+      else {
+        $y->txt= "'$to' nevypadá jako mailová adresa ($err)";
+      }
     }
     break;
 
@@ -1016,7 +1146,8 @@ function log_login($ok,$mail='') {
   if ( $id_user ) {
     list($abbr,$username)= select("abbr,username","_user","id_user='$id_user'");
     // uvolni všechny uzamčené záznamy, které jsi zamkl
-    record_unlock ('xclanek',0,true);
+    record_unlock('xclanek',0,true);
+    record_unlock('xkniha',0,true);
   }
   if ( $ok=='x') {
     // odhlášení

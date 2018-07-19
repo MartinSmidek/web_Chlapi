@@ -67,6 +67,32 @@ div.Label3.cms_page { z-index: initial; }
 .ae_parm        {
   background-color:#ffeed6; border:1px solid #f5f5f5; z-index:0; border-radius:5px; }
 
+/* fotky */
+
+span.foto { width:80px; max-height:80px; overflow:hidden; display:inline-block;
+  background-repeat:no-repeat; background-position:center; }
+span.foto_cms { height:80px; }
+div.drop_back { z-index:2; background-color:#c9d5e5; opacity:.7; }
+div.drop_foto { z-index:3; margin:2px; width:76px; height:76px; outline:2px dashed #fff; display:table }
+div.drop_foto span { display:table-cell; text-align:center; vertical-align:middle; }
+#popup_div>img { max-width:100%; margin:0; }
+.fotorama .foto_text { font-size: 1em; line-height:8vw; text-align:center; height:100%; padding-top:25%;  }
+.fotorama__caption  { text-align:center; bottom: 1vw !important; }
+.fotorama__caption__wrap { background:#fff4de !important; color:black; font-weight:bold; border-radius: 2vw; }
+
+/* organizér fotek */
+
+span.drop { margin: 1px 2px 1px 1px; }
+ul.foto { display:inline; padding: 0; }
+li.foto { width:80px; height:80px; overflow:hidden; display:inline-block; cursor: move;
+  background-repeat:no-repeat; background-position:center; vertical-align:middle;
+  border: 1px solid #bde37b; margin: 2px 1px 2px 0px; }
+li.foto[data-checked='true'] { border: 1px solid red !important; }
+li.foto[data-checked='false'] { border: 1px solid #bde37b !important; }
+li.foto div { background: #bde37b; text-align: center; width: 80px; }
+li.foto input { float:left; margin:0; }
+li.foto input:focus { outline:none; }
+
 /* layout */
 
 #status_bar {

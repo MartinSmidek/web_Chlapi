@@ -6,37 +6,664 @@
 // CMS/Ezer                                             (c) 2018 Martin Šmídek <martin@smidek.eu> //
 // ---------------------------------------------------------------------------------------------- //
 
-/** ===========================================================================================> WEB */
-# ------------------------------------------------------------------------------------ menu add_elem
+/** =========================================================================================> FOTKY */
+# ----------------------------------------------------------------------------------==> . load fotky
+function load_fotky($fid) { trace();
+  global $CMS, $href0, $clear;
+  $x= (object)array();
+  list($x->autor,$x->nadpis,$lst,$psano)=
+    select('autor,nazev,seznam','xfotky',"id_xfotky=$fid");
+  $x->fotky= "<span class='foto drop' data-foto-n='-1'></span><ul class='foto' id='foto'>";
+  $x->psano= sql_date1($psano);
+  $fs= explode(',',$lst);
+  $last= count($fs)-1;
+  for ($i= 0; $i<$last; $i+=2) {
+    $mini= "inc/f/$fid/..$fs[$i]";
+    if ( file_exists($mini) ) {
+      $title= $fs[$i] ? "title='{$fs[$i]}'" : '';
+      $tit= $fs[$i+1] ? "<div>{$fs[$i+1]}</div>" : '';
+      $chk= "<input type='checkbox' onchange=\"this.parentNode.dataset.checked=this.checked;\" />";
+      $menu= "oncontextmenu=\"Ezer.fce.contextmenu([
+          ['smazat fotku',foto_delete],
+          ['upravit popis',foto_note]
+        ],arguments[0]);return false;\"";
+      $n= $i/2;
+      $x->fotky.=
+        " <li class='foto' data-foto-n='$n' $title $menu style='background-image:url($mini)'>"
+        . "$chk$tit</li>";
+    }
+  }
+  $x->fotky.= "</ul>";
+  return $x;
+}
+# ------------------------------------------------------------------------------------- delete fotky
+function delete_fotky($uid,$foto) {
+  global $ezer_path_root, $ezer_root;
+  // zrušení odkazu na fotku
+  $text= select('text','tx_gncase_part',"uid=$uid");
+  $fotky= explode(',',$text);
+  while (1) {
+    $n= array_search($foto,$fotky);
+    if ( $n===false ) break;
+    unset($fotky[$n]); unset($fotky[$n+1]);
+  }
+  $text= implode(',', $fotky);
+  query("UPDATE tx_gncase_part SET text='$text' WHERE uid=$uid");
+  // smazání fotky
+  $path= "$ezer_path_root/fileadmin/photo/$uid";
+  unlink("$path/$foto"); unlink("$path/.$foto"); unlink("$path/..$foto");
+  return 1;
+}
+# --------------------------------------------------------------------------------------- note fotky
+function note_fotky($uid,$foto0,$note) {
+  // načtení
+  $text= select('text',"setkani.tx_gncase_part","uid='$uid'");
+  $f= array();
+  $t= explode(',',$text);
+  for ($i= 0; $i<count($t)-1; $i+=2) {
+    $foto= $t[$i]; $desc= $t[$i+1];
+    $f[$foto]= $desc;
+  }
+  // změna
+  $f[$foto0]= $note;
+  // zápis
+  $text= '';
+  foreach($f as $foto=>$desc) {
+    $text.= "$foto,$desc,";
+  }
+  query("UPDATE setkani.tx_gncase_part SET text='$text' WHERE uid='$uid'");
+  return 1;
+}
+# --------------------------------------------------------------------------------==> . create fotky
+# přidání fotek - pokud je definováno x.kapitola pak pod příslušné part - jinak na konec
+function create_fotky($x) {
+  $cid= $x->cid;
+  $autor= mysql_real_escape_string($x->autor);
+  $nadpis= mysql_real_escape_string($x->nadpis);
+  $kapitola= $x->kapitola;
+  query("INSERT INTO setkani.tx_gncase_part (cid,kapitola,tags,author,title,text,date,tstamp)
+         VALUES ($cid,'$kapitola','F','$autor','$nadpis','',UNIX_TIMESTAMP(),UNIX_TIMESTAMP())");
+  $uid= mysql_insert_id();
+  return $uid;
+}
+# ----------------------------------------------------------------------------------==> . save fotky
+function save_fotky($x,$perm) {
+  $uid= $x->uid;
+  $autor= mysql_real_escape_string($x->autor);
+  $nadpis= mysql_real_escape_string($x->nadpis);
+  $psano= sql_date1($x->psano,1);
+  $text= select('text',"setkani.tx_gncase_part","uid='$uid'");
+  // přeskládání textu podle order
+  $nt= array();
+  $t= explode(',',$text);
+//                                                         debug($t,$perm);
+  $p= explode(',',$perm);
+  for ($i= 0; $i<count($p); $i++) {
+    $nt[$i*2]=   $t[$p[$i]*2];
+    $nt[$i*2+1]= $t[$p[$i]*2+1];
+  }
+  $text2= implode(',',$nt);
+//                                                         display($text);
+//                                                         display($text2);
+  $set_text= $text==$text2 ? '' : ",text='$text2'";
+  // zápis
+  query("UPDATE setkani.tx_gncase_part
+         SET author='$autor',title='$nadpis',date=UNIX_TIMESTAMP('$psano'),tstamp=UNIX_TIMESTAMP()
+         $set_text WHERE uid='$uid'");
+  return 1;
+}
+# ----------------------------------------------------------------------------------==> . sort fotky
+# seřadí fotky podle jména souboru
+function sort_fotky($uid) { trace();
+  $text= select('text',"setkani.tx_gncase_part","uid='$uid'");
+  $f= array();
+  $t= explode(',',$text);
+                                                        debug($t);
+  for ($i= 0; $i<count($t)-1; $i+=2) {
+    $foto= $t[$i]; $desc= $t[$i+1];
+                                                        display("$i,$foto,$desc");
+    $f[$foto]= $desc;
+  }
+                                                        debug($f);
+  ksort($f);
+                                                        debug($f);
+  $text= '';
+  foreach($f as $foto=>$desc) {
+    $text.= "$foto,$desc,";
+  }
+                                                        display($text);
+  // zápis
+  query("UPDATE setkani.tx_gncase_part SET text='$text' WHERE uid='$uid'");
+  return 1;
+}
+# ----------------------------------------------------------------------------------==> . move fotky
+# přesune fotky s pořadími uvedenými v lst z part.uid=from do part.uid=to
+function move_fotky($from,$to,$checked) { trace();
+  global $ezer_path_root, $ezer_root;
+  $path_from= "$ezer_path_root/fileadmin/photo/$from";
+  $text_from= select('text',"setkani.tx_gncase_part","uid='$from'");
+  $path_to= "$ezer_path_root/fileadmin/photo/$to";
+  $text_to= select('text',"setkani.tx_gncase_part","uid='$to'");
+  // zajisti cílovou složku
+  if ( !is_dir($path_to) ) {
+    $ok= mkdir($path_to,0777);
+    if (!$ok) { fce_warning("POZOR nepodařilo se vytvořit složku pro fotografie ($path_to)"); goto end;}
+  }
+  // úprava seznamů a fotek
+  $add= $sub= '';
+  $t= explode(',',$text_from);
+  $p= explode(',',$checked);
+  for ($i= 0; $i<count($p); $i++) {
+    if ( $p[$i]>0 ) {
+      $pi= $p[$i]-1;
+      $foto= $t[$pi*2]; $desc= $t[$pi*2+1];
+      $add.= "$foto,$desc,";
+      // přesun fotek mezi složkami
+                                                        display("copy($path_from/$foto,$path_to/$foto)");
+      foreach (array($foto,".$foto","..$foto") as $f) {
+        if ( file_exists("$path_from/$f") ) {
+          copy("$path_from/$f","$path_to/$f");
+          unlink("$path_from/$f");
+        }
+      }
+    }
+    else {
+      $pi= -$p[$i]-1;
+      $foto= $t[$pi*2]; $desc= $t[$pi*2+1];
+      $sub.= "$foto,$desc,";
+    }
+  }
+  $text_from= $sub;
+  $text_to= $text_to.$add;
+                                                        display("from=$text_from");
+                                                        display("to=$text_to");
+  // zápis
+  query("UPDATE setkani.tx_gncase_part SET text='$text_from' WHERE uid='$from'");
+  query("UPDATE setkani.tx_gncase_part SET text='$text_to' WHERE uid='$to'");
+end:
+  return 1;
+}
+# ----------------------------------------------------------------------------------==> . upload url
+# zapíše soubor zadaný urldo fileadmin/img/cid
+function upload_url($url,$cid) { trace();
+  global $ezer_path_root, $ezer_root;
+  $ret= (object)array('err'=>'');
+  // zajisti složku
+  $path= "$ezer_path_root/fileadmin/img/$cid";
+  if ( !is_dir($path) ) {
+    $ok= mkdir($path,0777);
+    if (!$ok) { $ret->err= "POZOR nepodařilo se vytvořit složku pro soubor ($path)"; goto end;}
+  }
+  // zjisti velikost a zda je dost místa
+  $free= floor(disk_free_space("/")/(1024*1024));
+  $headers= get_headers($url, 1);
+                                                        debug($headers,$url);
+  $size= $headers["Content-Length"];
+  if ( is_array($size) ) $size= $size[count($size)-1];
+  $size= ceil($size/(1024*1024));
+                                                        display("volných $free MB, soubor má $size MB");
+  if ( 5*$size > $free ) {
+    $ret->err= "Na serveru je $free volných MB - to je dost málo (soubor má $size MB)"; goto end; }
+
+  // zjisti a uprav jméno
+  $disp= $headers["Content-Disposition"];
+  $ok= preg_match("/attachment; filename=\"([^\"]+)\"/",$disp,$m);
+                                                        debug($m,$ok);
+  if (!$ok) { $ret->err= "POZOR soubor má nečekaný popis ($disp)"; goto end;}
+  $file= utf2ascii($m[1],'.');
+  $pathfile= "$path/$file";
+                                                        display("file=$file");
+  // soubor přepíšeme pokud existuje
+  if ( file_exists($pathfile) ) unlink($pathfile);
+  // zkopíruj do souboru
+  if (!copy($url,$pathfile)) { $ret->err= "POZOR soubor $file se nepodařilo přečíst"; goto end; }
+end:
+  return $ret;
+}
+# ----------------------------------------------------------------------------------==> . upload zip
+function upload_zip($url,$uid,$cid) { trace();
+  global $ezer_path_root;
+  $ret= (object)array('err'=>'');
+  $free= floor(disk_free_space("/")/(1024*1024));
+  $headers= get_headers($url, 1);
+  $size= $headers["Content-Length"];
+  if ( is_array($size) ) $size= $size[count($size)-1];
+  $size= ceil($size/(1024*1024));
+                                                        display("volných $free MB, zip má $size MB");
+  if ( 5*$size > $free ) {
+    $ret->err= "Na serveru je $free volných MB - to je dost málo (soubor má $size MB)"; goto end; }
+  $path= "$ezer_path_root/fileadmin/photo/$uid";
+
+  // zkopíruj do dočasného souboru
+  if ( file_exists("tmp_file.zip") ) unlink("tmp_file.zip");
+  $tmp= "tmp_file.zip";
+  if (!@copy($url,$tmp)) { $ret->err= "POZOR archiv se nepodařilo přečíst"; goto end; }
+  // zajisti složku
+  if ( !is_dir($path) ) {
+    $ok= mkdir($path,0777);
+    if (!$ok) { $ret->err= "POZOR nepodařilo se vytvořit složku pro fotografie ($path)"; goto end;}
+  }
+  // otevři archiv
+  $z= new ZipArchive;
+  $ok= $z->open($tmp);
+  if ( $ok===true ) {
+                                                        display("files={$z->numFiles}");
+    for ($i=0; $i<$z->numFiles;$i++) {
+      $f= $z->statIndex($i);
+      $file0= $f['name'];
+      $file= utf2ascii($file0,'.');
+      if ( $file0!=$file ) {
+        $z->renameName($file0,$file);
+      }
+      $z->extractTo($path,array($file));
+      list($width, $height, $type, $attr)= getimagesize("$path/$file");
+      // file na HD 1080
+      if ( $width>1920 || $height>1080 ) {
+        $w= 1920; $h= 1080;
+        $ok= x_resample("$path/$file","$path/$file",$w,$h) ? 'ok' : 'ko';
+      }
+      // .file na HD 720
+      if ( $width>1280 || $height>720 ) {
+        $w= 1280; $h= 720;
+        $ok= x_resample("$path/$file","$path/.$file",$w,$h) ? 'ok' : 'ko';
+      }
+      else
+        copy("$path/$file","$path/.$file");
+      // doplnění thumbs ..$file
+      $w= $h= 80;
+      $ok= x_resample("$path/.$file","$path/..$file",$w,$h) ? 'ok' : 'ko';
+      // přidání názvu fotky do záznamu v tabulce
+      query("UPDATE tx_gncase_part SET text=CONCAT('$file,,',text) WHERE uid=$uid");
+    }
+    $z->close();
+  }
+  else { $ret->err= "POZOR archiv se nepodařilo otevřít (chyba:$ok)"; goto end;}
+end:
+  // uvolni prostor
+  if ( file_exists("tmp_file.zip") ) unlink("tmp_file.zip");
+  return $ret;
+}
+# --------------------------------------------------------------------------------==> . upload fotky
+# přidá fotografii do seznamu (rodina|osoba) podle ID na konec a vrátí nové názvy
+function upload_fotky($fileinfo,$uid,$cid) { trace();
+  global $ezer_path_root, $ezer_root;
+  $name= '';          // tiché oznámení chyby
+  $path= "$ezer_path_root/fileadmin/photo/$uid";
+  $parts= pathinfo($fileinfo->name);
+  // zajisti složku
+  if ( !is_dir($path) ) {
+    $ok= mkdir($path,0777);
+    if (!$ok) {fce_error("POZOR nepodařilo se vytvořit složku pro fotografie ($path)!"); goto end;}
+  }
+  $file= utf2ascii($parts['filename']).'.'.$parts['extension'];
+//                                                 debug($fileinfo,$path);
+  $data= $fileinfo->text;
+  // test korektnosti fotky
+  if ( $type=="application/x-zip-compressed" ) {
+    // ZIP archiv
+    $prefix= "application/x-zip-compressed;base64,";
+    $data= base64_decode(substr("$data==",strlen($prefix)));
+    fce_error("vkládání fotek přes ZIP ještě není hotové");
+  }
+  elseif ( substr($data,0,23)=="data:image/jpeg;base64," ) {
+    // uložení fotky na disk
+    $data= base64_decode(substr("$data==",23));
+    $bytes= file_put_contents("$path/$file",$data);
+    // přidání názvu fotky do záznamu v tabulce
+    query("UPDATE tx_gncase_part SET text=CONCAT('$file,,',text) WHERE uid=$uid");
+    // doplnění thumbs ..$file
+    $w= $h= 80;
+    $ok= x_resample("$path/$file","$path/..$file",$w,$h) ? 'ok' : 'ko';
+    // ZMENŠENINA .file
+    if ( !is_file("$path/.$file") ) // pokud zmenšenina neexistuje, vynuť její vytvoření
+      $width0= $height0= -1;
+    else // pokud existuje zmenšenina, podívej se na její rozměry
+      list($width0, $height0, $type0, $attr0)= getimagesize("$path/.$file");
+    if ( $width!=$width0 || $height!=$height0 ) {
+      // je požadována změna rozměrů, transformuj obrázek
+      $w= $width; $h= $height;
+      $ok= x_resample("$path/$file","$path/.$file",$w,$h) ? 'ok' : 'ko';
+    }
+  }
+end:
+  return $name;
+}
+# -------------------------------------- x_resample
+// změna velikosti obrázku typu gif, jpg nebo png (na jiných zde není realizována)
+//   $source, $dest -- cesta k souboru, ktery chcete zmensit  a cesta, kam zmenseny soubor ulozit
+//   $maxWidth, $maxHeight  -- maximalni sirka a vyska změněného obrazku
+//     hodnota 0 znamena, ze sirka resp. vyska vysledku muze byt libovolna
+//     hodnoty 0,0 vedou na kopii obrázku
+//     $copy_bigger==1 vede na kopii (např.miniatury) místo na zvětšení
+//   výsledek 0 - operace selhala
+function x_resample($source, $dest, &$width, &$height,$copy_bigger=0) {
+  global $gn;
+  $maxWidth= $width;
+  $maxHeight= $height;
+  $ok= 1;
+//                               display("... RESAMPLE($source, $dest, &$width, &$height,$copy_bigger)<br>");
+  // zjistime puvodni velikost obrazku a jeho typ: 1 = GIF, 2 = JPG, 3 = PNG
+  list($origWidth, $origHeight, $type)=@ getimagesize($source);
+  if ( !$type ) $ok= 0;
+  if ( $ok ) {
+    if ( !$maxWidth ) $maxWidth= $origWidth;
+    if ( !$maxHeight ) $maxHeight= $origHeight;
+    // nyni vypocitam pomer změny
+    $pw= $maxWidth / $origWidth;
+    $ph= $maxHeight / $origHeight;
+    $p= max($pw, $ph);
+    // vypocitame vysku a sirku změněného obrazku - vrátíme ji do výstupních parametrů
+    $newWidth = (int)($origWidth * $p);
+    $newHeight = (int)($origHeight * $p);
+    $width= $newWidth;
+    $height= $newHeight;
+    if ( ($pw == 1 and $ph == 1) or ($copy_bigger and $p>1) ) {
+      // jenom zkopírujeme
+      copy($source,$dest);
+    }
+    else {
+      // zjistíme velikost cíle - abychom nedělali zbytečnou práci
+      $destWidth= $destHeight= -1; $ok= 2; // ok=2 -- nic se nedělalo
+      if ( file_exists($dest) ) list($destWidth, $destHeight)= getimagesize($dest);
+      if ( $destWidth!=$newWidth || $destHeight!=$newHeight ) {
+        // vytvorime novy obrazek pozadovane vysky a sirky
+        #if ( $CONST['GraphicTool']['name']=='GD' ) { // GD Library
+          // karel: nezapomeň ještě taky, že když zmenšuješ GIF s průhlednou barvou, musíš touto barvou nejprve vyplnit cílový obrázek a nastavit ji jako průhlednou
+          $image_p= ImageCreateTrueColor($newWidth, $newHeight);
+          // otevreme puvodni obrazek se souboru
+          switch ($type) {
+          case 1: $image= ImageCreateFromGif($source); break;
+          case 2: $image= ImageCreateFromJpeg($source); break;
+          case 3: $image= ImageCreateFromPng($source); break;
+          }
+          // okopirujeme zmenseny puvodni obrazek do noveho
+          if ( $maxWidth || $maxHeight )
+            ImageCopyResampled($image_p, $image, 0, 0, 0, 0, $newWidth, $newHeight, $origWidth, $origHeight);
+          else
+            $image_p= $image;
+          // ulozime
+          $ok= 0;
+          switch ($type) {
+          case 1: /*ImageColorTransparent($image_p);*/ $ok= ImageGif($image_p, $dest);  break;
+          case 2: $ok= ImageJpeg($image_p, $dest);  break;
+          case 3: $ok= ImagePng($image_p, $dest);  break;
+          }
+        #}
+        #elseif ( $CONST['GraphicTool']['name']=='ImageMagic' ) { // ImageMagic
+        #  // proveď externí program
+        #  $mode= $destWidth<100 ? " +contrast -sharpen 10 " : ''; // malým obrázkům přidej kontrast a zaostři je
+        #  $cmd= "convert -geometry {$newWidth}x$newHeight $mode $source $dest";
+        #  $ok= system("{$CONST['GraphicTool']['binary']}$cmd") ? 1 : 0;
+        #}
+      }
+    }
+  }
+  return $ok;
+}
+/** ===================================================================================> setkani.org */
+# --------------------------------------------------------------------------------------------- TEST
 # přidá do menu další element
-function menu_copy_elem($from,$pid,$mid,$type) {
-  global $y, $ezer_local;
-  $first= true;
-  // získej kopii článku
-  ask_server((object)array('cmd'=>'clanek','pid'=>$pid));
+function TEST() {
+  global $abs_root;
+  $url= 'https://www.setkani.org/fileadmin/photo/5880/.p1450211.JPG';
+  $path= '/home/users/gandi/chlapi.online/web/inc/g';
+  $path= "$abs_root/inc/g";
+  mkdir("$path/2");
+  $img= "$path/2/..p1070086.jpg";
+  // file
+  file_put_contents($img, file_get_contents($url));
+  return $msg;
+}
+# ----------------------------------------------------------------------------------- menu copy_foto
+# zkopíruje chybějící fotky ze setkani.org/filedamin/photo do chlapi.cz/inc/f
+function menu_copy_foto($fid,$test=1) {
+  global $ezer_local, $abs_root;
   $fileadmin= $ezer_local 
       ? "http://setkani.bean:8080/fileadmin"
       : "https://www.setkani.org/fileadmin";
-  // uprav odkazy
-  $obsah= preg_replace("/(src|href)=(['\"])(?:\\/|)fileadmin/","$1=$2$fileadmin",$y->obsah);
-  $clanek= "<h1>$y->nadpis</h1>$obsah";
-  $clanek= str_replace("'","\\'",$clanek);
-  query("INSERT INTO xclanek (web_text) VALUES ('$clanek')");
-  $id= mysql_insert_id();
-  // přidej do menu.elem
-  $elem= select("elem","menu","wid=2 AND mid=$mid");
-  if ( $first )
-    $elem= "$type=$id" . ($elem ? ";$elem" : '');
-  else
-    $elem= ($elem ? "$elem;" : '') . "$type=$id";
-  query("UPDATE menu SET elem='$elem' WHERE wid=2 AND mid=$mid");
-  return 1;
+//  $fileadmin= "https://www.setkani.org/fileadmin";
+  $msg= '?';
+  // složka pro fotky
+  list($lst,$pid)= select("seznam,path","xfotky","id_xfotky='$fid'");
+  $path= "$abs_root/inc/f";
+  if ( !file_exists("$path/$fid") ) {
+    mkdir("$path/$fid");
+  }
+  $url= "$fileadmin/photo/$pid";
+  // zcizit fotky
+  $fs= explode(',',$lst);
+  $last= count($fs)-1;
+  for ($i= 0; $i<$last; $i+=2) {
+    foreach (array("..$fs[$i]",".$fs[$i]","$fs[$i]") as $f) {
+      $ext= strtolower(substr($f,-3));
+      // pokud je to fotka
+      if ( $ext=='jpg' || $ext=='png' || $ext=='gif' ) {
+        $img= "$path/$fid/$f";
+        // ještě nebyla zkopírována
+        if ( !file_exists($img) ) {
+          // a existuje na serveru
+          if ( $test ) {
+            $msg.= " +$f ";
+          }
+          else {
+            $fh= get_headers("$url/$f");
+            if (strpos($fh[0],'404')== false ) {
+              $ximg= file_get_contents("$url/$f");
+              file_put_contents($img, $ximg);
+            }
+          }
+        }
+      }
+    }
+  }
+                                                display($msg);
+  return $msg;
 }
+# ----------------------------------------------------------------------------------- menu copy_elem
+# zkopíruje ze setkani.org článek nebo knihu
+function menu_copy_elem($co,$pid,$mid,$test=true) {
+  global $y, $ezer_local, $abs_root;
+  $fileadmin= $ezer_local 
+      ? "http://setkani.bean:8080/fileadmin"
+      : "https://www.setkani.org/fileadmin";
+  $msg= '?';
+  $elems= '';
+  $kid= 0; 
+  $xid= 0;
+  $fid= 'f';
+  $typ= 'aclanek';
+
+  // zjisti části - u knihy kapitoly - u článku, pokud jsou, vytvoř knihu
+  ask_server((object)array('cmd'=>'kapitoly','pid'=>$pid));
+                                                      display("pids/$pid=$y->pids");
+  $pids= explode(',',$y->pids);
+  // pokud je více části - vytvoř knihu
+  if ( /*$co=='setkani_k' ||*/ count($pids)>1 ) {
+    $kid= 'k';
+    if ( $test ) {
+      $msg.= " kniha: ";
+    }
+    else {
+      query("INSERT INTO xkniha () VALUES ()");
+      $kid= mysql_insert_id();
+    }
+    $typ= 'akniha';
+  }
+  // projdi části 
+  foreach ($pids as $xpid) {
+    $x= substr($xpid,0,1);
+    $pid= substr($xpid,1);
+    switch ( $x ) {
+      
+    case 'F': // ------------ fotky - bez kopírování souborů
+      if ( !$xid ) fce_error("fotky nesmí být jako první");
+      ask_server((object)array('cmd'=>'clanek','pid'=>$pid));
+      $a= $y->autor; $n= $y->nadpis; $lst= $y->obsah; $p= sql_date($y->psano,1);
+      if ( $test ) {
+        $msg.= " fotky/$xpid  ";
+      }
+      else {
+        query("INSERT INTO xfotky (id_xclanek,autor,nazev,kdy,seznam,path) "
+            . "VALUES ($xid,'$a','$n','$p','$lst','$pid')");
+        $fid= mysql_insert_id();
+      }
+      break;
+      
+    case 'C': // ------------ nadpis
+    case 'E': // ------------ kapitola
+    case 'A': // ------------ ...
+    case 'D': // ------------ ...
+      ask_server((object)array('cmd'=>'clanek','pid'=>$pid));
+      // případně zapiš celkový název knihy
+      if ( $x=='C' && $kid ) {
+        $tit= "$y->autor: $y->nadpis";
+        $tit= str_replace("'","\\'",$tit);
+        if ( $test ) {
+          $msg.= " kniha.nazev=$tit  ";
+        }
+        else {
+          query("UPDATE xkniha SET nazev='$tit' WHERE id_xkniha=$kid");
+        }
+      }
+      // uprav odkazy
+      $obsah= preg_replace("/(src|href)=(['\"])(?:\\/|)fileadmin/","$1=$2$fileadmin",$y->obsah);
+      $clanek= "<h1>$y->nadpis</h1>$obsah";
+      $clanek= str_replace("'","\\'",$clanek);
+      if ( $test ) {
+        $xid= 'x';
+        $msg.= " clanek/$xpid  ";
+      }
+      else {
+        query("INSERT INTO xclanek (web_text) VALUES ('$clanek')");
+        $xid= mysql_insert_id();
+      }
+      $elems= ($elems ? "$elems;" : '')."aclanek=$xid";
+      break;
+    default:
+      if ( $test )
+        display("chybný tag kapitoly $xpid");
+      else
+        fce_error("chybný tag kapitoly $xpid");
+    }
+  }
+  $elem= select("elem","menu","wid=2 AND mid=$mid");
+  if ( $kid ) {
+    // zapiš do menu a do knihy
+    $elem= "akniha=$kid" . ($elem ? ";$elem" : '');
+    if ( $test ) {
+      $msg.= " kniha.xelems='$elems' ";
+      $msg.= " menu.elem/$mid='$elem' ";
+    }
+    else {
+      // přidej do menu.elem, kniha.elem
+      query("UPDATE xkniha SET xelems='$elems' WHERE id_xkniha=$kid");
+      query("UPDATE menu SET elem='$elem' WHERE wid=2 AND mid=$mid");
+    }
+  }
+  else {
+    // zapiš jen do menu 
+    $elem= "aclanek=$xid" . ($elem ? ";$elem" : '');
+    if ( $test ) {
+      $msg.= " menu.elem/$mid='$elem' ";
+    }
+    else {
+      // přidej do menu.elem
+      query("UPDATE menu SET elem='$elem' WHERE wid=2 AND mid=$mid");
+    }
+  }
+                                                      display($msg);
+  return $msg;
+}
+/*
+  switch ($from) {
+  case 'setkani_k': // ------------------------------------ kniha 1467/5714
+    // vytvoř knihu
+    $elems= '';
+    $xid= 0;
+    query("INSERT INTO xkniha () VALUES ()");
+    $kid= mysql_insert_id();
+    // zjisti kapitoly
+    ask_server((object)array('cmd'=>'kapitoly','pid'=>$pid));
+    $pids= $y->pids;
+    // projdi a přidej kapitoly
+    foreach (explode(',',$pids) as $xpid) {
+      $x= substr($xpid,0,1);
+      $pid= substr($xpid,1);
+      switch ( $x ) {
+      case 'F': // ------------ fotky
+        ask_server((object)array('cmd'=>'clanek','pid'=>$pid));
+        $a= $y->autor; $n= $y->nadpis; $lst= $y->obsah; $p= sql_date($y->psano,1);
+        query("INSERT INTO xfotky (id_xclanek,autor,nazev,kdy,seznam,path) "
+            . "VALUES ($xid,'$a','$n','$p','$lst','$pid')");
+        $fid= mysql_insert_id();
+        break;
+      case 'C': // ------------ nadpis
+      case 'E': // ------------ kapitola
+      case 'A': // ------------ ...
+      case 'D': // ------------ ...
+        ask_server((object)array('cmd'=>'clanek','pid'=>$pid));
+        // případně zapiš celkový název knihy
+        if ( $x=='C' ) {
+          $tit= "$y->autor: $y->nadpis";
+          $tit= str_replace("'","\\'",$tit);
+          query("UPDATE xkniha SET nazev='$tit' WHERE id_xkniha=$kid");
+        }
+        // uprav odkazy
+        $obsah= preg_replace("/(src|href)=(['\"])(?:\\/|)fileadmin/","$1=$2$fileadmin",$y->obsah);
+        $clanek= "<h1>$y->nadpis</h1>$obsah";
+        $clanek= str_replace("'","\\'",$clanek);
+        query("INSERT INTO xclanek (web_text) VALUES ('$clanek')");
+        $xid= mysql_insert_id();
+        $elems= ($elems ? "$elems;" : '')."aclanek=$xid";
+        break;
+      default:
+        fce_error("chybný tag kapitoly $xpid ($pids)");
+      }
+    }
+    // přidej do menu.elem
+    query("UPDATE xkniha SET xelems='$elems' WHERE id_xkniha=$kid");
+    $elem= select("elem","menu","wid=2 AND mid=$mid");
+    $elem= "xkniha=$kid" . ($elem ? ";$elem" : '');
+    query("UPDATE menu SET elem='$elem' WHERE wid=2 AND mid=$mid");
+    $msg= "kniha $kid:$elems";
+    break;
+  case 'setkani_c': // ------------------------------------ článek  
+    // získej kopii článku
+    ask_server((object)array('cmd'=>'clanek','pid'=>$pid));
+    // uprav odkazy
+    $obsah= preg_replace("/(src|href)=(['\"])(?:\\/|)fileadmin/","$1=$2$fileadmin",$y->obsah);
+    $clanek= "<h1>$y->nadpis</h1>$obsah";
+    $clanek= str_replace("'","\\'",$clanek);
+    query("INSERT INTO xclanek (web_text) VALUES ('$clanek')");
+    $id= mysql_insert_id();
+    // přidej do menu.elem
+    $elem= select("elem","menu","wid=2 AND mid=$mid");
+    $elem= "$type=$id" . ($elem ? ";$elem" : '');
+    query("UPDATE menu SET elem='$elem' WHERE wid=2 AND mid=$mid");
+    $msg= "článek $id";
+    break;
+  }
+  return $msg;
+}
+*/
+/** ===========================================================================================> WEB */
 # ------------------------------------------------------------------------------------ menu add_elem
 # přidá do menu další element
 function menu_add_elem($mid,$table,$first=0) {
   switch ($table) {
-  case 'xkniha.elem':  
+  case 'xkniha':       // ---------------------------------- nová kniha s prvním článkem
+    $elem= select("elem","menu","wid=2 AND mid=$mid");
+    query("INSERT INTO xclanek () VALUES ()");
+    $cid= mysql_insert_id();
+    query("INSERT INTO xkniha (xelems) VALUES ('aclanek=$cid')");
+    $kid= mysql_insert_id();
+    if ( $first )
+      $elem= "xkniha=$kid" . ($elem ? ";$elem" : '');
+    else
+      $elem= ($elem ? "$elem;" : '') . "xkniha=$kid";
+    query("UPDATE menu SET elem='$elem' WHERE wid=2 AND mid=$mid");
+    break;
+  case 'xkniha.elem':  // ---------------------------------- nový článek knihy 
     $elem= select("xelems","xkniha","id_xkniha=$mid");
     query("INSERT INTO xclanek () VALUES ()");
     $id= mysql_insert_id();
@@ -46,7 +673,7 @@ function menu_add_elem($mid,$table,$first=0) {
       $elem= ($elem ? "$elem;" : '') . "aclanek=$id";
     query("UPDATE xkniha SET xelems='$elem' WHERE id_xkniha=$mid");
     break;
-  case 'xclanek':  
+  case 'xclanek':     // ----------------------------------- nový článek
     $elem= select("elem","menu","wid=2 AND mid=$mid");
     query("INSERT INTO $table () VALUES ()");
     $id= mysql_insert_id();

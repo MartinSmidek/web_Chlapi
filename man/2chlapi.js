@@ -52,22 +52,22 @@ jQuery.fn.extend({
 // nastaví polohu stránky
 // zamění <span style='neodkaz'> na alert
 function jump_fokus(fe_level) {
-  // najdi cíl podle priority
-  var jump= jQuery('#fokus_part') || jQuery('#fokus_case') || jQuery('#fokus_page');
-  if ( jump[0] ) {
-//    jump.Ezer_scrollIntoView();
-    jump[0].scrollIntoView(true);
-  }
+  // potlač zobrazení ne-odkazů
   if ( fe_level || Ezer && Ezer.web && Ezer.web.fe_user ) {
     // zruší barevné označené odkazů pro nepřihlášené
     jQuery('span.neodkaz').removeClass('neodkaz')
   }
   else {
     // zamění <span style='neodkaz'> na alert
-    jQuery('span.neodkaz a').prop('href','#');
+    jQuery('span.neodkaz a').prop('href','#').prop('target','');
     jQuery('span.neodkaz').prop('href','#').on('click',() => {
       jQuery('div.neodkaz').fadeIn();
     })
+  }
+  // najdi cíl podle priority
+  var jump= jQuery('#fokus_part') || jQuery('#fokus_case') || jQuery('#fokus_page');
+  if ( jump[0] ) {
+    jump[0].scrollIntoView(true);
   }
   return 1;
 }

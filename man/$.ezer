@@ -17,7 +17,9 @@ panel p [0,0,*,*] { type:'main', _sys:'$'
   }
   proc opravit(_typ,_id) { 
     eq('xclanek',_typ); EDITOR.Clanek(_id); refresh 
+  | eq('xkniha',_typ); EDITOR.Kniha(_id); refresh 
   | eq('kalendar',_typ); EDITOR.Kalendar(_id); refresh 
+  | eq('xfotky',_typ); FOTKY.oprava(_id); refresh
   }
   proc zmenit(_mid,_typ1,_id,_typ2) { 
     ask('menu_chng_elem',_mid,_typ1,_id,_typ2); refresh
@@ -27,8 +29,9 @@ panel p [0,0,*,*] { type:'main', _sys:'$'
   | eq('xkniha.elem',_typ); ask('menu_add_elem',_mid,_typ,_first); refresh 
   }
   proc zcizit(_typ,_pid,_mid) { 
-    echo("kopírování článku setkani.part.id=",_pid);
-    ask('menu_copy_elem',_typ,_pid,_mid,'aclanek'); refresh
+    eq(_typ,'fotky'); [ ask('menu_copy_foto',_pid,_mid); refresh ]  // _mid je zde test
+  | eq(substr(_typ,0,1),'?'); ask('menu_copy_elem',substr(_typ,1),_pid,_mid,1) 
+  | not(eq(substr(_typ,0,1),'?')); ask('menu_copy_elem',_typ,_pid,_mid,0); refresh
   }
 # ----------------------------------------------------------------------------==> emulace událostí
   var page: object // {html,edit,id}
@@ -70,6 +73,8 @@ panel p [0,0,*,*] { type:'main', _sys:'$'
       proc onclick() { hide_all; cms_go(last.get) } }
     button [123,5,,] { skill:'r|r', title:"[fa-chevron-right]", format:'d'
       proc onclick() { hide_all } }
+    button [200,5,,] { skill:'m|m', title:"TEST"
+      proc onclick() { ask('TEST') } }
 //    button editace [300,5,,] { 
 //      proc Init(edt) {
 //        eq('xclanek',edt); this.enable(1); this.set('[fa-edit] Editovat zobrazený článek')
@@ -121,6 +126,9 @@ panel CMS [0,0,600,396] { type:'popup',  title:'CMS - definice menu',
       // ----------------------------- nový článek
       item { title:'nový článek tohoto menu' proc onclick() { 
         ask('menu_add_elem',u.mid.get,'xclanek'); a.menu
+      }}
+      item { title:'nová kniha tohoto menu' proc onclick() { 
+        ask('menu_add_elem',u.mid.get,'xkniha'); a.menu
       }}
       // ----------------------------- posuny
       item { title:'-posuň menu dolů' proc onclick() { 
@@ -633,8 +641,9 @@ panel REDAKCE [0,0,840,510] {type:'popup', title:'Redakce', css:'dialog_full',
 panel EDITOR [0,0,710,530] { type:'popup', style:"min-width:700px", _sys:'edi'
   var id:number,
       path:text
-  use c: form _c [0,0,,] { tag:'c', format:'n' }
-  use k: form _k [0,0,,] { tag:'k', format:'n' }
+  use c: form _c [0,0,,] { tag:'c', format:'n' }  // článek
+  use b: form _b [0,0,,] { tag:'b', format:'n' }  // kniha 
+  use k: form _k [0,0,,] { tag:'k', format:'n' }  // kalendář
   proc Kalendar(_key) {
     id.set(_key);
     panel.display(2,'k'); 
@@ -642,6 +651,17 @@ panel EDITOR [0,0,710,530] { type:'popup', style:"min-width:700px", _sys:'edi'
     panel.set_attrib('title','Úprava položky kalendáře');
     panel.modal(10,40) 
   }
+  proc Kniha(_key) { var lock:object
+  [ id.set(_key);
+    panel.display(2,'b'); 
+    lock.set(ask('record_lock','xkniha',_key)); // selže, pokud již je editováno
+    not(lock.kdo);
+    b.load(_key); 
+    panel.set_attrib('title','Úprava knihy');
+    panel.modal(10,40) 
+  | lock.kdo;
+    alert("knihu právě upravuje redaktor ",lock.kdo)
+  ]}
   proc Clanek(_key) { var lock:object
   [ id.set(_key);
     panel.display(2,'c'); 
@@ -720,6 +740,23 @@ panel EDITOR [0,0,710,530] { type:'popup', style:"min-width:700px", _sys:'edi'
         options:skill_level.skill_name, value:'0', data:xclanek.web_skill }
     edit obsah [0,40,712,480] { type:'html', data:xclanek.web_text, par:°{toolbar:'WEB'} }
   }
+  # -----------------------------------------------------------------------------==> edit kniha
+  # oprava nadpisu knihy
+  form _b [10,10,710,90] {
+    button  [-121,5,,] { title:'Uložit', help:'ukončit editor a uložit změny'
+      proc onclick() { 
+        form.save; 
+        ask('record_unlock','xkniha',id.get);
+        ask('log_obsah','u','b',id.get); 
+        panel.hide(1); }}
+    button  [-75,5,,] { title:'Zpět', help:'ukončit editor bez uložení změn'
+      proc onclick() { 
+        ask('record_unlock','xkniha',id.get);  
+        panel.hide(0); }}
+    select  [-171,5,100,] { type:'map', title:'text uvidí', help:'zobrazí se jen pro ...'
+        options:skill_level.skill_name, value:'0', data:xkniha.web_skill }
+    field [0,40,300,] { data:xkniha.nazev }
+  }
 }
 # ----------------------------------------------------------------------------==> UPLOAD
 panel UPLOAD [0,0,400,130] { title:' Nahrát soubor', type:'popup', style:"min-width:390px", 
@@ -796,6 +833,130 @@ panel UPLOAD [0,0,400,130] { title:' Nahrát soubor', type:'popup', style:"min-w
     }
   }
 }
+# ----------------------------------------------------------------------------==> FOTKY
+# organizer fotek
+panel FOTKY [0,0,680,240] { title:' Organizér fotek', type:'popup', css:'dialog'
+  use f: form _foto [0,0,,]
+  # zapamatování informací do DOM pro
+  proc onfocus() {
+    function('panel',"panel.DOM_Block.id='FOTKY';",panel);
+  }
+//  # ==> . nový
+//  proc novy(_cid,_pid) { var ret:object
+//    f.init; f.fotky.set('');
+//    f.display(0,'o'); f.display(1,'n'); 
+//    f.uid.set(0); f.cid.set(_cid); f.kapitola.set(_pid); f.sav.set('[fa-save] Vytvořit');
+//    f.autor.set(conc(sys('user','forename'),' ',sys('user','surname'))); f.autor.change;
+//    f.psano.set(now); f.psano.change;
+//    f.drop_init;
+//    panel.modal //(10,30);
+//  }
+  # ==> . oprava
+  proc oprava(_fid) {
+    f.init;
+    f.display(1,'o');
+    f.fid.set(_fid); f.sav.set('[fa-save] Uložit');
+    refresh;
+    panel.modal; //(10,30);
+  }
+  proc refresh() { var ret:object
+    ret.set(ask('load_fotky',f.fid.get)); copy_by_name(ret,f);
+//    [ function("foto_sortable('start');") ];
+    f.drop_init;
+  }
+  proc create() { var values:object values.set(object());
+    f.sav.set('[fa-save] Uložit');
+    copy_by_name(f,values); f.fid.set(ask('create_fotky',values));
+    f.display(1,'o');
+    f.plain
+  }
+//  # ==> . vymazání
+//  proc smazat(name) {
+//    ask('delete_fotky',f.fid.get,name); refresh;
+//  }
+//  # ==> . vtipná poznámka
+//  proc poznamka(name,note0) { var note:text
+//    note.set(prompt2('připoj krátkou poznámku k fotografii',note0));
+//    echo('note=',note);
+//    ask('note_fotky',f.fid.get,name,note); refresh;
+//  }
+  # ==> . form
+  form _foto {
+    field fid
+//    field uid
+//    field cid
+    field kapitola
+    field autor  [35,15,100,]  { tag:'o,n', title:'^autor:' }
+    field nadpis [146,15,224,] { tag:'o,n', title:'^název:' }
+    field psano  [380,15,85,]  { tag:'o,n', type:'date', title:'^psáno:', format:'r' }
+    label        [0,42,80,80]  { tag:'o', css:'drop_back' }
+    label drop   [0,42,,]      { tag:'o', css:'drop_foto' }
+    label fotky  [0,40,690,205] { tag:'o', style:'overflow:auto' }
+    # ==> .. tlačítka
+    button full [0,9,,] { tag:'o', title:"[fa-expand]",
+      proc onclick() { var w:number,h:number
+        w.set(sys('screen','width')); h.set(sys('screen','height'));
+        panel.property(object('left',0,'top',25,'width',minus(w,50),'height',minus(h,80)));
+        fotky.property(object('width',minus(w,45),'height',minus(h,110)));
+    } }
+    button sav [-78,9,,] { tag:'o,n', title:'[fa-save] Vytvořit', help:'ukončit organizaci fotek'
+      proc onclick() { var values:object, order:text
+        values.set(object());
+        order.set(function("return foto_sortable('order');"));
+        copy_by_name(f,values);
+        { fid.get; ask('save_fotky',values,order); panel.hide(fid.get);
+        | not(fid.get); create
+        };
+      }
+    }
+    button [-20,9,,] { tag:'o,n', title:'[fa-undo] Zpět', help:'ukončit editor bez vytvoření článku'
+      proc onclick() { UPLOAD.hide(0); panel.hide(0); }
+    }
+    button [-145,9,,] { tag:'o', title:"[fa-file-archive-o] ZIP",
+      proc onclick() { var zip:text, ret:object
+        zip.set(ZIP_URL.modal);
+        ret.set(ask('upload_zip',zip,fid.get));
+        ret.err; alert(ret.err)
+      | refresh
+    } }
+//    button [-188,9,,] { tag:'o', title:"[fa-check-square-o]",
+//      proc onclick() { var pid:number, order:text
+//        pid.set(prompt("Zadej part.uid kam se mají přesunout označené fotky"));
+//        eq(pid,uid.get); warning("POZOR cílový článek se musí lišit od tohoto")
+//      | pid;
+//        order.set(function("return foto_sortable('checked');"));
+//        ask('move_fotky',uid.get,pid,order);
+//        refresh
+//    } }
+    button [-211,9,,] { tag:'o', title:"[fa-sort-alpha-asc]",
+      proc onclick() { ask('sort_fotky',fid.get); refresh }
+    }
+    # ==> .. drag & drop
+    proc ondrop(fileinfo) { var name: text
+      [ not(fid.get); create ];
+      drop.set_css('','drop_area drop_area_hover');
+      name.set(ask('upload_fotky',fileinfo,fid.get));
+      drop.set_css('','drop_area drop_area_hover drop_area_run');
+      refresh;
+    }
+    proc drop_init() {
+      drop.set_css('drop_area','');
+      drop.set("<span>místo pro novou fotku</span>");
+      form.file_drop(drop,°{css_hover:'drop_area_hover',css_run:'drop_area_run',handler:'ondrop',
+        max_width:1200,max_height:960});
+    }
+  }
+  panel ZIP_URL [,,300,60] { type:'popup' title:'zadej url ZIPu s fotografiemi' use ff:form _ff
+    proc onfocus() { ff.zip.init }
+    form _ff {
+      field zip [0,0,300,] { format:'t' }
+      button [0,30,,] { title:"[fa-camera-retro] Přidej fotky"
+        proc onclick() { panel.close(zip.get) } }
+      button [100,30,,] { title:"[fa-undo] Zpět"
+        proc onclick() { panel.close(0) } }
+    }
+  }
+}
 # ----------------------------------------------------------------------------==> tabulky
 table menu { key_id:'mid', db:'setkani'
   number mid { key:'primary' }
@@ -816,6 +977,11 @@ table xakce { key_id:'id_xakce', db:'setkani'
   number web_stav
   text web_menu
   text web_text
+}
+table xkniha { key_id:'id_xkniha', db:'setkani'
+  number id_xkniha { key:'primary' }
+  number web_skill
+  text nazev
 }
 table xclanek { key_id:'id_xclanek', db:'setkani'
   number id_xclanek { key:'primary' }

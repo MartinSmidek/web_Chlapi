@@ -35,7 +35,9 @@ html {
   #page { 
     position: absolute; width: 100%; height: 0; 
     span.neodkaz {
-      background:none;  }
+      background:none;  
+      a:hover { background-color: @obal_b; }
+    }
   }
   div.mapa.Panel3, div.mapa.Form3, div.mapa.Label3 {
     position: fixed; z-index: -1;
@@ -155,7 +157,7 @@ div.sloupce {
   /*outline: 1px dotted yellow;*/
   float: right; margin-top:.5em;
   div.back {
-    display: flex;
+    /*display: flex;*/
     /*display: inline-block;*/
   }
   a.aclanek,a.aclanek_nojump {
@@ -166,6 +168,9 @@ div.sloupce {
   a.aclanek {
     background: url(more.png) bottom right no-repeat, 
                 linear-gradient(to bottom right, @abstr_b 50%, @activ_b 75%);
+    display: inline-block;
+    break-inside: avoid;
+    page-break-inside: avoid;
   }
   a.aclanek_nojump {
     cursor: pointer;
@@ -177,8 +182,9 @@ div.sloupce {
 // home page
 div.home, a.home, #user_mail, #skup0, #skup1, #skup2 {
   background-color: @text_b; color: @text_c; 
-  float: right; margin: .4em 2em; max-width: 100%; z-index: 1;
+  float: right; margin: .4em 1em; max-width: 100%; z-index: 1;
   line-height: 1.5; padding: 1em; border-radius: 0.5em; .shadow-box;  
+  break-inside: avoid; page-break-inside: avoid;
   input, textarea {
     margin-bottom: 0.5em;
   }
@@ -186,7 +192,7 @@ div.home, a.home, #user_mail, #skup0, #skup1, #skup2 {
     max-width: 40em; width: calc(100vw - 6em); min-height: 7.7em; }
   // přihlášení
   &#user_mail {
-    max-width: 29em; padding: 0; position: absolute; right: -1em; top: 2em;
+    max-width: 29em; padding: 0; position: absolute; right: -1em; top: 2em; z-index: 2;
     span#user_mail_head {
       display: block; width:100%; text-align:center; height: 2em;
       background-color: @activ_b; border-radius:.4em .4em 0 0; color:@activ_c; font-weight:bold; }
@@ -251,8 +257,18 @@ a.aclanek {
     }
   }
 }
+// galerie
+div.galery_obal {
+  clear: both;
+  margin: 1em;
+  div.galerie {
+    width: 100%; 
+    background-color: @text_b; color: @text_c; 
+    /*display: table;*/
+    overflow: hidden; margin: 0; position: relative; border-radius: .5em; }
+}
 // vlákno
-#vlakno {
+#vlakno, .sloupce, .back {
   clear: both;
   /*padding-right: 1em;*/  
   div.clanek {
@@ -261,9 +277,6 @@ a.aclanek {
     columns:35em 2; column-rule:1em solid @text_b; column-gap: 2em;
     -moz-column-count:2 35em; -moz-column-rule:1em solid @text_b; -moz-column-gap: 2em; 
   }
-  div.galerie {
-    background-color: @text_b; color: @text_c;
-    overflow: hidden; margin: 0.5em; position: relative; border-radius: .8em; }
 }
 // kniha
 div.kniha {
@@ -273,8 +286,8 @@ div.kniha {
   background-color: fadeout(@obal_b,30%); color: @obal_c;
   display: block; clear: both; border-radius: .8em; 
   /*text-align: center;*/
-/*  a.jump { 
-    margin:1em; }*/
+  &>a.jump { 
+    margin:1em; }
   div.kniha_br {
     clear: both; padding: 1em 0; text-align: center; color:@text_b; .shadow-txt
   }
@@ -306,7 +319,7 @@ div.pdf {
   div.sloupce { columns: 2; width: 89em; margin-right: 3em; }
 }
 @media all and (min-width: 40em) and (max-width: 78em) {
-  div.sloupce { columns: 1; width: 44em; margin-right: 2em; }
+  div.sloupce { columns: 1; width: 44em; margin-right: 1em; }
 }
 @media all and (max-width: 40em) {
   div.sloupce { width: 100%; }

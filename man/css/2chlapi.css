@@ -36,6 +36,9 @@ html #page {
 html #page span.neodkaz {
   background: none;
 }
+html #page span.neodkaz a:hover {
+  background-color: #CFDDE6;
+}
 html div.mapa.Panel3,
 html div.mapa.Form3,
 html div.mapa.Label3 {
@@ -233,7 +236,7 @@ div.sloupce {
   margin-top: .5em;
 }
 div.sloupce div.back {
-  display: flex;
+  /*display: flex;*/
   /*display: inline-block;*/
 }
 div.sloupce a.aclanek,
@@ -244,6 +247,9 @@ div.sloupce a.aclanek_nojump {
 }
 div.sloupce a.aclanek {
   background: url(more.png) bottom right no-repeat, linear-gradient(to bottom right, #E6E1CF 50%, #807340 75%);
+  display: inline-block;
+  break-inside: avoid;
+  page-break-inside: avoid;
 }
 div.sloupce a.aclanek_nojump {
   cursor: pointer;
@@ -258,13 +264,15 @@ a.home,
   background-color: #FFFFFF;
   color: #000000;
   float: right;
-  margin: .4em 2em;
+  margin: .4em 1em;
   max-width: 100%;
   z-index: 1;
   line-height: 1.5;
   padding: 1em;
   border-radius: 0.5em;
   box-shadow: -1px 1px 0px #567, 1px -1px 0px #567, -1px -1px 0px #567, 5px 5px 10px #567;
+  break-inside: avoid;
+  page-break-inside: avoid;
 }
 div.home input,
 a.home input,
@@ -301,6 +309,7 @@ a.home#user_mail,
   position: absolute;
   right: -1em;
   top: 2em;
+  z-index: 2;
 }
 div.home#user_mail span#user_mail_head,
 a.home#user_mail span#user_mail_head,
@@ -478,11 +487,29 @@ a.aclanek:hover {
   background-color: #FFFFFF !important;
   color: #000000 !important;
 }
-#vlakno {
+div.galery_obal {
+  clear: both;
+  margin: 1em;
+}
+div.galery_obal div.galerie {
+  width: 100%;
+  background-color: #FFFFFF;
+  color: #000000;
+  /*display: table;*/
+  overflow: hidden;
+  margin: 0;
+  position: relative;
+  border-radius: .5em;
+}
+#vlakno,
+.sloupce,
+.back {
   clear: both;
   /*padding-right: 1em;*/
 }
-#vlakno div.clanek {
+#vlakno div.clanek,
+.sloupce div.clanek,
+.back div.clanek {
   background-color: #FFFFFF;
   color: #000000;
   overflow: auto;
@@ -497,14 +524,6 @@ a.aclanek:hover {
   -moz-column-rule: 1em solid #FFFFFF;
   -moz-column-gap: 2em;
 }
-#vlakno div.galerie {
-  background-color: #FFFFFF;
-  color: #000000;
-  overflow: hidden;
-  margin: 0.5em;
-  position: relative;
-  border-radius: .8em;
-}
 div.kniha {
   display: flex-inline;
 }
@@ -515,8 +534,9 @@ div.kniha {
   clear: both;
   border-radius: .8em;
   /*text-align: center;*/
-  /*  a.jump { 
-    margin:1em; }*/
+}
+.kniha_bg > a.jump {
+  margin: 1em;
 }
 .kniha_bg div.kniha_br {
   clear: both;
@@ -566,7 +586,7 @@ div.pdf span.sorry {
   div.sloupce {
     columns: 1;
     width: 44em;
-    margin-right: 2em;
+    margin-right: 1em;
   }
 }
 @media all and (max-width: 40em) {

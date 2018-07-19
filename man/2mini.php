@@ -587,7 +587,7 @@ function mail_send($reply_to,$address,$subject,$body) { trace(); display("mail_s
 //  $mail->Username= "answer@setkani.org";
 //  $mail->Password= "answer2017";
   $mail->Username= "www.chlapi.cz@gmail.com";
-  $mail->Password= "kuroslepy";
+  $mail->Password= "nesmer2004";
   $mail->CharSet= "UTF-8";
   $mail->IsHTML(true);
   // zpětné adresy

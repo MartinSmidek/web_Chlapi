@@ -3,24 +3,28 @@ error_reporting(E_ALL & ~E_NOTICE);
 session_start();
 if ( isset($_FILES['upload']) ) {
   // nastavení cesty
-  if ( isset($_GET['root']) && $_GET['root']=='test' ) {
-    $root= 'C:/#';
-    $path= 'cms/';
-  }
-  else {
+//  if ( isset($_GET['root']) && $_GET['root']=='test' ) {
+//    $root= 'C:/#';
+//    $path= 'cms/';
+//  }
+//  else {
     $root= $_SESSION['man']['abs_root'];
     $path= $_SESSION['man']['inc_path'];
-  }
+//  }
   // případně založení složky
-  $dir= rtrim("$root/$path","/");
-  $ok= recursive_mkdir($dir,"/");
-  if ( !$ok ) { $msg= "nelze vytvořit složku $dir"; goto err; }
+  $dir= "$root$path";
+  if ( !file_exists($dir) ) {
+    mkdir($dir);
+  }
+//  $dir= rtrim("$root/$path","/");
+//  $ok= recursive_mkdir($dir,"/");
+//  if ( !$ok ) { $msg= "nelze vytvořit složku $dir"; goto err; }
   // soubor vložený do CKEditoru
   $xname= $_FILES['upload']['tmp_name'];
   $fname= utf2ascii(urldecode($_FILES['upload']['name']),'.');
-  move_uploaded_file($xname,"$root/$path$fname");
+  move_uploaded_file($xname,"$dir$/fname");
 //   $url= "http://web.bean:8080/$path$fname";
-  $url= "./$path$fname";
+  $url= "./$path/$fname";
   $ret= <<<__EOD
   {
     "uploaded": 1,
