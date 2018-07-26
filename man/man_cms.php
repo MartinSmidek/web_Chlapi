@@ -434,7 +434,7 @@ function menu_copy_foto($fid,$test=1) {
   $fs= explode(',',$lst);
   $last= count($fs)-1;
   for ($i= 0; $i<$last; $i+=2) {
-    foreach (array("..$fs[$i]",".$fs[$i]","$fs[$i]") as $f) {
+    foreach (array("..$fs[$i]",".$fs[$i]"/*,$fs[$i]*/) as $f) {  // vynecháme originály
       $ext= strtolower(substr($f,-3));
       // pokud je to fotka
       if ( $ext=='jpg' || $ext=='png' || $ext=='gif' ) {
@@ -468,6 +468,7 @@ function menu_copy_elem($co,$pid,$mid,$test=true) {
       : "https://www.setkani.org/fileadmin";
   $msg= '?';
   $elems= '';
+  $aid= 0; 
   $kid= 0; 
   $xid= 0;
   $fid= 'f';
@@ -478,7 +479,17 @@ function menu_copy_elem($co,$pid,$mid,$test=true) {
                                                       display("pids/$pid=$y->pids");
   $pids= explode(',',$y->pids);
   // pokud je více části - vytvoř knihu
-  if ( /*$co=='setkani_k' ||*/ count($pids)>1 ) {
+  if ( $co=='akce' ) {
+    $aid= 'a';
+    if ( $test ) {
+      $msg.= " akce: ";
+    }
+    else {
+      query("INSERT INTO xakce () VALUES ()");
+      $aid= mysql_insert_id();
+    }
+  }
+  elseif ( count($pids)>1 ) {
     $kid= 'k';
     if ( $test ) {
       $msg.= " kniha: ";
@@ -496,7 +507,10 @@ function menu_copy_elem($co,$pid,$mid,$test=true) {
     switch ( $x ) {
       
     case 'F': // ------------ fotky - bez kopírování souborů
-      if ( !$xid ) fce_error("fotky nesmí být jako první");
+      if ( !$xid ) { 
+        if ( $test ) display("<b style='color:red'> fotky nesmí být jako první </b>");
+        else fce_error("fotky nesmí být jako první"); 
+      }
       ask_server((object)array('cmd'=>'clanek','pid'=>$pid));
       $a= $y->autor; $n= $y->nadpis; $lst= $y->obsah; $p= sql_date($y->psano,1);
       if ( $test ) {
@@ -514,30 +528,61 @@ function menu_copy_elem($co,$pid,$mid,$test=true) {
     case 'A': // ------------ ...
     case 'D': // ------------ ...
       ask_server((object)array('cmd'=>'clanek','pid'=>$pid));
-      // případně zapiš celkový název knihy
-      if ( $x=='C' && $kid ) {
-        $tit= "$y->autor: $y->nadpis";
-        $tit= str_replace("'","\\'",$tit);
-        if ( $test ) {
-          $msg.= " kniha.nazev=$tit  ";
-        }
-        else {
-          query("UPDATE xkniha SET nazev='$tit' WHERE id_xkniha=$kid");
-        }
-      }
       // uprav odkazy
       $obsah= preg_replace("/(src|href)=(['\"])(?:\\/|)fileadmin/","$1=$2$fileadmin",$y->obsah);
-      $clanek= "<h1>$y->nadpis</h1>$obsah";
-      $clanek= str_replace("'","\\'",$clanek);
-      if ( $test ) {
-        $xid= 'x';
-        $msg.= " clanek/$xpid  ";
+      if ( $co=='akce' ) {  // ------------------------------ akce
+        $oddo= '';
+        $skill= 0;
+        if ( $x=='A' ) {    
+          // hlavička
+          $oddo= datum_oddo($y->od,$y->do);
+          $skill= in_array($y->fe_groups,array(4,6)) ? 8 : 0;
+          $tit= "$y->nadpis";
+          if ( $test ) {
+            $msg.= " akce.nazev=$oddo:$tit  ";
+          }
+          else {
+            query("UPDATE xakce SET nazev='$tit',datum_od='$y->od',datum_do='$y->do' "
+                . "WHERE id_xakce=$aid");
+          }
+        }
+        // hlavní článek
+        $clanek= "<h1>$oddo $y->nadpis</h1>$obsah";
+        $clanek= str_replace("'","\\'",$clanek);
+        if ( $test ) {
+          $xid= 'x';
+          $msg.= " akce/$xpid:$skill  ";
+        }
+        else {
+          query("INSERT INTO xclanek (web_text,web_skill) VALUES ('$clanek',$skill)");
+          $xid= mysql_insert_id();
+        }
+        $elems= ($elems ? "$elems;" : '')."aclanek=$xid";
       }
-      else {
-        query("INSERT INTO xclanek (web_text) VALUES ('$clanek')");
-        $xid= mysql_insert_id();
+      else { // $co=setkani_* ------------------------------- článek
+        // případně zapiš celkový název knihy
+        if ( $x=='C' && $kid ) {
+          $tit= "$y->autor: $y->nadpis";
+          $tit= str_replace("'","\\'",$tit);
+          if ( $test ) {
+            $msg.= " kniha.nazev=$tit  ";
+          }
+          else {
+            query("UPDATE xkniha SET nazev='$tit' WHERE id_xkniha=$kid");
+          }
+        }
+        $clanek= "<h1>$y->nadpis</h1>$obsah";
+        $clanek= str_replace("'","\\'",$clanek);
+        if ( $test ) {
+          $xid= 'x';
+          $msg.= " clanek/$xpid  ";
+        }
+        else {
+          query("INSERT INTO xclanek (web_text) VALUES ('$clanek')");
+          $xid= mysql_insert_id();
+        }
+        $elems= ($elems ? "$elems;" : '')."aclanek=$xid";
       }
-      $elems= ($elems ? "$elems;" : '')."aclanek=$xid";
       break;
     default:
       if ( $test )
@@ -547,7 +592,17 @@ function menu_copy_elem($co,$pid,$mid,$test=true) {
     }
   }
   $elem= select("elem","menu","wid=2 AND mid=$mid");
-  if ( $kid ) {
+  if ( $aid ) {
+    // zapiš jen do hlavičky akce
+    if ( $test ) {
+      $msg.= " akce.xelems='$elems' ";
+    }
+    else {
+      // přidej do akce.xelems
+      query("UPDATE xakce SET xelems='$elems' WHERE id_xakce=$aid");
+    }
+  }
+  elseif ( $kid ) {
     // zapiš do menu a do knihy
     $elem= "akniha=$kid" . ($elem ? ";$elem" : '');
     if ( $test ) {
@@ -700,6 +755,33 @@ function menu_chng_elem($mid,$typ1,$id,$typ2) {
       break;
     }
   }
+  return 1;
+}
+# ---------------------------------------------------------------------------------- menu shift_elem
+# posune element o jedno dolů (pro down=0 nahoru)
+function menu_shift_elem($typ,$mid,$id,$down) {
+  // zjistíme všechna menu na stejné úrovni
+  $elems= select("elem","menu","mid=$mid");
+                                                      display($elems);
+  $ms= explode(';',$elems);
+  $elem= "$typ=$id";
+  $i= array_search($elem,$ms);
+  $last= count($ms)-1;
+  if ( $down ) { // dolů
+    if ( $i<$last ) {
+      $ms[$i]= $ms[$i+1];
+      $ms[$i+1]= $elem;
+    }
+  }
+  else { // nahoru
+    if ( $i>0 ) {
+      $ms[$i]= $ms[$i-1];
+      $ms[$i-1]= $elem;
+    }
+  }
+  $elems= implode(';',$ms);                 
+                                                      display($elems);
+  query("UPDATE menu SET elem='$elems' WHERE wid=2 AND mid=$mid");
   return 1;
 }
 # --------------------------------------------------------------------------------------- menu shift

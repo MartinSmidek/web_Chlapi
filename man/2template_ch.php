@@ -191,6 +191,54 @@ __EOT;
       $layout= $id;
       break; 
     
+    case 'archiv':  # ----------------------------------------------- . archiv akcí
+      global $backref;
+      list($rok,$ida)= explode(',',$top);
+      // projdi relevantní roky
+      $html.= "<div id='roky'>";
+      $rs= mysql_qry("SELECT YEAR(datum_do),COUNT(*) FROM xakce 
+          WHERE datum_do<DATE(NOW()) AND xelems!='' GROUP BY YEAR(datum_od) 
+          ORDER BY datum_od DESC");
+      while ($rs && list($r,$pocet)= mysql_fetch_row($rs) ) {
+        $html.= "<br id='rok$r'>";
+        $akce= kolik_1_2_5($pocet,"akce,akcí,akcí");
+        $zacatek= "Archiv $akce z roku $r";
+        if ( $rok==$r ) {
+          // otevřený rok
+          $html.= "<div id='fokus_page' class='kniha_bg'>
+                     <div class='kniha_br'><b>$zacatek ...</b></div>
+                     <div id='list'>";
+          // seznam akcí
+          $ra= mysql_qry("SELECT id_xakce,xelems FROM xakce 
+              WHERE datum_do<DATE(NOW()) AND YEAR(datum_od)=$r AND xelems!=''
+              ORDER BY datum_od DESC");
+          while ($ra && list($a,$elems)= mysql_fetch_row($ra) ) {
+            // abstrakty akcí
+            $top= $ida;
+            if ( $elems ) {
+              $first= true;
+              foreach ( explode(';',$elems) as $elem ) {
+                $html.= eval_elem($elem,(object)array(
+                    'open'=>true,'idk'=>$rok,'ida'=>$a,'first'=>$first));
+                $first= false;
+              }
+            }
+          }
+          // konec roku
+          $konec= "... konec archivu roku $r";
+          $html.=   "</div>
+                     <div class='kniha_br'><b>$konec</b></div>
+                   </div>";
+        }
+        else {
+          // zavřený rok
+          $jmp= str_replace('*',$r,$backref);
+          $html.= "<div class='kniha_bg'><a class='jump' $jmp>$zacatek</a></div>";
+        }
+      }
+      $html.= "</div>";
+      break;
+
     case 'akniha':  # ----------------------------------------------- . kniha
     case 'xkniha':  
       global $backref;
@@ -229,10 +277,17 @@ __EOT;
       }
       else {
         // zavřená kniha
+        if ( $CMS ) {
+          $menu= " oncontextmenu=\"
+              Ezer.fce.contextmenu([
+                ['posunout nahoru',function(el){ posunout('akniha',$curr_menu->mid,$id,0); }],
+                ['posunout dolů',function(el){ posunout('akniha',$curr_menu->mid,$id,1); }]
+              ],arguments[0],0,0,'#xclanek$id');return false;\"";
+        }
         // zobrazení 1. kapitoly - musí to být aclanek
         list($xelem)= explode(';',$xelems);
         if ( $xelem ) {
-          $html.= "<div title='kniha $id'>";
+          $html.= "<div title='kniha $id' $menu>";
           $html.= eval_elem($xelem,(object)array(
               'open'=>false,'idk'=>$id/*,'tit'=>$nazev*/,'skill'=>$xskill));
           $html.= "</div>";
@@ -269,6 +324,8 @@ __EOT;
                 ['editovat článek',function(el){ opravit('xclanek',$id); }],
                 ['-zobrazit jako článek',function(el){ zmenit($curr_menu->mid,'aclanek',$id,'xclanek'); }],
                 ['-přidat fotky',function(el){ pridat('xfotky',$id); }],
+                ['-posunout nahoru',function(el){ posunout('aclanek',$curr_menu->mid,$id,0); }],
+                ['posunout dolů',function(el){ posunout('aclanek',$curr_menu->mid,$id,1); }],
                 ['-nový článek na začátek',function(el){ pridat('xclanek',$curr_menu->mid,1); }],
                 ['nový článek na konec',function(el){ pridat('xclanek',$curr_menu->mid,0); }]
               ],arguments[0],0,0,'#xclanek$id');return false;\"";
@@ -292,8 +349,8 @@ __EOT;
             </div>
           </div>";
         // pokud jsou fotky, přidáme
-        $rf= mysql_qry("SELECT id_xfotky,nazev,seznam,path FROM xfotky WHERE id_xclanek=$id");
-        while ($rf && list($fid,$nazev,$seznam,$path)=mysql_fetch_row($rf)) {
+        $rf= mysql_qry("SELECT id_xfotky,nazev,seznam,path,autor FROM xfotky WHERE id_xclanek=$id");
+        while ($rf && list($fid,$nazev,$seznam,$path,$podpis)=mysql_fetch_row($rf)) {
           if ( $CMS ) {
             $note= "<span style='float:right;color:red;font-style:italic;font-size:x-small'>
                   ... zjednodušené zobrazení fotogalerie pro editaci</span>";
@@ -311,7 +368,7 @@ __EOT;
                 <div class='text'>
                   <h1>&nbsp;&nbsp;&nbsp;$nazev $note</h1>
                   $galery
-                  <div class='podpis'>podpis</div>
+                  <div class='podpis'>$podpis</div>
                 </div>
               </div>
             </div>
@@ -330,6 +387,9 @@ __EOT;
           $jmp= '';
           $neodkaz= "onclick=\"jQuery('div.neodkaz').fadeIn();\"";
           $styl= 'aclanek_nojump';
+          // varianta pro zobrazení jen prvního abstraktu knížky nebo akce
+          if ( $book && !$book->first )
+            break;
         }
         $html.= "
           <div class='back' $menu $neodkaz>
@@ -464,17 +524,33 @@ __EOT;
     case 'akce':      # ------------------------------------------------ . akce
       global $y, $backref, $top, $links;
       $links= "fotorama";
-      $html.= "<script>jQuery('.fotorama').fotorama();</script>";
+      $ys_html= "<script>jQuery('.fotorama').fotorama();</script>";
       // získání pole abstraktů akcí
       $patt= $top ? "$id!$top" : $id;
       ask_server((object)array('cmd'=>'akce','chlapi'=>$patt,'back'=>$backref)); 
       // úzké abstrakty
-      $html.= str_replace("abstr-line","abstr",$y->obsah);
+      $ys_html.= str_replace("abstr-line","abstr",$y->obsah);
       // překlad na globální odkazy do setkani.(org|bean)
       $fileadmin= $ezer_local 
           ? "http://setkani.bean:8080/fileadmin"
           : "https://www.setkani.org/fileadmin";
-      $html= preg_replace("/(src|href)=(['\"])(?:\\/|)fileadmin/","$1=$2$fileadmin",$html);
+      $ys_html= preg_replace("/(src|href)=(['\"])(?:\\/|)fileadmin/","$1=$2$fileadmin",$ys_html);
+      if ( $top ) {
+        if ( $CMS ) {
+          list($rok,$idp)= explode(',',$top);
+          $ys_akce= preg_match("~id='fokus_case'~", $ys_html);
+          $menu= " title='akce setkani.org: $idp' oncontextmenu=\"
+              Ezer.fce.contextmenu([
+                ['kopie akce ze setkání/$idp',function(el){ zcizit('akce',$idp,$curr_menu->mid); }],
+                ['... jen test',function(el){ zcizit('?akce',$idp,$curr_menu->mid); }]
+              ],arguments[0],0,0,'#clanek$idp');return false;\"";
+          $ys_html= strtr($ys_html,array(
+              "id='fokus_case'"  => "id='fokus_case' $menu" //,
+//              "id='clanek$top'"  => "id='clanek$top' $menu"
+          ));
+        }
+      }
+      $html.= $ys_html;
       break;
 
     // clanky=vzor získání abstraktů článků s danou hodnotou {tx_gncase.chlapi RLIKE vzor}

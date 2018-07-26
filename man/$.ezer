@@ -33,6 +33,9 @@ panel p [0,0,*,*] { type:'main', _sys:'$'
   | eq(substr(_typ,0,1),'?'); ask('menu_copy_elem',substr(_typ,1),_pid,_mid,1) 
   | not(eq(substr(_typ,0,1),'?')); ask('menu_copy_elem',_typ,_pid,_mid,0); refresh
   }
+  proc posunout(_typ,_mid,_id,_dolu) { 
+    ask('menu_shift_elem',_typ,_mid,_id,_dolu); refresh
+  }
 # ----------------------------------------------------------------------------==> emulace událostí
   var page: object // {html,edit,id}
   proc cms_go(ref) { echo("přepnutí webu na ",ref); do_go.get; go(ref) }

@@ -27,6 +27,11 @@ function pridat(typ,mid,first) {
   Ezer.run.$.part.p._call(0,'pridat',typ,mid,first);
   return 1;
 }
+// --------------------------------------------------------------------------------- posunout clanek
+function posunout(_typ1,_mid,_id,_dolu) {
+  Ezer.run.$.part.p._call(0,'posunout',_typ1,_mid,_id,_dolu);
+  return 1;
+}
 // =========================================================================================> COMMON
 // -------------------------------------------------------------------------------------- $
 function $() {
@@ -428,7 +433,7 @@ function skup_dialog2(mark) {
 }
 // ----------------------------------------------------------------------------------- skup sendmail
 function skup_sendmail(psc,skupina) {
-  var to= geo.emails[psc], reply, subj, body, msg, chlapi_online= "chlapi.cz";
+  var to= geo.emails[psc], reply, subj, body, msg, chlapi_online= "www.chlapi.cz";
   reply= jQuery('#skup_from').val();
   subj= "SeSkup: Dotaz na organizátora skupiny";
   body= jQuery('#skup_body').val();
@@ -438,7 +443,7 @@ function skup_sendmail(psc,skupina) {
   body= "<b>Odesílatel:</b> "+reply+"<br><b>Zpráva:</b><br> "+body+"<hr>\
     POZOR: pokud budeš odpovídat, pohlídej prosím, aby odpověď šla na mail "+reply+" a ne na answer@setkani.org ...\
     <br><br>\
-    <i>Tento mail byl zaslán ze stránky <a href='http://${chlapi_online}?skupiny'>chlapi.cz?skupiny</a>\
+    <i>Tento mail byl zaslán ze stránky <a href='http://${chlapi_online}/skupiny'>chlapi.cz/skupiny</a>\
        po kliknutí na ikonu tvojí chlapské skupiny '"+skupina+"'. Tvůj mail byl získán z tabulky\
        chlapských skupin. Pokud myslíš, že něco není v pořádku, obrať se prosím na správce\
        aplikace <a href='mailto:martin@smidek.eu'>Martina Šmídka</a>.</i>";

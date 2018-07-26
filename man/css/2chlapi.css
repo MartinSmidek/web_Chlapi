@@ -462,7 +462,7 @@ a.aclanek:hover {
 }
 #list {
   margin-top: 1em;
-  text-align: center;
+  text-align: left;
 }
 #list div.abstr {
   width: 33.3%;
@@ -533,7 +533,7 @@ div.kniha {
   display: block;
   clear: both;
   border-radius: .8em;
-  /*text-align: center;*/
+  text-align: center;
 }
 .kniha_bg > a.jump {
   margin: 1em;
