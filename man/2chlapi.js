@@ -57,18 +57,18 @@ jQuery.fn.extend({
 // nastaví polohu stránky
 // zamění <span style='neodkaz'> na alert
 function jump_fokus(fe_level) {
-  // potlač zobrazení ne-odkazů
-  if ( fe_level || Ezer && Ezer.web && Ezer.web.fe_user ) {
-    // zruší barevné označené odkazů pro nepřihlášené
-    jQuery('span.neodkaz').removeClass('neodkaz')
-  }
-  else {
-    // zamění <span style='neodkaz'> na alert
-    jQuery('span.neodkaz a').prop('href','#').prop('target','');
-    jQuery('span.neodkaz').prop('href','#').on('click',() => {
-      jQuery('div.neodkaz').fadeIn();
-    })
-  }
+//  // potlač zobrazení ne-odkazů
+//  if ( fe_level || Ezer && Ezer.web && Ezer.web.fe_user ) {
+//    // zruší barevné označené odkazů pro nepřihlášené
+//    jQuery('span.neodkaz').removeClass('neodkaz')
+//  }
+//  else {
+//    // zamění <span style='neodkaz'> na alert
+//    jQuery('span.neodkaz a').prop('href','#').prop('target','');
+//    jQuery('span.neodkaz').prop('href','#').on('click',() => {
+//      jQuery('div.neodkaz').fadeIn();
+//    })
+//  }
   // najdi cíl podle priority
   var jump= jQuery('#fokus_part') || jQuery('#fokus_case') || jQuery('#fokus_page');
   if ( jump[0] ) {

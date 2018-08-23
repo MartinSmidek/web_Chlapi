@@ -299,6 +299,35 @@ __EOT;
       $html.= "<div style='background:white;color:black;text-align:center'>POZNAMKA</div>";
       break;
     
+    case 'myslenka':# ----------------------------------------------- . myšlenka
+      global $backref;
+      $obsah= rr_myslenka();
+      $obsah.= '<p><i>Pokud chceš tyto denní meditace Richarda Rohra z knihy "Radikální milost" '
+          . 'dostávat do své mailové schránky, napiš mi na martin(et)smidek.eu</i></p>';
+      $plny= $top==$id;
+      if ( $plny ) {
+        // zobrazit jako plný článek
+        $html.= "
+          <div class='back' $menu>
+            <div id='fokus_part' class='home'>
+              $obsah
+            </div>
+          </div>";
+      }
+      else {
+        // zobrazit jako abstrakt
+        $obsah= x_shorting($obsah);
+        $styl= 'aclanek';
+        $jmp= str_replace('*',$id,$backref);
+        $html.= "
+          <div class='back'>
+            <a class='$styl home' $jmp>
+              $obsah
+            </a>
+          </div>";
+      }
+      break;
+    
     case 'aclanek': # ------------------------------------------------ . ačlánek - abstrakt
       global $backref, $links;
       $links= "fotorama";
@@ -306,6 +335,7 @@ __EOT;
       list($obsah,$xskill)= select("web_text,web_skill","xclanek","id_xclanek=$id");
       $xskill= 0+$xskill;
       $obsah= str_replace('$index',$index,$obsah);
+      $obsah= x_cenzura($obsah);
       $menu= $note= '';
       $idn= $id;
       if ( $book ) {
@@ -405,11 +435,13 @@ __EOT;
       if ( $xskill && !($fe_level & $xskill) ) {
         break;
       }
+      $obsah= x_cenzura($obsah);
       $obsah= str_replace('$index',$index,$obsah);
       $menu= '';
       if ( $CMS ) {
         $obsah= preg_replace("~href=\"(?:http://www.chlapi.cz/|/|(?!https?://))(.*)\"~U", 
-              "onclick=\"go(arguments[0],'page=$1','$prefix$1','',0);\" title='$1'", 
+//              "onclick=\"go(arguments[0],'page=$1','$prefix$1','',0);\" title='$1'", 
+              "onclick=\"go(arguments[0],'page=$1','$1','',0);\" title='$1'", 
               $obsah);
         $menu= " title='článek $id' oncontextmenu=\"
             Ezer.fce.contextmenu([
@@ -797,8 +829,9 @@ __EOD;
         $menu
       </div>
       <div class='neodkaz' style="display:none">
-        <div id='clanek2' class='home' style="background:#CFDDE6">
-          <p>Modré <span class='neodkaz'><a class='jump'>odkazy</a></span> jsou bez přihlášení neaktivní.</p>
+        <div id='clanek2' class='home' style="background:#cfdde6d6">
+          <p>Modré <span class='neodkaz'><a class='jump'>odkazy</a></span> 
+          a <span class='neodkaz'><a class='odkaz'>čárkovaně podtržené</a></span> odkazy jsou bez přihlášení neaktivní.</p>
           <p> Pokud chceš vidět úplné texty článků, musíš být přihlášen.</p>
           <p>K přihlašovacímu dialogu se dostaneš pomocí menu <i class="fa fa-bars"></i> v pravém horním rohu.</p>
           <p>Přihlásit se můžeš pomocí mailové adresy, kterou jsi 
@@ -1280,6 +1313,29 @@ function record_unlock ($table,$id_table,$unlock_all=false) {
   return 1;
 }
 /** ==========================================================================================> TEXT */
+# úprava textu pro nepřihlášené
+function x_cenzura($obsah0) {
+  $obsah= preg_replace_callback (
+      "~<span class=\"neodkaz\"><a (class=\"jump\"|)(.*)>(.*)</a></span>~U",
+      function ($m) {
+        global $fe_level;
+        if ( $fe_level ) {
+          if ( $m[1] )  // jump
+              return "<span class='odkaz'><a class='jump' $m[2]>$m[3]</a></span>";
+            else        // odkaz
+              return "<span class='neodkaz'><a class='odkaz' $m[2]>$m[3]</a></span>";
+        }
+        else {
+          $neodkaz= "onclick=\"jQuery('div.neodkaz').fadeIn();\" title='jen pro přihlášené'";
+          if ( $m[1] )  // jump
+              return "<span class='neodkaz'><a class='jump' $neodkaz>$m[3]</a></span>";
+            else        // odkaz
+              return "<span class='neodkaz'><a class='odkaz' $neodkaz>$m[3]</a></span>";
+        }
+      },
+      $obsah0);
+  return $obsah;
+}
 # -------------------------------------------------------------------------------------- x first_img
 # vrátí první obrázek s doplněnými atributy, nebo ''
 function x_first_img ($html,$size=1) { //trace();
@@ -1360,6 +1416,45 @@ function closetags($html) {
     } else {
       unset($closedtags[array_search($openedtags[$i], $closedtags)]);
     }
+  }
+  return $html;
+}
+# ------------------------------------------------------------------------------------------ rr_send
+# $par = {den:ode dneška dnes=0,poslat: 0/1}
+function rr_myslenka() {
+  $dnes= date('j/n/Y',mktime(0,0,0,date('n'),date('j'),date('Y')));
+  $html= "neni pro $dnes nastaveno!";
+  //return $html;
+//  ezer_connect();
+  $qry= "SELECT * FROM ezertask.rr WHERE datum=curdate()";
+  $res= mysql_qry($qry);
+                                                $html.= "<br>$res=$qry";
+  while ( $res && ($o= mysql_fetch_object($res)) ) {
+//     $html= $o->text_cz;
+    $day_n= $o->day_n;
+    $day= $o->day;
+    $subject= $o->subject;
+    $datum= $o->datum;
+    $state= $o->state;
+    $title_cz= $o->title_cz;
+    $text_cz= $o->text_cz;
+    $text_cz= strtr($text_cz,array('š'=>'&scaron;','ž'=>'&#382;'));
+    $title_en= $o->title_en;
+    $text_en= $o->text_en;
+    $from_en= $o->from_en;
+    // formátování
+    $subject= strtr($subject,array(
+        'Neděle'=>'neděli', 'Pondělí'=>'pondělí', 'Úterý'=>'úterý', 'Středa'=>'středu'
+      , 'Čtvrtek'=>'čtvrtek', 'Pátek'=>'pátek', 'Sobota'=>'sobotu'
+      , 'První'=>'první', 'Druhá'=>'druhou', 'Čtvrtá'=>'čtvrtou', 'Pátá'=>'pátou'
+      , 'Šestá'=>'šestou', 'Sedmá' => 'sedmou'
+      ));
+    $subj= "Richard Rohr na $subject";
+    $body= "<table cellpadding='10'><tr>";
+    $body.= "<td valign='top' width='50%'><b>$title_cz</b><br>$text_cz</td>";
+    $body.= "<td valign='top' width='50%'><b>$title_en</b><br>$text_en<div align='right'>$from_en</div></td>";
+    $body.= "</tr></table>";
+    $html= "<h1>$subj</h1>$body";
   }
   return $html;
 }

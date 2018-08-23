@@ -27,6 +27,7 @@ panel p [0,0,*,*] { type:'main', _sys:'$'
   proc pridat(_typ,_mid,_first) { 
     eq('xclanek',_typ); ask('menu_add_elem',_mid,_typ,_first); refresh 
   | eq('xkniha.elem',_typ); ask('menu_add_elem',_mid,_typ,_first); refresh 
+  | eq('xfotky',_typ); FOTKY.novy(_mid); refresh 
   }
   proc zcizit(_typ,_pid,_mid) { 
     eq(_typ,'fotky'); [ ask('menu_copy_foto',_pid,_mid); refresh ]  // _mid je zde test
@@ -655,22 +656,26 @@ panel EDITOR [0,0,710,530] { type:'popup', style:"min-width:700px", _sys:'edi'
     panel.modal(10,40) 
   }
   proc Kniha(_key) { var lock:object
-  [ id.set(_key);
-    panel.display(2,'b'); 
+  [ b.load(_key); 
+    id.set(_key);
+    not(or(contains(sys('user','id_user'),b.id_editors.get),has_skill('s')));
+    alert("tuto knihu může opravovat jen ",cconc(b.editors.get,b.editors.get,'šéfredaktor'))
+  | panel.display(2,'b'); 
     lock.set(ask('record_lock','xkniha',_key)); // selže, pokud již je editováno
     not(lock.kdo);
-    b.load(_key); 
     panel.set_attrib('title','Úprava knihy');
     panel.modal(10,40) 
   | lock.kdo;
     alert("knihu právě upravuje redaktor ",lock.kdo)
   ]}
   proc Clanek(_key) { var lock:object
-  [ id.set(_key);
-    panel.display(2,'c'); 
+  [ c.load(_key); 
+    id.set(_key);
+    not(or(contains(sys('user','id_user'),c.id_editors.get),has_skill('s')));
+    alert("tento článek může opravovat jen ",cconc(c.editors.get,c.editors.get,'šéfredaktor'))
+  | panel.display(2,'c'); 
     lock.set(ask('record_lock','xclanek',_key)); // selže, pokud již je editováno
     not(lock.kdo);
-    c.load(_key); 
     path.set(conc('/inc/c/',_key));                  // cesta pro přílohy
     ask('session','man,inc_path',path.get);
     join_drop(c.obsah);
@@ -722,6 +727,7 @@ panel EDITOR [0,0,710,530] { type:'popup', style:"min-width:700px", _sys:'edi'
   # -----------------------------------------------------------------------------==> edit clanek    
   # oprava textu článku
   form _c [10,10,710,460] {
+    field id_editors { data:xclanek.editors }
     button  [-121,5,,] { title:'Uložit', help:'ukončit editor a uložit změny'
       proc onclick() { 
         form.save; 
@@ -739,6 +745,8 @@ panel EDITOR [0,0,710,530] { type:'popup', style:"min-width:700px", _sys:'edi'
         UPLOAD.modal //(50,100)
       }
     }
+    select editors [-334,5,150,] { type:'map+', title:'text napsal', help:'+ kdo může text měnit'
+        options:users.username, value:'0', data:xclanek.editors }
     select  [-171,5,100,] { type:'map', title:'text uvidí', help:'zobrazí se jen pro ...'
         options:skill_level.skill_name, value:'0', data:xclanek.web_skill }
     edit obsah [0,40,712,480] { type:'html', data:xclanek.web_text, par:°{toolbar:'WEB'} }
@@ -746,6 +754,7 @@ panel EDITOR [0,0,710,530] { type:'popup', style:"min-width:700px", _sys:'edi'
   # -----------------------------------------------------------------------------==> edit kniha
   # oprava nadpisu knihy
   form _b [10,10,710,90] {
+    field id_editors { data:xkniha.editors }
     button  [-121,5,,] { title:'Uložit', help:'ukončit editor a uložit změny'
       proc onclick() { 
         form.save; 
@@ -756,6 +765,8 @@ panel EDITOR [0,0,710,530] { type:'popup', style:"min-width:700px", _sys:'edi'
       proc onclick() { 
         ask('record_unlock','xkniha',id.get);  
         panel.hide(0); }}
+    select editors [-334,5,150,] { type:'map+', title:'text napsal', help:'+ kdo může text měnit'
+        options:users.username, value:'0', data:xkniha.editors }
     select  [-171,5,100,] { type:'map', title:'text uvidí', help:'zobrazí se jen pro ...'
         options:skill_level.skill_name, value:'0', data:xkniha.web_skill }
     field [0,40,300,] { data:xkniha.nazev }
@@ -838,22 +849,22 @@ panel UPLOAD [0,0,400,130] { title:' Nahrát soubor', type:'popup', style:"min-w
 }
 # ----------------------------------------------------------------------------==> FOTKY
 # organizer fotek
-panel FOTKY [0,0,680,240] { title:' Organizér fotek', type:'popup', css:'dialog'
+panel FOTKY [0,0,680,265] { title:' Organizér fotek', type:'popup', css:'dialog'
   use f: form _foto [0,0,,]
   # zapamatování informací do DOM pro
   proc onfocus() {
     function('panel',"panel.DOM_Block.id='FOTKY';",panel);
   }
 //  # ==> . nový
-//  proc novy(_cid,_pid) { var ret:object
-//    f.init; f.fotky.set('');
-//    f.display(0,'o'); f.display(1,'n'); 
-//    f.uid.set(0); f.cid.set(_cid); f.kapitola.set(_pid); f.sav.set('[fa-save] Vytvořit');
-//    f.autor.set(conc(sys('user','forename'),' ',sys('user','surname'))); f.autor.change;
-//    f.psano.set(now); f.psano.change;
+  proc novy(_cid) { // var ret:object
+    f.init; f.fid.set(0); f.cid.set(_cid); f.fotky.set('');
+    f.display(0,'o'); f.display(1,'n'); f.sav.set('[fa-save] Vytvořit');
+    f.editors.key(sys('user','id_user')); f.editors.change;
+    f.autor.set(conc(sys('user','forename'),' ',sys('user','surname'))); f.autor.change;
+    f.psano.set(now); f.psano.change;
 //    f.drop_init;
-//    panel.modal //(10,30);
-//  }
+    panel.modal //(10,30);
+  }
   # ==> . oprava
   proc oprava(_fid) {
     f.init;
@@ -863,16 +874,23 @@ panel FOTKY [0,0,680,240] { title:' Organizér fotek', type:'popup', css:'dialog
     panel.modal; //(10,30);
   }
   proc refresh() { var ret:object
-    ret.set(ask('load_fotky',f.fid.get)); copy_by_name(ret,f);
-//    [ function("foto_sortable('start');") ];
-    f.drop_init;
+    ret.set(ask('load_fotky',f.fid.get)); copy_by_name(ret,f); 
+    // smí přihlášený redaktor měnit?
+    not(or(contains(sys('user','id_user'),f.editors.key),has_skill('s')));
+    alert("tyto fotky může upravovat jen ",cconc(f.editors.get,f.editors.get,'šéfredaktor'));
+    return(0)
+  |
+    //    [ function("foto_sortable('start');") ];
+    //    f.drop_init;
+    f.drop.init(conc("inc/f/",f.fid.get,"/"));
   }
-  proc create() { var values:object values.set(object());
-    f.sav.set('[fa-save] Uložit');
-    copy_by_name(f,values); f.fid.set(ask('create_fotky',values));
-    f.display(1,'o');
-    f.plain
-  }
+//  proc create() { var values:object 
+//    values.set(object());
+//    f.sav.set('[fa-save] Uložit');
+//    copy_by_name(f,values); f.fid.set(ask('create_fotky',values));
+//    f.display(1,'o');
+//    f.plain
+//  }
 //  # ==> . vymazání
 //  proc smazat(name) {
 //    ask('delete_fotky',f.fid.get,name); refresh;
@@ -885,37 +903,40 @@ panel FOTKY [0,0,680,240] { title:' Organizér fotek', type:'popup', css:'dialog
 //  }
   # ==> . form
   form _foto {
-    field fid
-//    field uid
-//    field cid
-    field kapitola
+    field fid // id_xfotky
+    field cid // id_xclanek
+    select editors [146,40,150,] { type:'map+', title:'fotky přidal(i): ', help:'a mohou je měnit'
+        options:users.username, value:'0' }
     field autor  [35,15,100,]  { tag:'o,n', title:'^autor:' }
     field nadpis [146,15,224,] { tag:'o,n', title:'^název:' }
     field psano  [380,15,85,]  { tag:'o,n', type:'date', title:'^psáno:', format:'r' }
-    label        [0,42,80,80]  { tag:'o', css:'drop_back' }
-    label drop   [0,42,,]      { tag:'o', css:'drop_foto' }
-    label fotky  [0,40,690,205] { tag:'o', style:'overflow:auto' }
+    label        [0,72,80,80]  { tag:'o', css:'drop_back' }
+//    label drop   [0,42,,]      { tag:'o', css:'drop_foto' }
+    label fotky  [0,70,690,205] { tag:'o', style:'overflow:auto' }
     # ==> .. tlačítka
-    button full [0,9,,] { tag:'o', title:"[fa-expand]",
+    button full [0,15,,] { tag:'o', title:"[fa-expand]",
       proc onclick() { var w:number,h:number
         w.set(sys('screen','width')); h.set(sys('screen','height'));
         panel.property(object('left',0,'top',25,'width',minus(w,50),'height',minus(h,80)));
         fotky.property(object('width',minus(w,45),'height',minus(h,110)));
     } }
-    button sav [-78,9,,] { tag:'o,n', title:'[fa-save] Vytvořit', help:'ukončit organizaci fotek'
+    button sav [-78,15,,] { tag:'o,n', title:'[fa-save] Vytvořit', help:'ukončit organizaci fotek'
       proc onclick() { var values:object, order:text
         values.set(object());
-        order.set(function("return foto_sortable('order');"));
+//        order.set(function("return foto_sortable('order');"));
         copy_by_name(f,values);
         { fid.get; ask('save_fotky',values,order); panel.hide(fid.get);
-        | not(fid.get); create
+        | not(fid.get); //create
+          f.fid.set(ask('create_fotky',values));
+          f.sav.set('[fa-save] Uložit'); f.display(1,'o'); 
+          refresh; p.refresh
         };
       }
     }
-    button [-20,9,,] { tag:'o,n', title:'[fa-undo] Zpět', help:'ukončit editor bez vytvoření článku'
+    button [-20,15,,] { tag:'o,n', title:'[fa-undo] Zpět', help:'ukončit editor bez vytvoření článku'
       proc onclick() { UPLOAD.hide(0); panel.hide(0); }
     }
-    button [-145,9,,] { tag:'o', title:"[fa-file-archive-o] ZIP",
+    button [410,40,,] { tag:'o', title:"[fa-file-archive-o] ZIP", format:'d'
       proc onclick() { var zip:text, ret:object
         zip.set(ZIP_URL.modal);
         ret.set(ask('upload_zip',zip,fid.get));
@@ -931,22 +952,46 @@ panel FOTKY [0,0,680,240] { title:' Organizér fotek', type:'popup', css:'dialog
 //        ask('move_fotky',uid.get,pid,order);
 //        refresh
 //    } }
-    button [-211,9,,] { tag:'o', title:"[fa-sort-alpha-asc]",
+    button [380,40,,] { tag:'o', title:"[fa-sort-alpha-asc]", format:'d'
       proc onclick() { ask('sort_fotky',fid.get); refresh }
     }
-    # ==> .. drag & drop
-    proc ondrop(fileinfo) { var name: text
-      [ not(fid.get); create ];
-      drop.set_css('','drop_area drop_area_hover');
-      name.set(ask('upload_fotky',fileinfo,fid.get));
-      drop.set_css('','drop_area drop_area_hover drop_area_run');
-      refresh;
-    }
-    proc drop_init() {
-      drop.set_css('drop_area','');
-      drop.set("<span>místo pro novou fotku</span>");
-      form.file_drop(drop,°{css_hover:'drop_area_hover',css_run:'drop_area_run',handler:'ondrop',
-        max_width:1200,max_height:960});
+//    # ==> .. drag & drop
+//    proc ondrop(fileinfo) { var name: text
+//      [ not(fid.get); create ];--
+//      drop.set_css('','drop_area drop_area_hover');
+//      name.set(ask('upload_fotky',fileinfo,fid.get));
+//      drop.set_css('','drop_area drop_area_hover drop_area_run');
+//      refresh;
+//    }
+//    proc drop_init() {
+//      drop.set_css('drop_area','');
+//      drop.set("<span>místo pro novou fotku</span>");
+//      form.file_drop(drop,°{css_hover:'drop_area_hover',css_run:'drop_area_run',handler:'ondrop',
+//        max_width:1200,max_height:960});
+//    }
+    label drop   [0,72,80,80]      { type:'drop', tag:'o', css:'drop_foto', format:'t' 
+      proc ondrop(x) { //var name: text
+//        [ not(fid.get); create ];--
+        drop.set_css('','drop_area drop_area_hover');
+//        name.set(ask('upload_fotky',fileinfo,fid.get));
+//        ask('upload_fotky',fileinfo,fid.get);
+//        drop.set_css('','drop_area drop_area_hover drop_area_run');
+//        refresh;
+//        return(name)
+//        gt(x.size,5242880); warning('odmítnuto ',x.name,' má více jak 5MB'); return(0)
+//      | 
+        return(x.name)
+      }
+      proc onload(x) { // po dokončení přenosu, jméno bude ASCII
+        ask("minify_fotky",x.name,f.fid.get);
+        refresh; p.refresh;
+      } 
+      proc onerror(e) { // funkce onerror nesmí obsahovat asynchronní kód a lokální proměnné, ale přes call lze zavolat už cokoliv
+        warning(e.msg); return(1) // vrácení 0 způsobí standardní hlášení chyby
+      }
+      proc onprogress(n,msg) { 
+        echo("drop ",n," ",msg);
+      }
     }
   }
   panel ZIP_URL [,,300,60] { type:'popup' title:'zadej url ZIPu s fotografiemi' use ff:form _ff
@@ -983,11 +1028,13 @@ table xakce { key_id:'id_xakce', db:'setkani'
 }
 table xkniha { key_id:'id_xkniha', db:'setkani'
   number id_xkniha { key:'primary' }
+  text editors
   number web_skill
   text nazev
 }
 table xclanek { key_id:'id_xclanek', db:'setkani'
   number id_xclanek { key:'primary' }
+  text editors
   number web_skill
   text web_text
 }
@@ -1046,5 +1093,6 @@ table _cis { key_id:'id_cis'
   text ikona
 }
 map skill_level: table _skill { where:"id_skill IN (0,8,16)", order:'id_skill', key_id:'id_skill' }
+map users: table _user { where:"1", order:'surname', key_id:'id_user' }
 
 

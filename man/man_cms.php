@@ -7,12 +7,25 @@
 // ---------------------------------------------------------------------------------------------- //
 
 /** =========================================================================================> FOTKY */
+# --------------------------------------------------------------------------------==> . create fotky
+# přidání fotek - pokud je definováno x.kapitola pak pod příslušné part - jinak na konec
+function create_fotky($x) {
+  $cid= $x->cid;
+  $autor= mysql_real_escape_string($x->autor);
+  $nadpis= mysql_real_escape_string($x->nadpis);
+  $psano= sql_date1($x->psano,1);
+  $editors= $x->editors ? implode(',',(array)$x->editors) : '';
+  query("INSERT INTO xfotky (id_xclanek,editors,nazev,kdy,autor,seznam)
+         VALUES ($cid,'$editors','$nadpis','$psano','$autor','')");
+  $fid= mysql_insert_id();
+  return $fid;
+}
 # ----------------------------------------------------------------------------------==> . load fotky
 function load_fotky($fid) { trace();
   global $CMS, $href0, $clear;
   $x= (object)array();
-  list($x->autor,$x->nadpis,$lst,$psano)=
-    select('autor,nazev,seznam','xfotky',"id_xfotky=$fid");
+  list($id_xclanek,$x->editors,$x->autor,$x->nadpis,$lst,$psano)=
+    select('id_xclanek,editors,autor,nazev,seznam,kdy','xfotky',"id_xfotky=$fid");
   $x->fotky= "<span class='foto drop' data-foto-n='-1'></span><ul class='foto' id='foto'>";
   $x->psano= sql_date1($psano);
   $fs= explode(',',$lst);
@@ -36,297 +49,269 @@ function load_fotky($fid) { trace();
   $x->fotky.= "</ul>";
   return $x;
 }
+# ----------------------------------------------------------------------------------==> . save fotky
+function save_fotky($x,$perm=null) {
+  $fid= $x->fid;
+  $autor= mysql_real_escape_string($x->autor);
+  $nadpis= mysql_real_escape_string($x->nadpis);
+  $psano= sql_date1($x->psano,1);
+  $editors= $x->editors ? implode(',',(array)$x->editors) : '';
+  $set_seznam= '';
+//  $text= select('seznam',"xfotky","id_xfotky='$fid'");
+//  // přeskládání textu podle order
+//  $nt= array();
+//  $t= explode(',',$text);
+//                                                         debug($t,$perm);
+//  $p= explode(',',$perm);
+//  for ($i= 0; $i<count($p); $i++) {
+//    $nt[$i*2]=   $t[$p[$i]*2];
+//    $nt[$i*2+1]= $t[$p[$i]*2+1];
+//  }
+//  $text2= implode(',',$nt);
+//                                                         display($text);
+//                                                         display($text2);
+//  $set_text= $text==$text2 ? '' : ",text='$text2'";
+  // zápis
+  query("UPDATE xfotky
+         SET editors='$editors',nazev='$nadpis',kdy='$psano',autor='$autor'
+           $set_seznam
+         WHERE id_xfotky='$fid'");
+  return 1;
+}
+# --------------------------------------------------------------------------------==> . upload fotky
+# originál fotky je již ve složce inc/f/fid mechanismem label.drop
+# vytvoří miniatury a přidá je do složky, název přidá do xfotky[fid].seznam
+function minify_fotky($file,$fid) { 
+  global $ezer_path_root;
+  $path= "$ezer_path_root/inc/f/$fid";
+  // přidání názvu fotky do záznamu v tabulce
+  query("UPDATE xfotky SET seznam=CONCAT(seznam,'$file,,') WHERE id_xfotky=$fid");
+  // doplnění thumbs ..$file
+  $w= $h= 80;
+  $ok= x_resample("$path/$file","$path/..$file",$w,$h) ? 'ok' : 'ko';
+  // ZMENŠENINA .file
+  if ( !is_file("$path/.$file") ) // pokud zmenšenina neexistuje, vynuť její vytvoření
+    $width0= $height0= -1;
+  else // pokud existuje zmenšenina, podívej se na její rozměry
+    list($width0, $height0, $type0, $attr0)= getimagesize("$path/.$file");
+  // zajisti zmenšeninu
+  if ( $width!=$width0 || $height!=$height0 ) {
+    // je požadována změna rozměrů, transformuj obrázek
+    $width= $height= 1920;
+    $w= $width; $h= $height;
+    $ok= x_resample("$path/$file","$path/.$file",$w,$h,0,1) ? 'ok' : 'ko';
+  }
+end:
+  return $file;
+}
 # ------------------------------------------------------------------------------------- delete fotky
 function delete_fotky($uid,$foto) {
-  global $ezer_path_root, $ezer_root;
-  // zrušení odkazu na fotku
-  $text= select('text','tx_gncase_part',"uid=$uid");
-  $fotky= explode(',',$text);
-  while (1) {
-    $n= array_search($foto,$fotky);
-    if ( $n===false ) break;
-    unset($fotky[$n]); unset($fotky[$n+1]);
-  }
-  $text= implode(',', $fotky);
-  query("UPDATE tx_gncase_part SET text='$text' WHERE uid=$uid");
-  // smazání fotky
-  $path= "$ezer_path_root/fileadmin/photo/$uid";
-  unlink("$path/$foto"); unlink("$path/.$foto"); unlink("$path/..$foto");
+//  global $ezer_path_root, $ezer_root;
+//  // zrušení odkazu na fotku
+//  $text= select('text','tx_gncase_part',"uid=$uid");
+//  $fotky= explode(',',$text);
+//  while (1) {
+//    $n= array_search($foto,$fotky);
+//    if ( $n===false ) break;
+//    unset($fotky[$n]); unset($fotky[$n+1]);
+//  }
+//  $text= implode(',', $fotky);
+//  query("UPDATE xfotky SET text='$text' WHERE uid=$uid");
+//  // smazání fotky
+//  $path= "$ezer_path_root/fileadmin/photo/$uid";
+//  unlink("$path/$foto"); unlink("$path/.$foto"); unlink("$path/..$foto");
   return 1;
 }
 # --------------------------------------------------------------------------------------- note fotky
 function note_fotky($uid,$foto0,$note) {
-  // načtení
-  $text= select('text',"setkani.tx_gncase_part","uid='$uid'");
-  $f= array();
-  $t= explode(',',$text);
-  for ($i= 0; $i<count($t)-1; $i+=2) {
-    $foto= $t[$i]; $desc= $t[$i+1];
-    $f[$foto]= $desc;
-  }
-  // změna
-  $f[$foto0]= $note;
-  // zápis
-  $text= '';
-  foreach($f as $foto=>$desc) {
-    $text.= "$foto,$desc,";
-  }
-  query("UPDATE setkani.tx_gncase_part SET text='$text' WHERE uid='$uid'");
-  return 1;
-}
-# --------------------------------------------------------------------------------==> . create fotky
-# přidání fotek - pokud je definováno x.kapitola pak pod příslušné part - jinak na konec
-function create_fotky($x) {
-  $cid= $x->cid;
-  $autor= mysql_real_escape_string($x->autor);
-  $nadpis= mysql_real_escape_string($x->nadpis);
-  $kapitola= $x->kapitola;
-  query("INSERT INTO setkani.tx_gncase_part (cid,kapitola,tags,author,title,text,date,tstamp)
-         VALUES ($cid,'$kapitola','F','$autor','$nadpis','',UNIX_TIMESTAMP(),UNIX_TIMESTAMP())");
-  $uid= mysql_insert_id();
-  return $uid;
-}
-# ----------------------------------------------------------------------------------==> . save fotky
-function save_fotky($x,$perm) {
-  $uid= $x->uid;
-  $autor= mysql_real_escape_string($x->autor);
-  $nadpis= mysql_real_escape_string($x->nadpis);
-  $psano= sql_date1($x->psano,1);
-  $text= select('text',"setkani.tx_gncase_part","uid='$uid'");
-  // přeskládání textu podle order
-  $nt= array();
-  $t= explode(',',$text);
-//                                                         debug($t,$perm);
-  $p= explode(',',$perm);
-  for ($i= 0; $i<count($p); $i++) {
-    $nt[$i*2]=   $t[$p[$i]*2];
-    $nt[$i*2+1]= $t[$p[$i]*2+1];
-  }
-  $text2= implode(',',$nt);
-//                                                         display($text);
-//                                                         display($text2);
-  $set_text= $text==$text2 ? '' : ",text='$text2'";
-  // zápis
-  query("UPDATE setkani.tx_gncase_part
-         SET author='$autor',title='$nadpis',date=UNIX_TIMESTAMP('$psano'),tstamp=UNIX_TIMESTAMP()
-         $set_text WHERE uid='$uid'");
+//  // načtení
+//  $text= select('text',"setkani.tx_gncase_part","uid='$uid'");
+//  $f= array();
+//  $t= explode(',',$text);
+//  for ($i= 0; $i<count($t)-1; $i+=2) {
+//    $foto= $t[$i]; $desc= $t[$i+1];
+//    $f[$foto]= $desc;
+//  }
+//  // změna
+//  $f[$foto0]= $note;
+//  // zápis
+//  $text= '';
+//  foreach($f as $foto=>$desc) {
+//    $text.= "$foto,$desc,";
+//  }
+//  query("UPDATE xfotky SET text='$text' WHERE uid='$uid'");
   return 1;
 }
 # ----------------------------------------------------------------------------------==> . sort fotky
 # seřadí fotky podle jména souboru
 function sort_fotky($uid) { trace();
-  $text= select('text',"setkani.tx_gncase_part","uid='$uid'");
-  $f= array();
-  $t= explode(',',$text);
-                                                        debug($t);
-  for ($i= 0; $i<count($t)-1; $i+=2) {
-    $foto= $t[$i]; $desc= $t[$i+1];
-                                                        display("$i,$foto,$desc");
-    $f[$foto]= $desc;
-  }
-                                                        debug($f);
-  ksort($f);
-                                                        debug($f);
-  $text= '';
-  foreach($f as $foto=>$desc) {
-    $text.= "$foto,$desc,";
-  }
-                                                        display($text);
-  // zápis
-  query("UPDATE setkani.tx_gncase_part SET text='$text' WHERE uid='$uid'");
+//  $text= select('text',"setkani.tx_gncase_part","uid='$uid'");
+//  $f= array();
+//  $t= explode(',',$text);
+//                                                        debug($t);
+//  for ($i= 0; $i<count($t)-1; $i+=2) {
+//    $foto= $t[$i]; $desc= $t[$i+1];
+//                                                        display("$i,$foto,$desc");
+//    $f[$foto]= $desc;
+//  }
+//                                                        debug($f);
+//  ksort($f);
+//                                                        debug($f);
+//  $text= '';
+//  foreach($f as $foto=>$desc) {
+//    $text.= "$foto,$desc,";
+//  }
+//                                                        display($text);
+//  // zápis
+//  query("UPDATE setkani.tx_gncase_part SET text='$text' WHERE uid='$uid'");
   return 1;
 }
 # ----------------------------------------------------------------------------------==> . move fotky
 # přesune fotky s pořadími uvedenými v lst z part.uid=from do part.uid=to
 function move_fotky($from,$to,$checked) { trace();
-  global $ezer_path_root, $ezer_root;
-  $path_from= "$ezer_path_root/fileadmin/photo/$from";
-  $text_from= select('text',"setkani.tx_gncase_part","uid='$from'");
-  $path_to= "$ezer_path_root/fileadmin/photo/$to";
-  $text_to= select('text',"setkani.tx_gncase_part","uid='$to'");
-  // zajisti cílovou složku
-  if ( !is_dir($path_to) ) {
-    $ok= mkdir($path_to,0777);
-    if (!$ok) { fce_warning("POZOR nepodařilo se vytvořit složku pro fotografie ($path_to)"); goto end;}
-  }
-  // úprava seznamů a fotek
-  $add= $sub= '';
-  $t= explode(',',$text_from);
-  $p= explode(',',$checked);
-  for ($i= 0; $i<count($p); $i++) {
-    if ( $p[$i]>0 ) {
-      $pi= $p[$i]-1;
-      $foto= $t[$pi*2]; $desc= $t[$pi*2+1];
-      $add.= "$foto,$desc,";
-      // přesun fotek mezi složkami
-                                                        display("copy($path_from/$foto,$path_to/$foto)");
-      foreach (array($foto,".$foto","..$foto") as $f) {
-        if ( file_exists("$path_from/$f") ) {
-          copy("$path_from/$f","$path_to/$f");
-          unlink("$path_from/$f");
-        }
-      }
-    }
-    else {
-      $pi= -$p[$i]-1;
-      $foto= $t[$pi*2]; $desc= $t[$pi*2+1];
-      $sub.= "$foto,$desc,";
-    }
-  }
-  $text_from= $sub;
-  $text_to= $text_to.$add;
-                                                        display("from=$text_from");
-                                                        display("to=$text_to");
-  // zápis
-  query("UPDATE setkani.tx_gncase_part SET text='$text_from' WHERE uid='$from'");
-  query("UPDATE setkani.tx_gncase_part SET text='$text_to' WHERE uid='$to'");
-end:
+//  global $ezer_path_root, $ezer_root;
+//  $path_from= "$ezer_path_root/fileadmin/photo/$from";
+//  $text_from= select('text',"setkani.tx_gncase_part","uid='$from'");
+//  $path_to= "$ezer_path_root/fileadmin/photo/$to";
+//  $text_to= select('text',"setkani.tx_gncase_part","uid='$to'");
+//  // zajisti cílovou složku
+//  if ( !is_dir($path_to) ) {
+//    $ok= mkdir($path_to,0777);
+//    if (!$ok) { fce_warning("POZOR nepodařilo se vytvořit složku pro fotografie ($path_to)"); goto end;}
+//  }
+//  // úprava seznamů a fotek
+//  $add= $sub= '';
+//  $t= explode(',',$text_from);
+//  $p= explode(',',$checked);
+//  for ($i= 0; $i<count($p); $i++) {
+//    if ( $p[$i]>0 ) {
+//      $pi= $p[$i]-1;
+//      $foto= $t[$pi*2]; $desc= $t[$pi*2+1];
+//      $add.= "$foto,$desc,";
+//      // přesun fotek mezi složkami
+//                                                        display("copy($path_from/$foto,$path_to/$foto)");
+//      foreach (array($foto,".$foto","..$foto") as $f) {
+//        if ( file_exists("$path_from/$f") ) {
+//          copy("$path_from/$f","$path_to/$f");
+//          unlink("$path_from/$f");
+//        }
+//      }
+//    }
+//    else {
+//      $pi= -$p[$i]-1;
+//      $foto= $t[$pi*2]; $desc= $t[$pi*2+1];
+//      $sub.= "$foto,$desc,";
+//    }
+//  }
+//  $text_from= $sub;
+//  $text_to= $text_to.$add;
+//                                                        display("from=$text_from");
+//                                                        display("to=$text_to");
+//  // zápis
+//  query("UPDATE setkani.tx_gncase_part SET text='$text_from' WHERE uid='$from'");
+//  query("UPDATE setkani.tx_gncase_part SET text='$text_to' WHERE uid='$to'");
+//end:
   return 1;
 }
 # ----------------------------------------------------------------------------------==> . upload url
 # zapíše soubor zadaný urldo fileadmin/img/cid
 function upload_url($url,$cid) { trace();
-  global $ezer_path_root, $ezer_root;
-  $ret= (object)array('err'=>'');
-  // zajisti složku
-  $path= "$ezer_path_root/fileadmin/img/$cid";
-  if ( !is_dir($path) ) {
-    $ok= mkdir($path,0777);
-    if (!$ok) { $ret->err= "POZOR nepodařilo se vytvořit složku pro soubor ($path)"; goto end;}
-  }
-  // zjisti velikost a zda je dost místa
-  $free= floor(disk_free_space("/")/(1024*1024));
-  $headers= get_headers($url, 1);
-                                                        debug($headers,$url);
-  $size= $headers["Content-Length"];
-  if ( is_array($size) ) $size= $size[count($size)-1];
-  $size= ceil($size/(1024*1024));
-                                                        display("volných $free MB, soubor má $size MB");
-  if ( 5*$size > $free ) {
-    $ret->err= "Na serveru je $free volných MB - to je dost málo (soubor má $size MB)"; goto end; }
-
-  // zjisti a uprav jméno
-  $disp= $headers["Content-Disposition"];
-  $ok= preg_match("/attachment; filename=\"([^\"]+)\"/",$disp,$m);
-                                                        debug($m,$ok);
-  if (!$ok) { $ret->err= "POZOR soubor má nečekaný popis ($disp)"; goto end;}
-  $file= utf2ascii($m[1],'.');
-  $pathfile= "$path/$file";
-                                                        display("file=$file");
-  // soubor přepíšeme pokud existuje
-  if ( file_exists($pathfile) ) unlink($pathfile);
-  // zkopíruj do souboru
-  if (!copy($url,$pathfile)) { $ret->err= "POZOR soubor $file se nepodařilo přečíst"; goto end; }
-end:
-  return $ret;
+//  global $ezer_path_root, $ezer_root;
+//  $ret= (object)array('err'=>'');
+//  // zajisti složku
+//  $path= "$ezer_path_root/fileadmin/img/$cid";
+//  if ( !is_dir($path) ) {
+//    $ok= mkdir($path,0777);
+//    if (!$ok) { $ret->err= "POZOR nepodařilo se vytvořit složku pro soubor ($path)"; goto end;}
+//  }
+//  // zjisti velikost a zda je dost místa
+//  $free= floor(disk_free_space("/")/(1024*1024));
+//  $headers= get_headers($url, 1);
+//                                                        debug($headers,$url);
+//  $size= $headers["Content-Length"];
+//  if ( is_array($size) ) $size= $size[count($size)-1];
+//  $size= ceil($size/(1024*1024));
+//                                                        display("volných $free MB, soubor má $size MB");
+//  if ( 5*$size > $free ) {
+//    $ret->err= "Na serveru je $free volných MB - to je dost málo (soubor má $size MB)"; goto end; }
+//
+//  // zjisti a uprav jméno
+//  $disp= $headers["Content-Disposition"];
+//  $ok= preg_match("/attachment; filename=\"([^\"]+)\"/",$disp,$m);
+//                                                        debug($m,$ok);
+//  if (!$ok) { $ret->err= "POZOR soubor má nečekaný popis ($disp)"; goto end;}
+//  $file= utf2ascii($m[1],'.');
+//  $pathfile= "$path/$file";
+//                                                        display("file=$file");
+//  // soubor přepíšeme pokud existuje
+//  if ( file_exists($pathfile) ) unlink($pathfile);
+//  // zkopíruj do souboru
+//  if (!copy($url,$pathfile)) { $ret->err= "POZOR soubor $file se nepodařilo přečíst"; goto end; }
+//end:
+//  return $ret;
 }
 # ----------------------------------------------------------------------------------==> . upload zip
 function upload_zip($url,$uid,$cid) { trace();
-  global $ezer_path_root;
-  $ret= (object)array('err'=>'');
-  $free= floor(disk_free_space("/")/(1024*1024));
-  $headers= get_headers($url, 1);
-  $size= $headers["Content-Length"];
-  if ( is_array($size) ) $size= $size[count($size)-1];
-  $size= ceil($size/(1024*1024));
-                                                        display("volných $free MB, zip má $size MB");
-  if ( 5*$size > $free ) {
-    $ret->err= "Na serveru je $free volných MB - to je dost málo (soubor má $size MB)"; goto end; }
-  $path= "$ezer_path_root/fileadmin/photo/$uid";
-
-  // zkopíruj do dočasného souboru
-  if ( file_exists("tmp_file.zip") ) unlink("tmp_file.zip");
-  $tmp= "tmp_file.zip";
-  if (!@copy($url,$tmp)) { $ret->err= "POZOR archiv se nepodařilo přečíst"; goto end; }
-  // zajisti složku
-  if ( !is_dir($path) ) {
-    $ok= mkdir($path,0777);
-    if (!$ok) { $ret->err= "POZOR nepodařilo se vytvořit složku pro fotografie ($path)"; goto end;}
-  }
-  // otevři archiv
-  $z= new ZipArchive;
-  $ok= $z->open($tmp);
-  if ( $ok===true ) {
-                                                        display("files={$z->numFiles}");
-    for ($i=0; $i<$z->numFiles;$i++) {
-      $f= $z->statIndex($i);
-      $file0= $f['name'];
-      $file= utf2ascii($file0,'.');
-      if ( $file0!=$file ) {
-        $z->renameName($file0,$file);
-      }
-      $z->extractTo($path,array($file));
-      list($width, $height, $type, $attr)= getimagesize("$path/$file");
-      // file na HD 1080
-      if ( $width>1920 || $height>1080 ) {
-        $w= 1920; $h= 1080;
-        $ok= x_resample("$path/$file","$path/$file",$w,$h) ? 'ok' : 'ko';
-      }
-      // .file na HD 720
-      if ( $width>1280 || $height>720 ) {
-        $w= 1280; $h= 720;
-        $ok= x_resample("$path/$file","$path/.$file",$w,$h) ? 'ok' : 'ko';
-      }
-      else
-        copy("$path/$file","$path/.$file");
-      // doplnění thumbs ..$file
-      $w= $h= 80;
-      $ok= x_resample("$path/.$file","$path/..$file",$w,$h) ? 'ok' : 'ko';
-      // přidání názvu fotky do záznamu v tabulce
-      query("UPDATE tx_gncase_part SET text=CONCAT('$file,,',text) WHERE uid=$uid");
-    }
-    $z->close();
-  }
-  else { $ret->err= "POZOR archiv se nepodařilo otevřít (chyba:$ok)"; goto end;}
-end:
-  // uvolni prostor
-  if ( file_exists("tmp_file.zip") ) unlink("tmp_file.zip");
-  return $ret;
-}
-# --------------------------------------------------------------------------------==> . upload fotky
-# přidá fotografii do seznamu (rodina|osoba) podle ID na konec a vrátí nové názvy
-function upload_fotky($fileinfo,$uid,$cid) { trace();
-  global $ezer_path_root, $ezer_root;
-  $name= '';          // tiché oznámení chyby
-  $path= "$ezer_path_root/fileadmin/photo/$uid";
-  $parts= pathinfo($fileinfo->name);
-  // zajisti složku
-  if ( !is_dir($path) ) {
-    $ok= mkdir($path,0777);
-    if (!$ok) {fce_error("POZOR nepodařilo se vytvořit složku pro fotografie ($path)!"); goto end;}
-  }
-  $file= utf2ascii($parts['filename']).'.'.$parts['extension'];
-//                                                 debug($fileinfo,$path);
-  $data= $fileinfo->text;
-  // test korektnosti fotky
-  if ( $type=="application/x-zip-compressed" ) {
-    // ZIP archiv
-    $prefix= "application/x-zip-compressed;base64,";
-    $data= base64_decode(substr("$data==",strlen($prefix)));
-    fce_error("vkládání fotek přes ZIP ještě není hotové");
-  }
-  elseif ( substr($data,0,23)=="data:image/jpeg;base64," ) {
-    // uložení fotky na disk
-    $data= base64_decode(substr("$data==",23));
-    $bytes= file_put_contents("$path/$file",$data);
-    // přidání názvu fotky do záznamu v tabulce
-    query("UPDATE tx_gncase_part SET text=CONCAT('$file,,',text) WHERE uid=$uid");
-    // doplnění thumbs ..$file
-    $w= $h= 80;
-    $ok= x_resample("$path/$file","$path/..$file",$w,$h) ? 'ok' : 'ko';
-    // ZMENŠENINA .file
-    if ( !is_file("$path/.$file") ) // pokud zmenšenina neexistuje, vynuť její vytvoření
-      $width0= $height0= -1;
-    else // pokud existuje zmenšenina, podívej se na její rozměry
-      list($width0, $height0, $type0, $attr0)= getimagesize("$path/.$file");
-    if ( $width!=$width0 || $height!=$height0 ) {
-      // je požadována změna rozměrů, transformuj obrázek
-      $w= $width; $h= $height;
-      $ok= x_resample("$path/$file","$path/.$file",$w,$h) ? 'ok' : 'ko';
-    }
-  }
-end:
-  return $name;
+//  global $ezer_path_root;
+//  $ret= (object)array('err'=>'');
+//  $free= floor(disk_free_space("/")/(1024*1024));
+//  $headers= get_headers($url, 1);
+//  $size= $headers["Content-Length"];
+//  if ( is_array($size) ) $size= $size[count($size)-1];
+//  $size= ceil($size/(1024*1024));
+//                                                        display("volných $free MB, zip má $size MB");
+//  if ( 5*$size > $free ) {
+//    $ret->err= "Na serveru je $free volných MB - to je dost málo (soubor má $size MB)"; goto end; }
+//  $path= "$ezer_path_root/fileadmin/photo/$uid";
+//
+//  // zkopíruj do dočasného souboru
+//  if ( file_exists("tmp_file.zip") ) unlink("tmp_file.zip");
+//  $tmp= "tmp_file.zip";
+//  if (!@copy($url,$tmp)) { $ret->err= "POZOR archiv se nepodařilo přečíst"; goto end; }
+//  // zajisti složku
+//  if ( !is_dir($path) ) {
+//    $ok= mkdir($path,0777);
+//    if (!$ok) { $ret->err= "POZOR nepodařilo se vytvořit složku pro fotografie ($path)"; goto end;}
+//  }
+//  // otevři archiv
+//  $z= new ZipArchive;
+//  $ok= $z->open($tmp);
+//  if ( $ok===true ) {
+//                                                        display("files={$z->numFiles}");
+//    for ($i=0; $i<$z->numFiles;$i++) {
+//      $f= $z->statIndex($i);
+//      $file0= $f['name'];
+//      $file= utf2ascii($file0,'.');
+//      if ( $file0!=$file ) {
+//        $z->renameName($file0,$file);
+//      }
+//      $z->extractTo($path,array($file));
+//      list($width, $height, $type, $attr)= getimagesize("$path/$file");
+//      // file na HD 1080
+//      if ( $width>1920 || $height>1080 ) {
+//        $w= 1920; $h= 1080;
+//        $ok= x_resample("$path/$file","$path/$file",$w,$h) ? 'ok' : 'ko';
+//      }
+//      // .file na HD 720
+//      if ( $width>1280 || $height>720 ) {
+//        $w= 1280; $h= 720;
+//        $ok= x_resample("$path/$file","$path/.$file",$w,$h) ? 'ok' : 'ko';
+//      }
+//      else
+//        copy("$path/$file","$path/.$file");
+//      // doplnění thumbs ..$file
+//      $w= $h= 80;
+//      $ok= x_resample("$path/.$file","$path/..$file",$w,$h) ? 'ok' : 'ko';
+//      // přidání názvu fotky do záznamu v tabulce
+//      query("UPDATE tx_gncase_part SET text=CONCAT('$file,,',text) WHERE uid=$uid");
+//    }
+//    $z->close();
+//  }
+//  else { $ret->err= "POZOR archiv se nepodařilo otevřít (chyba:$ok)"; goto end;}
+//end:
+//  // uvolni prostor
+//  if ( file_exists("tmp_file.zip") ) unlink("tmp_file.zip");
+//  return $ret;
 }
 # -------------------------------------- x_resample
 // změna velikosti obrázku typu gif, jpg nebo png (na jiných zde není realizována)
@@ -336,7 +321,7 @@ end:
 //     hodnoty 0,0 vedou na kopii obrázku
 //     $copy_bigger==1 vede na kopii (např.miniatury) místo na zvětšení
 //   výsledek 0 - operace selhala
-function x_resample($source, $dest, &$width, &$height,$copy_bigger=0) {
+function x_resample($source, $dest, &$width, &$height,$copy_bigger=0,$use_min=0) {
   global $gn;
   $maxWidth= $width;
   $maxHeight= $height;
@@ -351,10 +336,10 @@ function x_resample($source, $dest, &$width, &$height,$copy_bigger=0) {
     // nyni vypocitam pomer změny
     $pw= $maxWidth / $origWidth;
     $ph= $maxHeight / $origHeight;
-    $p= max($pw, $ph);
+    $p= $use_min ? min($pw, $ph) : max($pw, $ph);
     // vypocitame vysku a sirku změněného obrazku - vrátíme ji do výstupních parametrů
-    $newWidth = (int)($origWidth * $p);
-    $newHeight = (int)($origHeight * $p);
+    $newWidth = (int)round($origWidth * $p);
+    $newHeight = (int)round($origHeight * $p);
     $width= $newWidth;
     $height= $newHeight;
     if ( ($pw == 1 and $ph == 1) or ($copy_bigger and $p>1) ) {
@@ -416,6 +401,7 @@ function TEST() {
 }
 # ----------------------------------------------------------------------------------- menu copy_foto
 # zkopíruje chybějící fotky ze setkani.org/filedamin/photo do chlapi.cz/inc/f
+# je voláno po založení záznamu pro fotky v menu_copy_elem('F',...)
 function menu_copy_foto($fid,$test=1) {
   global $ezer_local, $abs_root;
   $fileadmin= $ezer_local 

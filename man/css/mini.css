@@ -18,12 +18,12 @@ div.Popup3 div.pop_body.dialog_full {
 }
 
 /* malá obrazovka */
-@media all and (max-width: 1024px) {
+/*@media all and (max-width: 1024px) {
   div.Popup3 {
     min-width: calc(100% - 80px);   
     max-width: calc(100% - 210px);   
   }
-}
+}*/
 
 /* velká obrazovka */
 @media all and (min-width: 1024px) {
