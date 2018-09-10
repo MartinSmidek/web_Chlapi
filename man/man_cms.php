@@ -689,12 +689,18 @@ function menu_copy_elem($co,$pid,$mid,$test=true) {
 */
 /** ===========================================================================================> WEB */
 # ------------------------------------------------------------------------------------ menu add_elem
-# přidá do menu další element
-function menu_add_elem($mid,$table,$first=0) {
+# přidá do menu další element, resp. pro xakce vytvoří novou akci roku daného $mid
+function menu_add_elem($mid,$table,$first=0,$id_user=0) {
   switch ($table) {
+  case 'xakce':        // ---------------------------------- nová akce roku mid
+    query("INSERT INTO xclanek (editors) VALUES ('$id_user')");
+    $cid= mysql_insert_id();
+    $ymd= "$mid-12-31";
+    query("INSERT INTO xakce (xelems,datum_od,datum_do) VALUES ('aclanek=$cid','$ymd','$ymd')");
+    break;
   case 'xkniha':       // ---------------------------------- nová kniha s prvním článkem
     $elem= select("elem","menu","wid=2 AND mid=$mid");
-    query("INSERT INTO xclanek () VALUES ()");
+    query("INSERT INTO xclanek (editors) VALUES ('$id_user')");
     $cid= mysql_insert_id();
     query("INSERT INTO xkniha (xelems) VALUES ('aclanek=$cid')");
     $kid= mysql_insert_id();

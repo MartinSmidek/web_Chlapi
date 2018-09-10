@@ -15,8 +15,9 @@ panel p [0,0,*,*] { type:'main', _sys:'$'
     function('Ezer.sys.ezer.activity.touch_limit=1; return 1;');
     go_menu(last.get);
   }
-  proc opravit(_typ,_id) { 
+  proc opravit(_typ,_id,_idk) { 
     eq('xclanek',_typ); EDITOR.Clanek(_id); refresh 
+  | eq('xakce',_typ); EDITOR.Akce(_id,_idk); refresh 
   | eq('xkniha',_typ); EDITOR.Kniha(_id); refresh 
   | eq('kalendar',_typ); EDITOR.Kalendar(_id); refresh 
   | eq('xfotky',_typ); FOTKY.oprava(_id); refresh
@@ -28,6 +29,7 @@ panel p [0,0,*,*] { type:'main', _sys:'$'
     eq('xclanek',_typ); ask('menu_add_elem',_mid,_typ,_first); refresh 
   | eq('xkniha.elem',_typ); ask('menu_add_elem',_mid,_typ,_first); refresh 
   | eq('xfotky',_typ); FOTKY.novy(_mid); refresh 
+  | eq('xakce',_typ); ask('menu_add_elem',_mid,_typ,0,sys('user','id_user')); refresh 
   }
   proc zcizit(_typ,_pid,_mid) { 
     eq(_typ,'fotky'); [ ask('menu_copy_foto',_pid,_mid); refresh ]  // _mid je zde test
@@ -112,7 +114,7 @@ panel p [0,0,*,*] { type:'main', _sys:'$'
   }
 }
 # ----------------------------------------------------------------------------==> CMS
-panel CMS [0,0,600,396] { type:'popup',  title:'CMS - definice menu', 
+panel CMS [0,0,610,400] { type:'popup',  title:'CMS - definice menu', 
     style:"min-width:590px", _sys:'cms'
     css:'dialog', par:°{min_top:30}
   var web=2, from_table= 1
@@ -347,7 +349,7 @@ panel ADMIN [0,0,600,465] { title:'Aktivita CMS', type:'popup', css:'dialog_menu
 
     // nová změna
     field kind { data:h.kind, value:'v' }
-    field datum [12,45,79,] { type:'date', data:h.datum, format:'r' }
+    field datum [12,45,85,] { type:'date', data:h.datum, format:'r' }
     field version [98,45,41,] { data:h.version, format:'r' }
     field name  { data:h.name }
     field topic [152,45,60,] { data:h.topic, format:'' }
@@ -645,6 +647,7 @@ panel REDAKCE [0,0,840,510] {type:'popup', title:'Redakce', css:'dialog_full',
 panel EDITOR [0,0,710,530] { type:'popup', style:"min-width:700px", _sys:'edi'
   var id:number,
       path:text
+  use a: form _a [0,0,,] { tag:'a', format:'n' }  // akce
   use c: form _c [0,0,,] { tag:'c', format:'n' }  // článek
   use b: form _b [0,0,,] { tag:'b', format:'n' }  // kniha 
   use k: form _k [0,0,,] { tag:'k', format:'n' }  // kalendář
@@ -683,6 +686,19 @@ panel EDITOR [0,0,710,530] { type:'popup', style:"min-width:700px", _sys:'edi'
     panel.modal(10,40) 
   | lock.kdo;
     alert("článek právě upravuje redaktor ",lock.kdo)
+  ]}
+  proc Akce(_idc,_ida) { var me:number, lock:object // idc je id_xclanek, idk je id_xakce
+  [ a.xa.load(_ida); a.xc.load(_idc);
+    me.set(sys('user','id_user'));
+    not(or(contains(me,a.id_editors.get),has_skill('s')));
+    alert("tuto akci může opravovat jen ",cconc(a.editors.get,a.editors.get,'šéfredaktor'))
+  | panel.display(2,'a'); 
+    lock.set(ask('record_lock','xclanek',_idc)); // selže, pokud již je editováno
+    eq(lock.idu,0,me); // smím opravit?
+    panel.set_attrib('title','Úprava akce');
+    panel.modal(10,40) 
+  | lock.kdo;
+    alert("akci právě upravuje redaktor ",lock.kdo)
   ]}
   proc join_drop(obsah) {
     UPLOAD.ckeditor.set(obsah);
@@ -723,6 +739,29 @@ panel EDITOR [0,0,710,530] { type:'popup', style:"min-width:700px", _sys:'edi'
       y.set(ask('next_xakce',id.get,smer)); y.msg; warning(y.msg)
     | id.set(y.id); form.load(y.id) 
     }
+  }
+  # -----------------------------------------------------------------------------==> edit akce
+  # úprava akce
+  form _a [10,10,715,460] {
+    view xa: table xakce
+    view xc: table xclanek
+    field ida { data:xa.id_xakce }
+    field idc { data:xc.id_xclanek }
+    field id_editors { data:xc.editors }
+    button  [-46,5,,] { title:'Uložit', help:'ukončit editor a uložit změny'
+      proc onclick() { 
+        [ xa.save; xa.load ]; 
+        [ xc.save; xc.load ]; 
+        panel.hide(1); 
+      }}
+    button  [-1,5,,] { title:'Zpět', help:'ukončit editor bez uložení změn'
+      proc onclick() { panel.hide(0); }}
+    // položky akce
+    field [0,40,85,] { type:'date', title:'^ode dne', data:xa.datum_od }
+    field [95,40,85,] { type:'date', title:'^do dne', data:xa.datum_do }
+    field [190,40,268,] { title:'^název', data:xa.nazev }
+    field [470,40,240,] { title:'^místo', data:xa.misto }
+    edit obsah [0,70,710,450] { type:'html', data:xc.web_text, par:°{toolbar:'WEB'} }
   }
   # -----------------------------------------------------------------------------==> edit clanek    
   # oprava textu článku

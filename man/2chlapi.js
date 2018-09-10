@@ -7,8 +7,8 @@
 // ---------------------------------------------------------------------------------------------- //
 // ============================================================================================> CMS
 // ---------------------------------------------------------------------------------- opravit clanek
-function opravit(typ,id) {
-  Ezer.run.$.part.p._call(0,'opravit',typ,id);
+function opravit(typ,id,idk=0) {
+  Ezer.run.$.part.p._call(0,'opravit',typ,id,idk);
   return 1;
 }
 // ----------------------------------------------------------------------------------- zcizit clanek
@@ -243,7 +243,8 @@ function me_login__(y) {
     jQuery('#user_mail_txt').html(y.txt);
   }
   if ( y && y.msg ) {
-    jQuery('#user_mail').html(y.msg);
+//    jQuery('#user_mail').html(y.msg);
+    alert(y.msg);
   }
   if ( y && y.fe_user ) {
     // pro editory umožni potlačit editační režim
@@ -441,7 +442,8 @@ function skup_sendmail(psc,skupina) {
   if ( !body ) return skup_sendmail_({ok:0,txt:"není vyplněn text dotazu na organizátory"});
   body= body.replace(/\n/,'<br>');
   body= "<b>Odesílatel:</b> "+reply+"<br><b>Zpráva:</b><br> "+body+"<hr>\
-    POZOR: pokud budeš odpovídat, pohlídej prosím, aby odpověď šla na mail "+reply+" a ne na answer@setkani.org ...\
+    POZOR: pokud budeš odpovídat, pohlídej prosím, aby odpověď šla na mail "+reply
+    +" a ne na www.chlapi.cz@gmail.com ...\
     <br><br>\
     <i>Tento mail byl zaslán ze stránky <a href='http://${chlapi_online}/skupiny'>chlapi.cz/skupiny</a>\
        po kliknutí na ikonu tvojí chlapské skupiny '"+skupina+"'. Tvůj mail byl získán z tabulky\
@@ -455,7 +457,7 @@ function skup_sendmail(psc,skupina) {
 //        chlapských skupin. Pokud myslíš, že něco není v pořádku, obrať se prosím na správce
 //        aplikace <a href="mailto:martin@smidek.eu">Martina Šmídka</a>.</i>
 //   `;
-  ask({cmd:'sendmail',to:to,reply:reply,subj:subj,body:body},skup_sendmail_);
+  ask({cmd:'sendmail',to:to,reply:reply,subj:subj,body:body,skupina:skupina},skup_sendmail_);
 }
 function skup_sendmail_(y) {
   if ( y.ok ) {

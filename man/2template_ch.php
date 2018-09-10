@@ -359,8 +359,15 @@ __EOT;
                 ['-nový článek na začátek',function(el){ pridat('xclanek',$curr_menu->mid,1); }],
                 ['nový článek na konec',function(el){ pridat('xclanek',$curr_menu->mid,0); }]
               ],arguments[0],0,0,'#xclanek$id');return false;\"";
-        elseif ( $book->open) 
-          $menu= " title='$co $idn' oncontextmenu=\"
+        elseif ( $book->open && $book->ida )
+            $menu= " title='".($plny?'':'abstrakt ')."akce $book->idk: $book->ida/$id' oncontextmenu=\"
+              Ezer.fce.contextmenu([
+                ['editovat akci',function(el){ opravit('xakce',$id,$book->ida); }],
+                ['-přidat fotky',function(el){ pridat('xfotky',$id); }],
+                ['-přidat novou akci $book->idk',function(el){ pridat('xakce',$book->idk,1); }]
+              ],arguments[0],0,0,'#xclanek$id');return false;\"";
+        else
+            $menu= " title='".($plny?'kapitola':'abstrakt kapitoly')." $book->ida/$idn' oncontextmenu=\"
               Ezer.fce.contextmenu([
                 ['editovat článek',function(el){ opravit('xclanek',$id); }],
                 ['-zobrazit jako článek',function(el){ zmenit($curr_menu->mid,'aclanek',$id,'xclanek'); }],
@@ -875,6 +882,7 @@ __EOD;
       $body
       </div>
     </div>
+    <img id='go_up' onclick="jQuery('#menu').Ezer_scrollIntoView();" src='man/css/backtotop.png'>
   </body>
   </html>
 __EOD;
@@ -1030,19 +1038,34 @@ function ask_server($x) {
   
   case 'sendmail': // -------------------------------------------------------------------- send mail
     $tos= preg_split("~[\s,;]~", $x->to,-1,PREG_SPLIT_NO_EMPTY);
+    $poslano= 0;
     foreach($tos as $to) {
       $_SESSION['web']['phpmailer1']= $to;
       $y->ok= emailIsValid($to,$err) ? 1 : 0;
       if ( $y->ok ) {
+        // organizátorům
         $ret= mail_send($x->reply,$to,$x->subj,$x->body);
         $_SESSION['web']['phpmailer2']= $ret;
         $y->txt= $ret->err
-          ? "Mail se bohužel nepovedlo odeslat ($ret->err)"
-          : "mail byl odeslán organizátorům skupiny";
+          ? " Mail se bohužel nepovedlo - napiš prosím na seskup@gmail.com "
+          : " Mail byl odeslán organizátorům skupiny ";
+        $poslano+= $ret->err ? 0 : 1;
       }
       else {
         $y->txt= "'$to' nevypadá jako mailová adresa ($err)";
       }
+    }
+    if ( $poslano ) {
+      // zpětná vazba odesílateli
+      $body= "Posíláme Ti potvrzení o odeslání zprávy pro skupinu <i>$x->skupina</i>. 
+        Pokud se od nich nedočkáš v přiměřeném čase odpovědi, 
+        pošli prosím kopii na adresu seskup@gmail.com
+        <hr>$x->body";
+      $ret= mail_send("seskup@gmail.com",$x->reply,"Fwd: $x->subj",$body);
+      $_SESSION['web']['phpmailer3']= $ret;
+      $y->txt.= $ret->err
+        ? " Potvrzující mail se bohužel nepovedlo odeslat ($ret->err)"
+        : " a byl Ti odeslán potvrzující mail ";
     }
     break;
 
@@ -1053,11 +1076,25 @@ function ask_server($x) {
   case 'me_login': // ------------------------------------------------------------------------ login
     servant("cmd=me_login&mail=$x->mail&pin=$x->pin&web=$x->web");
     if ( isset($y->state) && $y->state=='ok') {
-      // přihlas uživatele jako FE
+      // přepočítej _user.skill na fe_level
+      db_connect();
+      $skills= select('skills','_user',"id_user='$y->user'");
+      $skills= $skills ? explode(' ',$skills) : array();
+      $y->skills= $skills;
+      $y->level= $y->mrop ? MROP : 0;
+      foreach ($skills as $skill ) {
+        switch ($skill) {
+          case 'a': $y->level+= ADMIN; break;
+          case 's': $y->level+= SUPER; break;
+          case 'r': $y->level+= REDAKTOR; break;
+          case 't': $y->level+= TESTER; break;
+        }
+      }
+      // přihlas uživatele jako FE - zájímá nás jen id_osoba vrácená v y.user, y.mrop, y.name
       $_SESSION['web']['fe_usergroups']= '0,4,6';
-      $_SESSION['web']['fe_userlevel']= 0;
+//      $_SESSION['web']['fe_userlevel']= 0;
       $_SESSION['web']['fe_user']= $y->user;
-      $_SESSION['web']['fe_level']= $y->level | ($y->mrop ? MROP : 0);
+      $_SESSION['web']['fe_level']= $y->level;
       $_SESSION['web']['fe_username']= $y->name;
       $y->fe_user= $y->user;
       $y->be_user= 0;
@@ -1287,11 +1324,13 @@ function record_lock ($table,$id_table) {
   list($kdo,$kdy)= select("lock_kdo,lock_kdy",$table,"id_$table=$id_table");
   if ( $kdo ) {
     // zamknutý záznam
+    $ret->idu= $kdo;
     $ret->kdo= select("username","_user","id_user='$kdo'") ?: "???";
     $ret->kdy= sql_date($kdy);
   }
   else {
     // volný záznam - zmkni jej
+    $ret->idu= 0;
     $ret->kdo= '';
     $id_user= $_SESSION['web']['fe_user'];
     query("UPDATE $table SET lock_kdo='$id_user',lock_kdy=NOW() WHERE id_$table=$id_table");

@@ -564,14 +564,14 @@ function emailIsValid($email,&$reason) {
 # ASK
 # odešle mail
 # k posílání přes GMail viz http://phpmailer.worxware.com/?pg=examplebgmail
-function mail_send($reply_to,$address,$subject,$body) { trace(); display("mail_send");
+function mail_send($reply_to,$address,$subject,$body) { trace(); 
   $ret= (object)array('err'=>0,'msg'=>'N.Y.I');
 // goto end;
 //   $address= "martin@smidek.eu";
 //   $subject= "test";
 //   $body= "TEST";
   $TEST= 0;
-  $ezer_path_serv= "ezer2.2/server";
+  $ezer_path_serv= "ezer3/server";
   $phpmailer_path= "$ezer_path_serv/licensed/phpmailer";
   require_once("$phpmailer_path/class.phpmailer.php");
   require_once("$phpmailer_path/class.smtp.php");

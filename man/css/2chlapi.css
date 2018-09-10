@@ -28,6 +28,12 @@ html #web {
 html #work {
   position: relative;
 }
+html #go_up {
+  position: fixed;
+  cursor: pointer;
+  bottom: 0;
+  right: 10px;
+}
 html #page {
   position: absolute;
   width: 100%;
