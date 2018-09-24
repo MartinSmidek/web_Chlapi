@@ -139,6 +139,15 @@ div.podpis {
   font-style: italic;
   clear: both;
 }
+*.redakce4 {
+  outline: 3px dotted #E6CF73;
+}
+*.redakce2 {
+  outline: 3px dotted lightgreen;
+}
+*.redakce1 {
+  outline: 3px dotted red;
+}
 div.filler {
   height: 2em;
 }
@@ -172,9 +181,6 @@ div.filler {
   vertical-align: middle;
   height: 2.2em;
   display: table-cell;
-}
-#menu a.tester {
-  outline: 3px dotted #CFDDE6;
 }
 #menu #page_tm {
   margin-right: 2em;
@@ -467,6 +473,7 @@ a.aclanek {
   /*background-color: @abstr_b;*/
   color: #000000;
   height: 7.7em;
+  overflow: hidden;
   text-decoration: none;
   cursor: pointer;
 }

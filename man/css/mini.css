@@ -5,16 +5,21 @@ div.Popup3 {
 }
 div.Popup3 div.pop_body.dialog_menu {
   max-width: calc(100% - 240px);     
+  left: 230px;
   z-index: -1;
+  overflow: hidden; 
 }
 #popup3 {
   width: fit-content !important; /* kvůli zobrazení abstraktů v admin */
+  width: -moz-fit-content !important;
 }
 #popup_mask3 {
   z-index: 0 !important;
 }
 div.Popup3 div.pop_body.dialog_full {
   z-index: -1;
+  overflow: hidden; 
+  width: 100% !important;
 }
 
 /* malá obrazovka */

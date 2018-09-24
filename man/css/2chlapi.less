@@ -86,6 +86,10 @@ div.text {
   padding: .4em; }
 div.podpis { 
   text-align: right; font-style: italic; clear: both; }
+// ------------------------------------------------------------------------------------- redakce
+*.redakce4 { outline: 3px dotted @jump_b; }     // redakce
+*.redakce2 { outline: 3px dotted lightgreen; }  // testér
+*.redakce1 { outline: 3px dotted red; }         // kodér
 // ------------------------------------------------------------------------------------- logo + menu
 div.filler { height: 2em; }
 // logo, motto jen někdy
@@ -103,8 +107,6 @@ div.filler { height: 2em; }
       background-color: @text_b !important; color: @text_c !important; }
     span { 
       vertical-align: middle; height: 2.2em;  display: table-cell;}
-    &.tester { 
-      outline: 3px dotted @obal_b; }
   }
   // top menu 
   /*#page_tm::before { color:white; }*/
@@ -242,7 +244,7 @@ table.kalendar tr {
 // abstrakty
 a.aclanek {
   /*background-color: @abstr_b;*/ 
-  color: @abstr_c; height: 7.7em;
+  color: @abstr_c; height: 7.7em; overflow: hidden;
   text-decoration: none; cursor: pointer; 
   &:hover {
     background-color: @text_b !important; color: @text_c !important; }

@@ -16,8 +16,8 @@ function trace($note='') { //,$coding='') {
   if ( strpos($totrace,'u')===false ) return;
   $act= debug_backtrace();
   $x= call_stack($act,1).($note?" / $note":'');
-  global $CMS;
-  if ( $CMS ) {
+  global $REDAKCE;
+  if ( $REDAKCE ) {
     $time= date("H:i:s");
     $trace.= "$time $x<br>";
   }
@@ -30,8 +30,8 @@ function trace($note='') { //,$coding='') {
 function display($x) {
   global $trace, $totrace;
   if ( strpos($totrace,'u')===false ) return;
-  global $CMS;
-  if ( $CMS ) {
+  global $REDAKCE;
+  if ( $REDAKCE ) {
     $trace.= "$x<br>";
   }
   else {
@@ -44,8 +44,8 @@ function display($x) {
 function debug($x,$label=false,$options=null) {
   global $trace, $totrace;
   if ( strpos($totrace,'u')===false ) return;
-  global $CMS;
-  if ( $CMS ) {
+  global $REDAKCE;
+  if ( $REDAKCE ) {
     debug1($x,$label,$options);
   }
   else {
@@ -141,8 +141,8 @@ function fce_error($x) {
   global $trace;
   if ( function_exists('mysql_real_escape_string') )
     $x= mysql_real_escape_string($x);
-  global $CMS;
-  if ( $CMS ) {
+  global $REDAKCE;
+  if ( $REDAKCE ) {
     $trace.= "ERROR: $x<br>";
   }
   else {
@@ -355,8 +355,8 @@ function mysql_qry($qry,$pocet=null,$err=null,$to_throw=false,$db='') {
     }
   }
   if ( strpos($totrace,'M')!==false ) {
-    global $CMS;
-    if ( $CMS ) {
+    global $REDAKCE;
+    if ( $REDAKCE ) {
       $qry= (isset($y->qry)?"\n":'')."$ok $time \"$myqry\" ";
       $trace.= "SQL: $qry<br>";
     }

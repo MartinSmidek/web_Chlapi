@@ -22,7 +22,7 @@ function create_fotky($x) {
 }
 # ----------------------------------------------------------------------------------==> . load fotky
 function load_fotky($fid) { trace();
-  global $CMS, $href0, $clear;
+  global $REDAKCE, $href0, $clear;
   $x= (object)array();
   list($id_xclanek,$x->editors,$x->autor,$x->nadpis,$lst,$psano)=
     select('id_xclanek,editors,autor,nazev,seznam,kdy','xfotky',"id_xfotky=$fid");
@@ -615,78 +615,6 @@ function menu_copy_elem($co,$pid,$mid,$test=true) {
                                                       display($msg);
   return $msg;
 }
-/*
-  switch ($from) {
-  case 'setkani_k': // ------------------------------------ kniha 1467/5714
-    // vytvoř knihu
-    $elems= '';
-    $xid= 0;
-    query("INSERT INTO xkniha () VALUES ()");
-    $kid= mysql_insert_id();
-    // zjisti kapitoly
-    ask_server((object)array('cmd'=>'kapitoly','pid'=>$pid));
-    $pids= $y->pids;
-    // projdi a přidej kapitoly
-    foreach (explode(',',$pids) as $xpid) {
-      $x= substr($xpid,0,1);
-      $pid= substr($xpid,1);
-      switch ( $x ) {
-      case 'F': // ------------ fotky
-        ask_server((object)array('cmd'=>'clanek','pid'=>$pid));
-        $a= $y->autor; $n= $y->nadpis; $lst= $y->obsah; $p= sql_date($y->psano,1);
-        query("INSERT INTO xfotky (id_xclanek,autor,nazev,kdy,seznam,path) "
-            . "VALUES ($xid,'$a','$n','$p','$lst','$pid')");
-        $fid= mysql_insert_id();
-        break;
-      case 'C': // ------------ nadpis
-      case 'E': // ------------ kapitola
-      case 'A': // ------------ ...
-      case 'D': // ------------ ...
-        ask_server((object)array('cmd'=>'clanek','pid'=>$pid));
-        // případně zapiš celkový název knihy
-        if ( $x=='C' ) {
-          $tit= "$y->autor: $y->nadpis";
-          $tit= str_replace("'","\\'",$tit);
-          query("UPDATE xkniha SET nazev='$tit' WHERE id_xkniha=$kid");
-        }
-        // uprav odkazy
-        $obsah= preg_replace("/(src|href)=(['\"])(?:\\/|)fileadmin/","$1=$2$fileadmin",$y->obsah);
-        $clanek= "<h1>$y->nadpis</h1>$obsah";
-        $clanek= str_replace("'","\\'",$clanek);
-        query("INSERT INTO xclanek (web_text) VALUES ('$clanek')");
-        $xid= mysql_insert_id();
-        $elems= ($elems ? "$elems;" : '')."aclanek=$xid";
-        break;
-      default:
-        fce_error("chybný tag kapitoly $xpid ($pids)");
-      }
-    }
-    // přidej do menu.elem
-    query("UPDATE xkniha SET xelems='$elems' WHERE id_xkniha=$kid");
-    $elem= select("elem","menu","wid=2 AND mid=$mid");
-    $elem= "xkniha=$kid" . ($elem ? ";$elem" : '');
-    query("UPDATE menu SET elem='$elem' WHERE wid=2 AND mid=$mid");
-    $msg= "kniha $kid:$elems";
-    break;
-  case 'setkani_c': // ------------------------------------ článek  
-    // získej kopii článku
-    ask_server((object)array('cmd'=>'clanek','pid'=>$pid));
-    // uprav odkazy
-    $obsah= preg_replace("/(src|href)=(['\"])(?:\\/|)fileadmin/","$1=$2$fileadmin",$y->obsah);
-    $clanek= "<h1>$y->nadpis</h1>$obsah";
-    $clanek= str_replace("'","\\'",$clanek);
-    query("INSERT INTO xclanek (web_text) VALUES ('$clanek')");
-    $id= mysql_insert_id();
-    // přidej do menu.elem
-    $elem= select("elem","menu","wid=2 AND mid=$mid");
-    $elem= "$type=$id" . ($elem ? ";$elem" : '');
-    query("UPDATE menu SET elem='$elem' WHERE wid=2 AND mid=$mid");
-    $msg= "článek $id";
-    break;
-  }
-  return $msg;
-}
-*/
 /** ===========================================================================================> WEB */
 # ------------------------------------------------------------------------------------ menu add_elem
 # přidá do menu další element, resp. pro xakce vytvoří novou akci roku daného $mid
@@ -694,14 +622,16 @@ function menu_add_elem($mid,$table,$first=0,$id_user=0) {
   switch ($table) {
   case 'xakce':        // ---------------------------------- nová akce roku mid
     query("INSERT INTO xclanek (editors) VALUES ('$id_user')");
-    $cid= mysql_insert_id();
+    $idc= mysql_insert_id();
+    log_obsah('i','c',$idc);
     $ymd= "$mid-12-31";
-    query("INSERT INTO xakce (xelems,datum_od,datum_do) VALUES ('aclanek=$cid','$ymd','$ymd')");
+    query("INSERT INTO xakce (xelems,datum_od,datum_do) VALUES ('aclanek=$idc','$ymd','$ymd')");
     break;
   case 'xkniha':       // ---------------------------------- nová kniha s prvním článkem
     $elem= select("elem","menu","wid=2 AND mid=$mid");
     query("INSERT INTO xclanek (editors) VALUES ('$id_user')");
     $cid= mysql_insert_id();
+    log_obsah('i','c',$cid);
     query("INSERT INTO xkniha (xelems) VALUES ('aclanek=$cid')");
     $kid= mysql_insert_id();
     if ( $first )
@@ -714,6 +644,7 @@ function menu_add_elem($mid,$table,$first=0,$id_user=0) {
     $elem= select("xelems","xkniha","id_xkniha=$mid");
     query("INSERT INTO xclanek () VALUES ()");
     $id= mysql_insert_id();
+    log_obsah('i','c',$id);
     if ( $first )
       $elem= "aclanek=$id" . ($elem ? ";$elem" : '');
     else
@@ -724,6 +655,7 @@ function menu_add_elem($mid,$table,$first=0,$id_user=0) {
     $elem= select("elem","menu","wid=2 AND mid=$mid");
     query("INSERT INTO $table () VALUES ()");
     $id= mysql_insert_id();
+    log_obsah('i','c',$id);
     if ( $first )
       $elem= "$table=$id" . ($elem ? ";$elem" : '');
     else
@@ -870,6 +802,7 @@ function menu_tree($wid) {
     $mid_top= $m->mid_top;
     $typ= $m->typ;
     $nazev= $m->ref;
+    $nazev= "$mid.$nazev";
     if ( $typ==0 ) {
       $node= (object)array('prop'=>(object)array('id'=>$nazev,'data'=>$m));
       $menu->down[0]->down[]= $node;
@@ -930,46 +863,6 @@ function seradit($ids,$typ) {
   }
   return 1;
 }
-# --------------------------------------------------------------------------------------- access_get
-# vrátí přístupová práva ve _SESSION[web][fe_usergroups]
-function access_get($key=0) {
-  $ret= '';
-  if ( $key ) {
-    $x= explode(',',$_SESSION['web']['fe_usergroups']);
-    $i= array_search($key,$x);
-    $ret= $i===false ? 0 : 1;
-  }
-  else {
-    $ret= $_SESSION['web']['fe_usergroups'];
-  }
-  return $ret;
-}
-# --------------------------------------------------------------------------------------- access_set
-# upraví přístupová práva ve _SESSION[web][fe_usergroups]
-function access_set($keys,$on) {
-  $x= explode(',',$_SESSION['web']['fe_usergroups']);
-  foreach (explode(',',$keys) as $key) {
-    $i= array_search($key,$x);
-    if ( $i===false && $on )
-      $x[]= $key;
-    elseif ( $i!==false && !$on )
-      unset($x[$i]);
-  }
-  $_SESSION['web']['fe_usergroups']= implode(',',$x);
-  return 1;
-}
-# --------------------------------------------------------------------------------------- visibility
-# vrátí resp. nastaví nastavenou hodnotu _SESSION[web][hidden|deleted]
-function visibility($key,$value='-') {
-  if ( $value=='-' ) { // getter
-    $y= isset($_SESSION['web'][$key]) ? $_SESSION['web'][$key] : 0;
-  }
-  else {
-    $_SESSION['web'][$key]= $value;
-    $y= 1;
-  }
-  return $y;
-}
 # ------------------------------------------------------------------------------------------- ip get
 # zjištění klientské IP
 function ip_get() {
@@ -991,7 +884,7 @@ function ip_watch(&$my_ip,$log=0) {
     $browser= $_SERVER['HTTP_USER_AGENT'];
     $qry= "INSERT _touch (day,time,user,module,menu,msg)
            VALUES ('$day','$time','','error','ip?','|$my_ip||$browser')";
-    $res= mysql_query($qry);
+    mysql_query($qry);
   }
   return $ip_ok;
 }

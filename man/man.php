@@ -9,7 +9,7 @@
   // parametry aplikace MAN
   $app_name=  "chlapi.cz";
   $app_root=  'man';
-  $app_js=    array("/man/2chlapi.js", //"/man/modernizr-custom.js",
+  $app_js=    array("/man/2chlapi.js", "/man/man.js", //"/man/modernizr-custom.js",
                     "/man/fotorama/fotorama.js");
   $app_css=   array("/man/css/mini.css","/man/css/2chlapi.css","/man/css/edit.css",
                     "/man/fotorama/fotorama.css");
@@ -21,7 +21,7 @@
   require_once("../$kernel/server/ae_slib.php");
   require_once '2template_ch.php';
   db_connect();
-  $username= select("username","_user","id_user={$_SESSION['web']['fe_user']}");
+  $username= select("username","_user","id_user={$_SESSION['web']['user']}");
   if ( $username ) {
     $app_login= "$username/";
     log_login('r'); // (be_)login 

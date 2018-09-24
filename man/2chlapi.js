@@ -1,44 +1,12 @@
 /* global Web, Ezer */
 
 // ---------------------------------------------------------------------------------------------- //
-// uživatelské funkce aplikace Ezer/MAN specifické pro chlapi.online/.cz                          //
+// uživatelské funkce aplikace Ezer/MAN specifické pro chlapi.online/chlapi.cz                    //
 //                                                                                                //
 // CMS/Ezer                                             (c) 2016 Martin Šmídek <martin@smidek.eu> //
 // ---------------------------------------------------------------------------------------------- //
-// ============================================================================================> CMS
-// ---------------------------------------------------------------------------------- opravit clanek
-function opravit(typ,id,idk=0) {
-  Ezer.run.$.part.p._call(0,'opravit',typ,id,idk);
-  return 1;
-}
-// ----------------------------------------------------------------------------------- zcizit clanek
-function zcizit(typ,id,mid) {
-  Ezer.run.$.part.p._call(0,'zcizit',typ,id,mid);
-  return 1;
-}
-// ----------------------------------------------------------------------------------- změnit clanek
-// změní typ elementu z typ1 na typ2
-function zmenit(mid,typ1,id,typ2) {
-  Ezer.run.$.part.p._call(0,'zmenit',mid,typ1,id,typ2);
-  return 1;
-}
-// ----------------------------------------------------------------------------------- přidat clanek
-function pridat(typ,mid,first) {
-  Ezer.run.$.part.p._call(0,'pridat',typ,mid,first);
-  return 1;
-}
-// --------------------------------------------------------------------------------- posunout clanek
-function posunout(_typ1,_mid,_id,_dolu) {
-  Ezer.run.$.part.p._call(0,'posunout',_typ1,_mid,_id,_dolu);
-  return 1;
-}
+ 
 // =========================================================================================> COMMON
-// -------------------------------------------------------------------------------------- $
-function $() {
-  // mootools relikt
-  Ezer.fce.error("MooTools $-call");
-  return 1;
-}
 jQuery.fn.extend({
   // ------------------------------------------------- + scrollIntoViewIfNeeded
   Ezer_scrollIntoView: function() {
@@ -56,19 +24,7 @@ jQuery.fn.extend({
 // -------------------------------------------------------------------------------------- jump fokus
 // nastaví polohu stránky
 // zamění <span style='neodkaz'> na alert
-function jump_fokus(fe_level) {
-//  // potlač zobrazení ne-odkazů
-//  if ( fe_level || Ezer && Ezer.web && Ezer.web.fe_user ) {
-//    // zruší barevné označené odkazů pro nepřihlášené
-//    jQuery('span.neodkaz').removeClass('neodkaz')
-//  }
-//  else {
-//    // zamění <span style='neodkaz'> na alert
-//    jQuery('span.neodkaz a').prop('href','#').prop('target','');
-//    jQuery('span.neodkaz').prop('href','#').on('click',() => {
-//      jQuery('div.neodkaz').fadeIn();
-//    })
-//  }
+function jump_fokus() {
   // najdi cíl podle priority
   var jump= jQuery('#fokus_part') || jQuery('#fokus_case') || jQuery('#fokus_page');
   if ( jump[0] ) {
@@ -76,107 +32,10 @@ function jump_fokus(fe_level) {
   }
   return 1;
 }
-// ----------------------------------------------------------------------------------------- context
-// předá kontext _SESSION[web] a inicializuje aplikaci pod CMS
-function context(web) {
-//  jQuery("#horni").addClass("admin");
-//  jQuery("#dolni").addClass("admin");
-//  jQuery("#StatusIcon_idle").hide();
-//  admin(0);
-  Ezer.web= {};
-  for (let [id,val] of Object.entries(web)) {
-    Ezer.web[id]= val;
-  };
-  return 1;
-}
-// ----------------------------------------------------------------------------------------- noadmin
-// zpřístupní ladící a administrátorské prvky pro a=1 znepřístupní pro a=0
-function admin(a) {
-//  let state= a ? 'block' : 'none',
-//      margin= a ? '30px' : '0px';
-//  jQuery('div.admin').css({display:state});
-//  jQuery('div.cms_page').css({top:margin});
-  return 1;
-}
-// ---------------------------------------------------------------------------------------------- go
-// předá CMS info na kterou stránku webu přepnout
-function go(e,href,mref,input,nojump) {
-  if ( e ) e.stopPropagation();
-  nojump= nojump||0;
-  var url, http, page, u= href.split('page=');
-  if ( u.length==2 ) {
-    http= u[0];
-    page= u[1].split('#');
-    page= page[0];
-  }
-  else {
-    http= u;
-    page= 'home';
-  }
-  if ( input ) {
-    // go je voláno přes <enter> v hledej
-    var search= $('search').value;
-    document.cookie= 'web_search='+search+';path=/';
-    page= page + '!!'+ search;
-  }
-  history.pushState({},'',mref ? mref : http+'page='+page);
-  Ezer.run.$.part.p._call(0,nojump?'cms_menu':'cms_go',page)
-  return false;
-}
-//// ---------------------------------------------------------------------------------------------- go
-//// přepne na page=foto&rok={}&id={}
-//function go(e,ref,input) {
-//  if ( e ) e.stopPropagation();
-//  var foto= ref.match(/page=foto/) && !ref.match(/rok=/), newref= ref;
-//  if ( foto ) {
-//    var root= ref.match(/([^&]+)/);
-//    newref= root[1];
-//    if ( Web.rok )
-//      newref+= '&rok='+Web.rok;
-//    var pid= ref.match(/!(\d+)#/);
-//    if ( pid )
-//      newref+= '&id='+pid[1];
-//  }
-//  location.href= newref;
-//  return false;
-//}
 // ----------------------------------------------------------------------------------------- refresh
 // obnoví stránku
 function refresh() {
   location.reload(true);
-}
-// ----------------------------------------------------------------------------------==> . ajax_test
-// test funkce ze serveru
-//function ajax_test(div_id) {
-//  ask({cmd:'test',div_id:div_id,faze:1},ajax_test_,div_id);
-//}
-//function ajax_test_(y,div_id) {
-//  jQuery(div_id).html(y.msg);
-//}
-// -----------------------------------------------------------------------------------==> . fe login
-//function fe_login(page) {
-//  var name= jQuery('#name').val(), pass= jQuery('#pass').val(), akey= jQuery('#akey').val(),
-//      type= jQuery('#user_login').attr('data-login');
-//  ask({cmd:'fe_login',name:name,pass:pass,akey:akey,page:page,type:type},_fe_login,'jo?');
-//}
-//function _fe_login(y) {
-//  jQuery('#user_login').css('display','none');
-//  if ( window['Ezer'] ) {
-//    Ezer.web= y.web;
-//  }
-//  if ( !y.fe_user ) {
-//    alert('chybné přihlášení');
-//  }
-//  if ( y.be_user ) {
-//    window.location= 'index.php?page='+y.page;
-//  }
-//  else {
-//    refresh();
-//  }
-//}
-// ----------------------------------------------------------------------------------------- fe init
-// inicializuje stránku
-function fe_init() {
 }
 // -----------------------------------------------------------------------------------==> . bar menu
 function bar_menu(e,x) {
@@ -192,14 +51,6 @@ function bar_menu(e,x) {
   }
   else {
     switch (x) {
-//    case 'grid': change_mode(1,1); break;
-//    case 'rows': change_mode(1,0); break;
-//    case 'fe_login':
-//      jQuery('#user_login').css({display:'block'}).removeClass('key_in').attr('data-login','fe');
-//      break;
-//    case 'be_login':
-//      jQuery('#user_login').css({display:'block'}).addClass('key_in').attr('data-login','be');
-//      break;
     case 'me_login':
       jQuery('#user_mail').css({display:'block'}).addClass('key_in').attr('data-login','me');
       break;
@@ -246,14 +97,11 @@ function me_login__(y) {
 //    jQuery('#user_mail').html(y.msg);
     alert(y.msg);
   }
-  if ( y && y.fe_user ) {
-    // pro editory umožni potlačit editační režim
-    if ( y.level & 4 ) {
-      jQuery('a.noedit').css({display:'inline-block'});
-    }
-    else {
-      refresh();
-    }
+  if ( y && y.redakce ) {
+    jQuery('a.noedit').css({display:'inline-block'});
+  }
+  else if (y && y.state=='ok') {
+    refresh();
   }
 }
 function me_noedit(no) {
@@ -267,28 +115,6 @@ function me_noedit(no) {
 function me_noedit__(y) {
   refresh();
 }
-//function me_ip(then) {
-//  then.run(then.page,'-'); return;                              // vypnutí
-//  // podle https://github.com/diafygi/webrtc-ips
-//  window.RTCPeerConnection= window.RTCPeerConnection
-//    || window.mozRTCPeerConnection
-//    || window.webkitRTCPeerConnection;                          // compatibility for firefox and chrome
-//  if ( !window.RTCPeerConnection )                              // for edge not yet, ... later we use
-//    then.run(then.page,'?');                                    // https://github.com/webrtc/adapter
-//  var pc= new RTCPeerConnection({iceServers:[]}),
-//      noop= function(){};
-//  pc.createDataChannel("");                                     //create a bogus data channel
-//  pc.createOffer(pc.setLocalDescription.bind(pc), noop);        // create offer and set local description
-//  pc.onicecandidate= function(ice){                             //listen for candidate events
-//    if (!ice || !ice.candidate || !ice.candidate.candidate)
-//      return;
-//    var myIP= /([0-9]{1,3}(\.[0-9]{1,3}){3}|[a-f0-9]{1,4}(:[a-f0-9]{1,4}){7})/
-//      .exec(ice.candidate.candidate)[1];
-//    console.log('my IP: ', myIP);
-//    then.run(then.page,myIP);
-//    pc.onicecandidate= noop;
-//  };
-//}
 // ===========================================================================================> AJAX
 // --------------------------------------------------------------------------------------------- ask
 // ask(x,then): dotaz na server se jménem funkce po dokončení
@@ -297,9 +123,9 @@ function ask(x,then,arg) {
   jQuery.ajax({url:Ezer.web.index, data:x, method: 'POST',
     success: function(y) {
       if ( typeof(y)==='string' )
-        error(`Došlo k chybě 1 v komunikaci se serverem - '${xx.cmd}'`);
+        error("Došlo k chybě 1 v komunikaci se serverem - '"+xx.cmd+"'");
       else if ( y.error )
-        error(`Došlo k chybě 2 v komunikaci se serverem - 'y.error'`);
+        error("Došlo k chybě 2 v komunikaci se serverem - '"+y.error+"'");
       else if ( then ) {
         then.apply(undefined,[y,arg]);
       }
@@ -388,12 +214,6 @@ function skup_mapka_(y) {
 function skup_mapka_off() {
   label= jQuery('div.cms_mapa');
   label.css({display:'none'});
-//  if ( Ezer.version=='ezer3' ) {
-//    jQuery('#skup0').css({display:'none'});
-//    panel= Ezer.run.$.part.p;
-//    label= panel.part.w.value.part.mapa;
-//    jQuery(label.DOM_Block).css({display:'none'});
-//  }
 }  
 // ------------------------------------------------------------------------------------- skup dialog
 function skup_dialog(mark) {
@@ -418,19 +238,6 @@ function skup_dialog2(mark) {
     + "<div id='skup_msg'></div>"
     + "</div>"
   );
-// ... totéž jako template string
-//   $('skup2').css({display:'block'}).set('html',`
-//     ${mark.title}
-//     <div>
-//       <input class="skup_x" type="text" id="skup_from" placeholder="tvůj email">
-//       <textarea class="skup_x" id="skup_body" placeholder="dotaz na organizátory"></textarea>
-//       <a class="skup_x jump" onclick="$('skup2').css({display:'none'});">
-//         <span>Zpět</span></a>
-//       <a class="skup_x jump" onclick="skup_sendmail('${mark.id}','${mark.title}');">
-//         <span>Poslat mail</span></a>
-//       <div id="skup_msg"></div>
-//     </div>
-//   `);
 }
 // ----------------------------------------------------------------------------------- skup sendmail
 function skup_sendmail(psc,skupina) {
@@ -449,14 +256,6 @@ function skup_sendmail(psc,skupina) {
        po kliknutí na ikonu tvojí chlapské skupiny '"+skupina+"'. Tvůj mail byl získán z tabulky\
        chlapských skupin. Pokud myslíš, že něco není v pořádku, obrať se prosím na správce\
        aplikace <a href='mailto:martin@smidek.eu'>Martina Šmídka</a>.</i>";
-//   body= `<b>Odesílatel:</b> ${reply}<br><b>Zpráva:</b><br> ${body}<hr>
-//     <POZOR: pokud budeš odpovídat, pohlídej prosím, aby odpověď šla na mail ${reply} a ne na answer@setkani.org ...
-//     <br><br>
-//     <i>Tento mail byl zaslán ze stránky <a href="http://${chlapi_online}?skupiny">chlapi.online?skupiny</a>
-//        po kliknutí na ikonu tvojí chlapské skupiny "${skupina}". Tvůj mail byl získán z tabulky
-//        chlapských skupin. Pokud myslíš, že něco není v pořádku, obrať se prosím na správce
-//        aplikace <a href="mailto:martin@smidek.eu">Martina Šmídka</a>.</i>
-//   `;
   ask({cmd:'sendmail',to:to,reply:reply,subj:subj,body:body,skupina:skupina},skup_sendmail_);
 }
 function skup_sendmail_(y) {

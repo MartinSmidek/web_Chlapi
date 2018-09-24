@@ -72,7 +72,7 @@ panel p [0,0,*,*] { type:'main', _sys:'$'
   }
 # ----------------------------------------------------------------------------==> control bar
   form _f [,,*,30] { css:'grey admin', style:'z-index:9999;position:fixed'
-    proc hide_all() { CMS.hide; ADMIN.hide; REDAKCE.hide }
+    proc hide_all() { CMS.hide; ADMIN.hide; REDAKCE.hide; OPTIONS.hide }
     button [80,5,,]  { skill:'r|r', title:"[fa-chevron-left]"    
       proc onclick() { hide_all; go(history.get) } }
     button [101,5,,] { skill:'r|r', title:"[fa-repeat]"          
@@ -98,14 +98,15 @@ panel p [0,0,*,*] { type:'main', _sys:'$'
       proc onclick() { hide_all; ADMIN.modal(10,40) } }
     button [-160,5,,] { skill:'r|a', title:"[fa-user-circle] redakce" 
       proc onclick() { hide_all; REDAKCE.modal(10,40) } }
-    button [-35,5,,] { title:"odhlásit", style:'z-index:999'
-      proc onclick() { var ref:text
-        //logout;
-        ask('ask_server',°{cmd:'be_logout'});
-        ref.set(conc(function("return Ezer.web.index"),"?page=",last.get));
-        function('ref',"location.href= ref;",ref);
-    } }
-    button [-10,5,,] { skill:'r|r', title:"[fa-bars]"           proc onclick() { hide_all; } }
+//    button [-35,5,,] { title:"odhlásit", style:'z-index:999'
+//      proc onclick() { var ref:text
+//        //logout;
+//        ask('ask_server',°{cmd:'be_logout'});
+//        ref.set(conc(function("return Ezer.web.index"),"?page=",last.get));
+//        function('ref',"location.href= ref;",ref);
+//    } }
+    button [-10,5,,] { skill:'r|r', title:"[fa-bars]"           
+      proc onclick() { hide_all; OPTIONS.modal(10,40) } }
   }
 # ----------------------------------------------------------------------------==> page
   form _w [,,*,*] { style:"position:initial"
@@ -261,7 +262,7 @@ panel ADMIN [0,0,600,465] { title:'Aktivita CMS', type:'popup', css:'dialog_menu
           ask('doc_chngs_show','a',i.par.days)));
       }
     }
-    menu { title:'Aktivní redaktoři',type:'group',skill:'a'
+    menu { title:'Aktivní redaktoři', type:'group', skill:'s'
       item { title:'dnes'               par:°{s:'uzivatele',c:'dnes',short:'1'}}
       item { title:'včera'              par:°{s:'uzivatele',c:'vcera',short:'1'}}
       item { title:'týden'              par:°{s:'uzivatele',c:'dny',days:'8',short:'1'}}
@@ -269,7 +270,7 @@ panel ADMIN [0,0,600,465] { title:'Aktivita CMS', type:'popup', css:'dialog_menu
       item { title:'měsíc'              par:°{s:'uzivatele',c:'dny',days:'30',short:'1'}}
       item { title:'nastavený den'      par:°{s:'uzivatele',c:'den',short:'1'}}
     }
-    menu err { title:'Chyby',type:'group',skill:'a'
+    menu err { title:'Chyby', type:'group', skill:'a'
       item today { title:'dnes'         par:°{s:'chyby',c:'dnes'}}
       item { title:'včera'              par:°{s:'chyby',c:'vcera'}}
       item { title:'týden'              par:°{s:'chyby',c:'tyden'}}
@@ -279,7 +280,7 @@ panel ADMIN [0,0,600,465] { title:'Aktivita CMS', type:'popup', css:'dialog_menu
       item { title:'čekající BUGs'      par:°{s:'chyby',c:'BUG1'}}
       item { title:'vyřešené BUGs'      par:°{s:'chyby',c:'BUG2'}}
     }
-    menu p { title:'Přihlášení - redakce',type:'group'
+    menu p { title:'Přihlášení - redakce', type:'group', skill:'s'
       item d { title:'dnes'             par:°{s:'login',c:'dnes'}}
       item { title:'včera'              par:°{s:'login',c:'vcera'}}
       item { title:'týden'              par:°{s:'login',c:'tyden'}}
@@ -287,7 +288,7 @@ panel ADMIN [0,0,600,465] { title:'Aktivita CMS', type:'popup', css:'dialog_menu
       item { title:'nastavený den'      par:°{s:'login',c:'den'}}
       item { title:'všechna hlášení'    par:°{s:'login',c:'vsechny'}}
     }
-    menu c { title:'Přihlášení - chlapi',type:'group',skill:'a'
+    menu c { title:'Přihlášení - chlapi',type:'group', skill:'a'
       item c { title:'chybná přihlášení'   par:°{cmd:'me_login',typ:'ko'}}
       item   { title:'správná přihlášení'  par:°{cmd:'me_login',typ:'ok'}}
       proc onclick (i) {  var y:text
@@ -304,8 +305,8 @@ panel ADMIN [0,0,600,465] { title:'Aktivita CMS', type:'popup', css:'dialog_menu
       u.result.set(conc("<div id=''>",y,"</div>"));
     }
   }
-  use u: form _touch [210,0,,] { tag:'mu' }
-  use msg_a: form _msg_a [210,0,,] { tag:'ma', format:'n' }
+  use u: form _touch [0,0,,] { tag:'mu' }
+  use msg_a: form _msg_a [0,0,,] { tag:'ma', format:'n' }
   var skip=0
   proc the_formsave (f,b) {
     f.same
@@ -326,7 +327,8 @@ panel ADMIN [0,0,600,465] { title:'Aktivita CMS', type:'popup', css:'dialog_menu
 
     // příkazy
     label  [12,5,145,30] { css:'ae_parm'}
-    button [20,11,,] { title:"[fa-database] Nový", proc onclick() { var ver_max:number
+    button [20,11,,] { title:"[fa-database] Nový", skill:'r|a'
+      proc onclick() { var ver_max:number
         form.init(2);
         version.set(max(ask('root_svn',0),ask('root_svn',1),sys('options','curr_version')));
         // pokud je verze=0, asi není na serveru SVN, nastav verzi o 1 větší, než maximum
@@ -339,13 +341,16 @@ panel ADMIN [0,0,600,465] { title:'Aktivita CMS', type:'popup', css:'dialog_menu
         }];
         version.change;
         kind.change; datum.set(now); datum.change; topic.change; hlp.change; }}
-    button [79,11,,] { title:"[fa-trash-o] Vymazat", proc onclick() {
-      confirm("Opravdu vymazat zprávu ",s.topic.get,"?");
-      _help.delete_record(conc("id_help=",s.id_help.get)); refresh }}
+    button [79,11,,] { title:"[fa-trash-o] Vymazat", skill:'r|a'
+      proc onclick() {
+        confirm("Opravdu vymazat zprávu ",s.topic.get,"?");
+        _help.delete_record(conc("id_help=",s.id_help.get)); refresh }}
 
     label  [240,5,123,30] { css:'ae_parm'}
-    button [250,11,,] { title:"[fa-save] Ulož",  proc onclick() { the_formsave(form,s) }}
-    button [306,11,,] { title:"[fa-undo] Zpět", proc onclick() { form.key(s.id_help.get); form.load}}
+    button [250,11,,] { title:"[fa-save] Ulož", skill:'r|a'
+      proc onclick() { the_formsave(form,s) }}
+    button [306,11,,] { title:"[fa-undo] Zpět", skill:'r|a'
+      proc onclick() { form.key(s.id_help.get); form.load}}
 
     // nová změna
     field kind { data:h.kind, value:'v' }
@@ -369,8 +374,8 @@ panel ADMIN [0,0,600,465] { title:'Aktivita CMS', type:'popup', css:'dialog_menu
   }
 }
 # ----------------------------------------------------------------------------==> REDAKCE
-panel REDAKCE [0,0,840,510] {type:'popup', title:'Redakce', css:'dialog_full', 
-    style:"min-width:830px", skill:'a|a', _sys:'red'
+panel REDAKCE [0,0,840,515] {type:'popup', title:'Redakce', css:'dialog_menu', 
+    /*style:"min-width:830px",*/ skill:'a|a', _sys:'red'
 
   const sys_users_list = 22
   const sys_users_skills = 16
@@ -381,10 +386,10 @@ panel REDAKCE [0,0,840,510] {type:'popup', title:'Redakce', css:'dialog_full',
   var new_skill: text,
   var sel: text,
 
-  use uzivatele: form users [210+10,0,,],
-  use uzivatel: form user [10+430+180,0,,]
-  use cmd: form butt [210+22,sys_users_cmd,,],
-  use dskill: form desc_skills [10+430+180,120,,]
+  use uzivatele: form users [0,0,,],
+  use uzivatel: form user [395,0,,]
+  use cmd: form butt [0,sys_users_cmd,,],
+  use dskill: form desc_skills [395,120,,]
 
   proc onfirstfocus() {
     watch_css;
@@ -452,7 +457,7 @@ panel REDAKCE [0,0,840,510] {type:'popup', title:'Redakce', css:'dialog_full',
     uzivatel.access.selects(opt.sel_access);
   }
   # ----------------------------------------------------------------==> ... menu
-  menu see { type:'left', active:*, format:'f-'
+  menu see { type:'left', active:*, format:'f+'
     menu all { title:'přehled',type:'group'
       item actives { title:'[fa-user-plus] aktivní uživatelé', par:°{on:'h',off:'u',cond:"LEFT(deleted,1)!='H'"}}
       item         { title:'[fa-user-times] skrytí uživatelé', par:°{on:'u',off:'h',cond:"deleted LIKE 'H%'"}}
@@ -464,7 +469,7 @@ panel REDAKCE [0,0,840,510] {type:'popup', title:'Redakce', css:'dialog_full',
     }
   }
   # ----------------------------------------------------------------==> ... uživatelé
-  form users [,,834,473] { css:'ae_work'
+  form users [,,835,473] { css:'ae_work'
     view u: table _user
 //    view t: table _track { join_type:'NONE', join:"ON abbr=kdo" }
     label [6,3,89,15] { title:'<h1>Uživatelé</h1>' }
@@ -643,14 +648,60 @@ panel REDAKCE [0,0,840,510] {type:'popup', title:'Redakce', css:'dialog_full',
     } }
   }
 }
-# ==========================================================================================> EDITOR
-panel EDITOR [0,0,710,530] { type:'popup', style:"min-width:700px", _sys:'edi'
+# ----------------------------------------------------------------------------==> OPTIONS
+panel OPTIONS [0,0,220,220] { title:'Volby zobrazení pro redakci', type:'popup'
+  use g: form _g [0,10,,]
+  proc onfocus() { start }
+  proc start() { var level:number
+    g.init;
+    level.set(ask('session','web,level'));
+    [ gt(level,1); g.af.set(1) ];
+    [ gt(level,0); g.ai.set(1) ];
+    level.set(ask('session','man,level'));
+    [ bitand(level,4); g.ar.set(1) | g.ar.enable(0) ];
+    [ bitand(level,2); g.at.set(1) | g.at.enable(0) ];
+    [ bitand(level,1); g.am.set(1) | g.am.enable(0) ];
+  }
+  form _g [,,200,120] {
+    label [0,0,200,80] { css:'ae_work' }
+    # KLIENT
+    label [10,10,200,] { title:"<b>vidět obsah jako pro</b>", style:"color:black" }
+    check ai [10,30,200,] { title:'iniciovaného', format:'t' proc onchange() {
+      upd('web,level',1,this.get); } }
+    check af [10,50,200,] { title:'učastníka firmingu', format:'t' proc onchange() {
+      upd('web,level',2,this.get); } }
+    # REDAKCE
+    label [0,100,200,80] { css:'ae_work' }
+    label [10,110,200,] { title:"<b>zviditelnit co je pouze pro</b>", style:"color:black" }
+    check ar [10,130,70,] { title:'redaktora', css:'redakce4', format:'t' proc onchange() {
+      upd('man,level',4,this.get); } }
+    check at [90,130,90,] { title:'testera', css:'redakce2', format:'t' proc onchange() {
+      upd('man,level',2,this.get); } }
+    check am [90,156,90,] { title:'programátora', css:'redakce1', format:'t' proc onchange() {
+      upd('man,level',1,this.get); } }
+    # reset
+    button [85,190,,] { title:'reset', proc onclick () {
+      ask('session','web,level',ask('session','web,level0')); 
+      ask('session','man,level',ask('session','man,level0')); 
+      start; p.refresh }}
+  }
+  proc bitand(x,y) {
+    return(function('x','y',"return Number(x) & Number(y);",x,y))
+  }
+  proc upd(co,kolik,add) { var old:number
+    old.set(ask('session',co));
+    ask('session',co,cconc(add,sum(old,kolik),minus(old,kolik)));
+    p.refresh;  
+  }
+}
+# ==============================================================================> EDITOR
+panel EDITOR [0,0,720,550] { type:'popup', style:"min-width:700px", _sys:'edi'
   var id:number,
       path:text
-  use a: form _a [0,0,,] { tag:'a', format:'n' }  // akce
-  use c: form _c [0,0,,] { tag:'c', format:'n' }  // článek
-  use b: form _b [0,0,,] { tag:'b', format:'n' }  // kniha 
-  use k: form _k [0,0,,] { tag:'k', format:'n' }  // kalendář
+  use a: form _a [2,0,,] { tag:'a', format:'n' }  // akce
+  use c: form _c [2,0,,] { tag:'c', format:'n' }  // článek
+  use b: form _b [2,0,,] { tag:'b', format:'n' }  // kniha 
+  use k: form _k [2,0,,] { tag:'k', format:'n' }  // kalendář
   proc Kalendar(_key) {
     id.set(_key);
     panel.display(2,'k'); 
@@ -712,7 +763,7 @@ panel EDITOR [0,0,710,530] { type:'popup', style:"min-width:700px", _sys:'edi'
     button [0,5,,]  { title:"[fa-chevron-left]", help:'starší akce'
       proc onclick() { next_xakce(1); }}
     button [21,5,,] { title:"[fa-repeat]"          
-      proc onclick() { form.load(id.get) } }
+      proc onclick() { form.load(id.get); next_xakce(0) } }
     button [43,5,,] { title:"[fa-chevron-right]", help:'novější akce'
       proc onclick() { next_xakce(-1); }}
     field [68,5,50,] { data:xakce.id_xakce, format:'o' }
@@ -733,11 +784,22 @@ panel EDITOR [0,0,710,530] { type:'popup', style:"min-width:700px", _sys:'edi'
     field [95,40,85,] { type:'date', title:'^do dne', data:xakce.datum_do }
     field [190,40,268,] { title:'^název', data:xakce.nazev }
     field [470,40,240,] { title:'^místo', data:xakce.misto }
-    edit obsah [0,70,710,450] { type:'html', data:xakce.web_text, par:°{toolbar:'WEB'} }
+    // anotace
+    label [0,70,300,20] { title:'anotace s odkazem na pozvánku' }
+    edit obsah [0,90,710,150] { type:'html', data:xakce.web_text, par:°{toolbar:'WEB'} }
+    // informace
+    label info [0,265,710,40] 
+    // zápis
+    label text [0,287,710,263] { style:"background:white;overflow-y:scroll" }
     // funkce
     proc next_xakce(smer) { var y:object
-      y.set(ask('next_xakce',id.get,smer)); y.msg; warning(y.msg)
-    | id.set(y.id); form.load(y.id) 
+      info.set(''); text.set('');
+      y.set(ask('next_xakce',id.get,smer)); 
+      [ y.info; info.set(y.info) ]; 
+      [ y.text; text.set(y.text) ]; 
+      [ y.msg; warning(y.msg) ];
+      id.set(y.id); form.load(y.id);
+      [ y.dotaz; confirm(y.dotaz); ask('zapis_xakce',id.get) ];
     }
   }
   # -----------------------------------------------------------------------------==> edit akce
@@ -752,6 +814,8 @@ panel EDITOR [0,0,710,530] { type:'popup', style:"min-width:700px", _sys:'edi'
       proc onclick() { 
         [ xa.save; xa.load ]; 
         [ xc.save; xc.load ]; 
+        ask('record_unlock','xclanek',idc.get);
+        ask('log_obsah','u','c',idc.get); 
         panel.hide(1); 
       }}
     button  [-1,5,,] { title:'Zpět', help:'ukončit editor bez uložení změn'
@@ -761,6 +825,14 @@ panel EDITOR [0,0,710,530] { type:'popup', style:"min-width:700px", _sys:'edi'
     field [95,40,85,] { type:'date', title:'^do dne', data:xa.datum_do }
     field [190,40,268,] { title:'^název', data:xa.nazev }
     field [470,40,240,] { title:'^místo', data:xa.misto }
+    // autoři a oprávnění
+    select editors [46,5,150,] { type:'map+', title:'napsal', help:'+ kdo může text měnit'
+        options:users.username, value:'0', data:xc.editors }
+    select  [231,5,100,] { type:'map', title:'uvidí', help:'zobrazí se jen pro ...'
+        options:cis_web.zkratka, value:'0', data:xc.web_skill }
+    select  [388,5,100,] { type:'map', title:'omezení', help:'zobrazí se jen pro ...'
+        options:cis_cms.zkratka, value:'0', data:xc.cms_skill }
+    // text
     edit obsah [0,70,710,450] { type:'html', data:xc.web_text, par:°{toolbar:'WEB'} }
   }
   # -----------------------------------------------------------------------------==> edit clanek    
@@ -784,10 +856,14 @@ panel EDITOR [0,0,710,530] { type:'popup', style:"min-width:700px", _sys:'edi'
         UPLOAD.modal //(50,100)
       }
     }
-    select editors [-334,5,150,] { type:'map+', title:'text napsal', help:'+ kdo může text měnit'
+    // autoři a oprávnění
+    select editors [46,5,150,] { type:'map+', title:'napsal', help:'+ kdo může text měnit'
         options:users.username, value:'0', data:xclanek.editors }
-    select  [-171,5,100,] { type:'map', title:'text uvidí', help:'zobrazí se jen pro ...'
-        options:skill_level.skill_name, value:'0', data:xclanek.web_skill }
+    select  [231,5,100,] { type:'map', title:'uvidí', help:'zobrazí se jen pro ...'
+        options:cis_web.zkratka, value:'0', data:xclanek.web_skill }
+    select  [388,5,100,] { type:'map', title:'omezení', help:'zobrazí se jen pro ...'
+        options:cis_cms.zkratka, value:'0', data:xclanek.cms_skill }
+    // text
     edit obsah [0,40,712,480] { type:'html', data:xclanek.web_text, par:°{toolbar:'WEB'} }
   }
   # -----------------------------------------------------------------------------==> edit kniha
@@ -1075,6 +1151,7 @@ table xclanek { key_id:'id_xclanek', db:'setkani'
   number id_xclanek { key:'primary' }
   text editors
   number web_skill
+  number cms_skill
   text web_text
 }
 table _help {  key_id:'id_help'                     // tabulka _help je v databázi aplikace
@@ -1109,6 +1186,10 @@ table _skill { key_id:'id_skill', db:'ezer_system'
   text skill_abbr
   text skill_desc
 }
+table _cis { key_id:'id_cis'
+  number id_cis text druh, text data, text zkratka, number poradi,
+  text hodnota, text popis, text barva, text ikona
+}
 //table _track { key_id:'id_track'
 //  number id_track { key:'primary' }
 //  date kdy { help:'datum změny' }
@@ -1132,6 +1213,8 @@ table _cis { key_id:'id_cis'
   text ikona
 }
 map skill_level: table _skill { where:"id_skill IN (0,8,16)", order:'id_skill', key_id:'id_skill' }
+map cis_web: table _cis { where:"druh='web'", order:'poradi', key_id:'data' }
+map cis_cms: table _cis { where:"druh='cms'", order:'poradi', key_id:'data' }
 map users: table _user { where:"1", order:'surname', key_id:'id_user' }
 
 
