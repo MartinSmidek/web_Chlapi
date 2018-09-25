@@ -73,6 +73,32 @@ function change_info() {
     }
   }
 }
+// ========================================================================================> COOKIES
+// -------------------------------------------------------------------------------------- set cookie
+function set_cookie(name,value,days) {
+    var expires = "";
+    if (days) {
+        var date = new Date();
+        date.setTime(date.getTime() + (days*24*60*60*1000));
+        expires = "; expires=" + date.toUTCString();
+    }
+    document.cookie = name + "=" + (value || "")  + expires + "; path=/";
+}
+// -------------------------------------------------------------------------------------- get cookie
+function get_cookie(name) {
+    var nameEQ = name + "=";
+    var ca = document.cookie.split(';');
+    for(var i=0;i < ca.length;i++) {
+        var c = ca[i];
+        while (c.charAt(0)==' ') c = c.substring(1,c.length);
+        if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length,c.length);
+    }
+    return null;
+}
+// -------------------------------------------------------------------------------------- del cookie
+function del_cookie(name) {   
+    document.cookie = name+'=; Max-Age=-99999999;';  
+}
 // ==================================================================================> LOGIN, LOGOUT
 // --------------------------------------------------------------------------------------- be logout
 function be_logout(page) {
@@ -90,25 +116,34 @@ function me_login(page) {
   ask({cmd:'me_login',mail:mail,pin:pin,page:page,web:'chlapi.cz'},me_login__);
 }
 function me_login__(y) {
+  var txt= jQuery('#user_mail_txt');
   if ( y && y.txt ) {
-    jQuery('#user_mail_txt').html(y.txt);
+    txt.html(y.txt);
   }
   if ( y && y.msg ) {
 //    jQuery('#user_mail').html(y.msg);
     alert(y.msg);
   }
-  if ( y && y.redakce ) {
-    jQuery('a.noedit').css({display:'inline-block'});
-  }
-  else if (y && y.state=='ok') {
-    refresh();
+  if (y && y.state=='ok') {
+    set_cookie('email',jQuery('#mail').val(),30);
+    if ( !y.txt ) 
+      txt.html("<br>Jsi přihlášen, tento PIN platí 24 hodin<br><br>");
+    if ( y && y.redakce ) {
+      jQuery('a.noedit').css({display:'inline-block'});
+    }
+    else {
+      jQuery('#user_mail').fadeOut(3000,function(){refresh();});
+    }
   }
 }
 function me_noedit(no) {
-  if ( no ) {
-    ask({cmd:'me_noedit'},me_noedit__);
-  }
-  else {
+//  jQuery('#user_mail').fadeOut(1000,function(){
+    me_noedit_(no);
+//  });
+}
+function me_noedit_(no) {
+  ask({cmd:'me_noedit',noedit:no},me_noedit__);
+  if ( !no ) {
     refresh();
   }
 }

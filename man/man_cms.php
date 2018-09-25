@@ -621,7 +621,7 @@ function menu_copy_elem($co,$pid,$mid,$test=true) {
 function menu_add_elem($mid,$table,$first=0,$id_user=0) {
   switch ($table) {
   case 'xakce':        // ---------------------------------- nová akce roku mid
-    query("INSERT INTO xclanek (editors) VALUES ('$id_user')");
+    query("INSERT INTO xclanek (editors,cms_skill) VALUES ('$id_user',4)");
     $idc= mysql_insert_id();
     log_obsah('i','c',$idc);
     $ymd= "$mid-12-31";
@@ -629,7 +629,7 @@ function menu_add_elem($mid,$table,$first=0,$id_user=0) {
     break;
   case 'xkniha':       // ---------------------------------- nová kniha s prvním článkem
     $elem= select("elem","menu","wid=2 AND mid=$mid");
-    query("INSERT INTO xclanek (editors) VALUES ('$id_user')");
+    query("INSERT INTO xclanek (editors,cms_skill) VALUES ('$id_user',4)");
     $cid= mysql_insert_id();
     log_obsah('i','c',$cid);
     query("INSERT INTO xkniha (xelems) VALUES ('aclanek=$cid')");
@@ -642,7 +642,7 @@ function menu_add_elem($mid,$table,$first=0,$id_user=0) {
     break;
   case 'xkniha.elem':  // ---------------------------------- nový článek knihy 
     $elem= select("xelems","xkniha","id_xkniha=$mid");
-    query("INSERT INTO xclanek () VALUES ()");
+    query("INSERT INTO xclanek (editors,cms_skill) VALUES ('$id_user',4)");
     $id= mysql_insert_id();
     log_obsah('i','c',$id);
     if ( $first )
@@ -652,14 +652,16 @@ function menu_add_elem($mid,$table,$first=0,$id_user=0) {
     query("UPDATE xkniha SET xelems='$elem' WHERE id_xkniha=$mid");
     break;
   case 'xclanek':     // ----------------------------------- nový článek
+    $vzor= "<h1>Název (abstrakt tučně)</h1><h2>Nadpis (abstrakt kurzíva)</h2><hr />"
+      . "<p>Po dokončení nezapomeň zrušit omezení</p>";
     $elem= select("elem","menu","wid=2 AND mid=$mid");
-    query("INSERT INTO $table () VALUES ()");
+    query("INSERT INTO xclanek (editors,cms_skill,web_text) VALUES ('$id_user',4,\"$vzor\")");
     $id= mysql_insert_id();
     log_obsah('i','c',$id);
     if ( $first )
-      $elem= "$table=$id" . ($elem ? ";$elem" : '');
+      $elem= "aclanek=$id" . ($elem ? ";$elem" : '');
     else
-      $elem= ($elem ? "$elem;" : '') . "$table=$id";
+      $elem= ($elem ? "$elem;" : '') . "aclanek=$id";
     query("UPDATE menu SET elem='$elem' WHERE wid=2 AND mid=$mid");
     break;
   }

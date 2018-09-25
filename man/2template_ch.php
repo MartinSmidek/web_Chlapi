@@ -336,6 +336,7 @@ __EOT;
     
     case 'aclanek': # ------------------------------------------------ . ačlánek - abstrakt
       global $backref, $links;
+      $ipad= '';
       $links= "fotorama";
       $html.= "<script>jQuery('.fotorama').fotorama();</script>";
       $idn= $id;
@@ -351,14 +352,10 @@ __EOT;
       // viditelnost redakčních specialit
       $redakce_style= '';
       if ( $cskill ) {
-        if ( $REDAKCE && $REDAKCE->level & $cskill ) {
-//          $redakce_style= $REDAKCE->level&4 ? 4 : ($REDAKCE->level&2 ? 2 : 1);
+        if ( $REDAKCE && $REDAKCE->level & $cskill ) 
           $redakce_style= " redakce$cskill";
-//          $redakce_style= " class='redakce$redakce_style'";
-        }
-        else {
+        else 
           break;
-        }
       }
       $plny= $top==$id && (!$wskill || $KLIENT->level & $wskill);
       $co= $plny ? 'článek' : 'abstrakt';
@@ -370,9 +367,8 @@ __EOT;
         $obsah= preg_replace("~href=\"(?:http://www.chlapi.cz/|/|(?!https?://))(.*)\"~U", 
               "onclick=\"go(arguments[0],'page=$1','$prefix$1','',0);\" title='$1'", 
               $obsah);
-        if ( !$book  ) 
-          $menu= " title='$co $idn' oncontextmenu=\"
-              Ezer.fce.contextmenu([
+        if ( !$book  ) {
+          $kod= "Ezer.fce.contextmenu([
                 ['editovat článek',function(el){ opravit('xclanek',$id); }],
                 ['-zobrazit jako článek',function(el){ zmenit($curr_menu->mid,'aclanek',$id,'xclanek'); }],
                 ['-přidat fotky',function(el){ pridat('xfotky',$id); }],
@@ -380,7 +376,12 @@ __EOT;
                 ['posunout dolů',function(el){ posunout('aclanek',$curr_menu->mid,$id,1); }],
                 ['-nový článek na začátek',function(el){ pridat('xclanek',$curr_menu->mid,1); }],
                 ['nový článek na konec',function(el){ pridat('xclanek',$curr_menu->mid,0); }]
-              ],arguments[0],0,0,'#xclanek$id');return false;\"";
+              ],arguments[0],0,0,'#xclanek$id');return false;";
+          $menu= " title='$co $idn' oncontextmenu=\"$kod\"";
+          if ( $_SESSION['platform']=='I')
+            $ipad= "<span class='ipad_menu' onclick=\"arguments[0].stopPropagation();$kod\">
+              <i class='fa fa-bars'></i></span>";
+        }
         elseif ( $book->open && $book->ida )
             $menu= " title='".($plny?'':'abstrakt ')."akce $book->idk: $book->ida/$id' oncontextmenu=\"
               Ezer.fce.contextmenu([
@@ -453,6 +454,7 @@ __EOT;
         $html.= "
           <div class='back' $menu $neodkaz>
             <a class='$styl home$redakce_style' $jmp>
+              $ipad
               $obsah
             </a>
           </div>";
@@ -460,9 +462,18 @@ __EOT;
       break;
 
     case 'xclanek': # ------------------------------------------------ . xčlánek
-      list($obsah,$wskill)= select("web_text,web_skill","xclanek","id_xclanek=$id");
+      list($obsah,$wskill,$cskill)= 
+          select("web_text,web_skill,cms_skill","xclanek","id_xclanek=$id");
       if ( $wskill && !($KLIENT->level & $wskill) ) {
         break;
+      }
+      // viditelnost redakčních specialit
+      $redakce_style= '';
+      if ( $cskill ) {
+        if ( $REDAKCE && $REDAKCE->level & $cskill ) 
+          $redakce_style= " redakce$cskill";
+        else 
+          break;
       }
       $obsah= x_cenzura($obsah);
       $obsah= str_replace('$index',$index,$obsah);
@@ -482,7 +493,7 @@ __EOT;
       }
       $html.= "
         <div class='back' $menu>
-          <div id='xclanek$id' class='home'>
+          <div id='xclanek$id' class='home$redakce_style'>
             $obsah
           </div>
         </div>
@@ -844,9 +855,12 @@ __EOD;
       ? "onclick=\"go(arguments[0],'page=home','{$prefix}home','',0);\""
       : "href='{$prefix}home'";
 
+  $cookie_email= str_replace("'",'',isset($_COOKIE['email']) ? $_COOKIE['email'] : '');  
+  $logo_title= isset($_SESSION['web']['username']) ? " title='{$_SESSION['web']['username']}'" : '';
+  
   $body=  <<<__EOD
     <div id='page'>
-      <a $go_home style="cursor:pointer"><img id='logo' src='/man/img/kriz.png'></a>
+      <a $go_home style="cursor:pointer"><img id='logo' src='/man/img/kriz.png'$logo_title></a>
       <div id='motto'>Mladý muž, který neumí plakat, je barbar.
           <br>Starý muž, který se neumí smát, je pitomec.
           <br><i>Richard Rohr</i>
@@ -874,7 +888,7 @@ __EOD;
             Napiš svoji mailovou adresu, na kterou ti dojde mail s PINem,
             který ti zpřístupní např. fotky z akcí, kterých ses zúčastnil ...
           </span>
-          <input id='mail' type='text' placeholder='emailová adresa'>
+          <input id='mail' type='text' placeholder='emailová adresa' value='$cookie_email'>
           <input id='pin' type='text' placeholder='PIN'>
           <br>
           <a class='jump' onclick="me_login('$currpage');">Přihlásit</a>
@@ -1142,10 +1156,14 @@ function ask_server($x) {
       $_SESSION['web']['fe_usergroups']= '0,4,6';
       $_SESSION['web']['user']= $y->user;
       $_SESSION['web']['level']= $_SESSION['web']['level0']= $y->klient;
-      $_SESSION['man']['level']= $_SESSION['man']['level0']= $y->redakce;
       $_SESSION['web']['username']= $y->name;
-      if ( !$skills ) {
+      // případně jako BE
+      if ( $y->redakce ) {
+        $_SESSION['man']['level']= $_SESSION['man']['level0']= $y->redakce;
+      }
+      else {
         // pokud to není redaktor zapiš me_login 
+        unset($_SESSION['man']);
         log_login('u',$x->mail);
       }
     }
@@ -1156,12 +1174,16 @@ function ask_server($x) {
     break;
     
   case 'me_noedit': // ---------------------------------------------------------------------- noedit
-    // zrušení možnosti editovat => plné prohlížení
-//    $_SESSION['web']['level']= $_SESSION['web']['level'] & ~ADMIN & ~SUPER & ~REDAKTOR;
-    unset($_SESSION['man']);
     $y->user= $_SESSION['web']['user'];
     $y->username= $_SESSION['web']['username'];
-    log_login('u',$x->mail);
+    if ( $x->noedit ) {
+      // zrušení možnosti editovat => jen prohlížení bez natažení Ezer
+      unset($_SESSION['man']);
+      log_login('u',$x->mail);
+    }
+    else {
+      log_login('r',$x->mail);
+    }
     break;
 
   case 'be_logout': // ---------------------------------------------------------------------- logout

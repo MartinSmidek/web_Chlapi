@@ -9,7 +9,7 @@
   // parametry aplikace MAN
   $app_name=  "chlapi.cz";
   $app_root=  'man';
-  $app_js=    array("/man/2chlapi.js", "/man/man.js", //"/man/modernizr-custom.js",
+  $app_js=    array("/man/2chlapi.js", "/man/man.js", 
                     "/man/fotorama/fotorama.js");
   $app_css=   array("/man/css/mini.css","/man/css/2chlapi.css","/man/css/edit.css",
                     "/man/fotorama/fotorama.css");

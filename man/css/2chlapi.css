@@ -693,6 +693,9 @@ div.pdf span.sorry {
     zoom: 72%;
     /*zoom: 60%; -moz-transform: scale(0.6) translate(-26%, -35%);*/
   }
+  div.Popup3 {
+    zoom: 80%;
+  }
 }
 @media all and (min-width: 40em) and (max-width: 55em) {
   div.prezentace {

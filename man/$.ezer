@@ -25,11 +25,12 @@ panel p [0,0,*,*] { type:'main', _sys:'$'
   proc zmenit(_mid,_typ1,_id,_typ2) { 
     ask('menu_chng_elem',_mid,_typ1,_id,_typ2); refresh
   }
-  proc pridat(_typ,_mid,_first) { 
-    eq('xclanek',_typ); ask('menu_add_elem',_mid,_typ,_first); refresh 
-  | eq('xkniha.elem',_typ); ask('menu_add_elem',_mid,_typ,_first); refresh 
+  proc pridat(_typ,_mid,_first) { var me:number
+    me.set(sys('user','id_user'));
+    eq('xclanek',_typ); ask('menu_add_elem',_mid,_typ,_first,me); refresh 
+  | eq('xkniha.elem',_typ); ask('menu_add_elem',_mid,_typ,_first,me); refresh 
   | eq('xfotky',_typ); FOTKY.novy(_mid); refresh 
-  | eq('xakce',_typ); ask('menu_add_elem',_mid,_typ,0,sys('user','id_user')); refresh 
+  | eq('xakce',_typ); ask('menu_add_elem',_mid,_typ,0,me); refresh 
   }
   proc zcizit(_typ,_pid,_mid) { 
     eq(_typ,'fotky'); [ ask('menu_copy_foto',_pid,_mid); refresh ]  // _mid je zde test
@@ -106,7 +107,7 @@ panel p [0,0,*,*] { type:'main', _sys:'$'
 //        function('ref',"location.href= ref;",ref);
 //    } }
     button [-10,5,,] { skill:'r|r', title:"[fa-bars]"           
-      proc onclick() { hide_all; OPTIONS.modal(10,40) } }
+      proc onclick() { hide_all; OPTIONS.modal(10,115) } }
   }
 # ----------------------------------------------------------------------------==> page
   form _w [,,*,*] { style:"position:initial"
@@ -114,7 +115,7 @@ panel p [0,0,*,*] { type:'main', _sys:'$'
     label mapa { type:'map', css:'cms_mapa' }
   }
 }
-# ----------------------------------------------------------------------------==> CMS
+# ----------------------------------------------------------------------------==> MENU
 panel CMS [0,0,610,400] { type:'popup',  title:'CMS - definice menu', 
     style:"min-width:590px", _sys:'cms'
     css:'dialog', par:°{min_top:30}
