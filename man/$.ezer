@@ -40,6 +40,15 @@ panel p [0,0,*,*] { type:'main', _sys:'$'
   proc posunout(_typ,_mid,_id,_dolu) { 
     ask('menu_shift_elem',_typ,_mid,_id,_dolu); refresh
   }
+  proc namiru(_id,_div_id) { var _list:array, _y:object
+    _list.set(function('div',"return namiru_fotky(div);",_div_id));
+    _y.set(ask('namiru_fotky',_id,_list,0)); 
+    { _y.n; [ 
+      confirm(_y.msg);
+      ask('namiru_fotky',_id,_list,1); refresh ]
+    | alert(_y.msg)
+    }
+  }
 # ----------------------------------------------------------------------------==> emulace událostí
   var page: object // {html,edit,id}
   proc cms_go(ref) { echo("přepnutí webu na ",ref); do_go.get; go(ref) }
@@ -747,6 +756,9 @@ panel EDITOR [0,0,720,550] { type:'popup', style:"min-width:700px", _sys:'edi'
   | panel.display(2,'a'); 
     lock.set(ask('record_lock','xclanek',_idc)); // selže, pokud již je editováno
     eq(lock.idu,0,me); // smím opravit?
+    path.set(conc('/inc/c/',_idc));                  // cesta pro přílohy
+    ask('session','man,inc_path',path.get);
+    join_drop(a.obsah);
     panel.set_attrib('title','Úprava akce');
     panel.modal(10,40) 
   | lock.kdo;
@@ -811,7 +823,7 @@ panel EDITOR [0,0,720,550] { type:'popup', style:"min-width:700px", _sys:'edi'
     field ida { data:xa.id_xakce }
     field idc { data:xc.id_xclanek }
     field id_editors { data:xc.editors }
-    button  [-46,5,,] { title:'Uložit', help:'ukončit editor a uložit změny'
+    button [-42,5,,] { title:'Uložit', help:'ukončit editor a uložit změny'
       proc onclick() { 
         [ xa.save; xa.load ]; 
         [ xc.save; xc.load ]; 
@@ -819,8 +831,15 @@ panel EDITOR [0,0,720,550] { type:'popup', style:"min-width:700px", _sys:'edi'
         ask('log_obsah','u','c',idc.get); 
         panel.hide(1); 
       }}
-    button  [-1,5,,] { title:'Zpět', help:'ukončit editor bez uložení změn'
+    button [-1,5,,] { title:'Zpět', help:'ukončit editor bez uložení změn'
       proc onclick() { panel.hide(0); }}
+    button [-89,5,,] { title:'[fa-files-o] Přílohy', help:'seznam souborů sdružených s textem'
+      proc onclick() {
+        UPLOAD.ckeditor.set(obsah);
+        UPLOAD.path.set(path.get);
+        UPLOAD.modal //(50,100)
+      }
+    }
     // položky akce
     field [0,40,85,] { type:'date', title:'^ode dne', data:xa.datum_od }
     field [95,40,85,] { type:'date', title:'^do dne', data:xa.datum_do }
@@ -1071,6 +1090,8 @@ panel FOTKY [0,0,680,265] { title:' Organizér fotek', type:'popup', css:'dialog
     button [380,40,,] { tag:'o', title:"[fa-sort-alpha-asc]", format:'d'
       proc onclick() { ask('sort_fotky',fid.get); refresh }
     }
+    button [460,40,,] { title:'[fa-camera-retro] Oprav fotky',
+      proc onclick() { clear; echo(ask('corr_fotky',fid.get)); refresh }}
 //    # ==> .. drag & drop
 //    proc ondrop(fileinfo) { var name: text
 //      [ not(fid.get); create ];--

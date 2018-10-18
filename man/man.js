@@ -34,6 +34,20 @@ function posunout(_typ1,_mid,_id,_dolu) {
   Ezer.run.$.part.p._call(0,'posunout',_typ1,_mid,_id,_dolu);
   return 1;
 }
+// ----------------------------------------------------------------------------------- namiru clanek
+function namiru(_id,_div_id) {
+  Ezer.run.$.part.p._call(0,'namiru',_id,_div_id);
+  return 1;
+}
+// ------------------------------------------------------------------------------------ namiru fotky
+function namiru_fotky(div_id) {
+  var list= [];
+  jQuery('#'+div_id+' img').each(function(){
+    var i= jQuery(this), src= i.attr('src');
+    list.push({src:src,width:i.width(),height:i.height()});
+  })
+  return list;
+}
 // =========================================================================================> COMMON
 // ----------------------------------------------------------------------------------------------- $
 function $() {

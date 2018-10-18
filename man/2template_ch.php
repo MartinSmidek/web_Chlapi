@@ -382,13 +382,18 @@ __EOT;
             $ipad= "<span class='ipad_menu' onclick=\"arguments[0].stopPropagation();$kod\">
               <i class='fa fa-bars'></i></span>";
         }
-        elseif ( $book->open && $book->ida )
+        elseif ( $book->open && $book->ida ) {
+            $div_id= "a{$book->ida}-$id";
+            $namiru= $plny ? "['upravit obrázky článku',function(el){ namiru('$id','$div_id'); }],":'';
             $menu= " title='".($plny?'':'abstrakt ')."akce $book->idk: $book->ida/$id' oncontextmenu=\"
               Ezer.fce.contextmenu([
                 ['editovat akci',function(el){ opravit('xakce',$id,$book->ida); }],
+                $namiru
                 ['-přidat fotky',function(el){ pridat('xfotky',$id); }],
                 ['-přidat novou akci $book->idk',function(el){ pridat('xakce',$book->idk,1); }]
               ],arguments[0],0,0,'#xclanek$id');return false;\"";
+            $menu.= " id='$div_id'";
+        }
         else
             $menu= " title='".($plny?'kapitola':'abstrakt kapitoly')." $book->ida/$idn' oncontextmenu=\"
               Ezer.fce.contextmenu([
@@ -876,7 +881,7 @@ __EOD;
           <p> Pokud chceš vidět úplné texty článků, musíš být přihlášen.</p>
           <p>K přihlašovacímu dialogu se dostaneš pomocí menu <i class="fa fa-bars"></i> v pravém horním rohu.</p>
           <p>Přihlásit se můžeš pomocí mailové adresy, kterou jsi 
-          uvedl v přihlášce na akci MROP. Pokud ses této akce ještě nezúčastnil, 
+          uvedl v přihlášce na akci (iniciaci, firming). Pokud ses takové akce ještě nezúčastnil, 
           přihlášení možné nebude.</p>
           <a class='jump' onclick="jQuery('div.neodkaz').fadeOut();">Rozumím</a>
         </div>
@@ -989,19 +994,31 @@ function show_fotky2($fid,$lst,$back_href='') {
     data-nav='thumbs'
     data-x-autoplay='true'
   >";
+  // pro mobily ukážeme komprimované obrázky tzn. začínající tečkou
+  $agent= $_SERVER['HTTP_USER_AGENT'];
+  // identifikace platformy prohlížeče: Android => Ezer.client == 'A'
+  // viz fce ezer_browser v ezer2.php
+  $dot=          // x11 hlásí Chrome při vzdáleném ladění (chrome://inspect/#devices)
+    preg_match('/android|x11/i',$agent)            ? '.' : (
+    preg_match('/Linux/i',$agent)                  ? '' : (
+    preg_match('/iPad/i',$agent)                   ? '.' : (
+    preg_match('/macintosh|mac os x/i',$agent)     ? '' : (
+    preg_match('/windows|win32/i',$agent)          ? '' : '.'
+  ))));
+  // vytvoř podklad pro fotorama
   for ($i= 0; $i<$last; $i+=2) {
     $mini= "inc/f/$fid/..$fs[$i]";
-    $open= "inc/f/$fid/.$fs[$i]";
-//    $orig= "inc/f/$fid/$fs[$i]";
+    $midi= "inc/f/$fid/.$fs[$i]";
+    $orig= "inc/f/$fid/$fs[$i]";
+    $open= !$dot && file_exists($orig) ? $orig : $midi;
     if ( file_exists($mini) ) {
       $mini= str_replace(' ','%20',$mini);
       $title= '';
       if ( $fs[$i+1] ) {
         $title= $fs[$i+1];
         $title= strtr($title,array('##44;'=>',',"'"=>'"','~'=>'-'));
-        $title= " data-caption='$title'";
+        $title= " data-caption='$title$dot'";
       }
-//      $i2= $i/2;
       $ih.= "<img src='$open' $title>";
     }
   }
@@ -1045,7 +1062,7 @@ function servant($qry,$context=null) {
     ? "http://setkani.bean:8080/servant.php?secret=$secret"
     : "https://www.setkani.org/servant.php?secret=$secret";
   $json= file_get_contents("$servant&$qry",false,$context);
-                                                  display("<b style='color:red'>servant</b> $qry");
+                                          display("<b style='color:red'>servant</b> $servant$qry");
   if ( $json===false ) {
     $y->msg= "$qry vrátilo false";
   }
@@ -1146,8 +1163,8 @@ function ask_server($x) {
       $skills= select('skills','_user',"id_user='$y->user'");
       $skilla= $skills ? explode(' ',$skills) : array();
       $y->skills= $skilla;
-      $y->klient= $y->mrop ? 1 : 0;
-      $y->klient+= $y->firm ? 3 : 0;  // jistě má i mrop
+      $y->klient= $y->mrop ? 1 : 0;   // iniciace
+      $y->klient+= $y->firm ? 2 : 0;  // firming
       $y->redakce= 0;
       $y->redakce+= in_array('m',$skilla) ? 1 : 0;
       $y->redakce+= in_array('t',$skilla) ? 2 : 0;
@@ -1285,7 +1302,10 @@ function log_report($par) { trace();
         = mysql_fetch_row($cr)) ) {
       $jak= '';
       foreach (explode(',',$_jak) as $j) {
-        $jak.= $j=='u' ? ' úprava' : ($j=='i' ? ' vložení' : ($j=='d' ? ' smazání' : '?'));
+        $jak.= $j=='u' ? ' úprava' : (
+            $j=='i' ? ' <b>vložení</b>' : (
+            $j=='d' ? ' smazání' : (
+            $j=='r' ? ' resize' : '?')));
       }
       $co= $tab=='c' ? 'článku' : 'akce';
       $txt= $tab=='c' ? log_show('xclanek',$id_tab) : "akce $id_tab";

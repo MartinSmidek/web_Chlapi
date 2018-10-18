@@ -6,7 +6,88 @@
 // CMS/Ezer                                             (c) 2018 Martin Šmídek <martin@smidek.eu> //
 // ---------------------------------------------------------------------------------------------- //
 
+/** ========================================================================================> COMMON */
+function escape_string($inp) {
+  return str_replace(
+      array('\\', "\0", "\n", "\r", "'", '"', "\x1a"), 
+      array('\\\\', '\\0', '\\n', '\\r', "\\'", '\\"', '\\Z'), $inp); 
+}
 /** =========================================================================================> FOTKY */
+# --------------------------------------------------------------------------------------- corr fotky
+// 1) fotky a popisy se berou z adresáře a přemístí do textu
+// POZDEJI: ma žádost provést kontrolu úplnosti fotek 
+//     (po zobrazení udělat test na počet fotek v text a v adresáři
+//     pokud není shoda, uložit chybějící do text na konec včetně případných popisů)
+// 2) převést soubory na mini+thumbs
+// 4) dát zprávu $gn->gn_msg("$n fotografií bylo přidáno do pásu $uid");
+function corr_fotky($fid) { global $gn;
+  $path= "inc/f/$fid";
+  $x= simple_glob("$path/..*.*");
+
+  $th= 80;
+  $handle= @opendir($path); #$gn->gn_echo("gn_reloadFoto: handle=$handle<br>");
+  $max= 9999; // ochrana proti zacyklení
+  $text= '';
+  $pocet= 0;
+  while ($handle && $max && false !== ($file= readdir($handle))) {
+    $max--;
+    $fnp= explode('.', $file);  #$gn->gn_echo($file);
+    if ( $fnp[0] && in_array(strtolower($fnp[1]), array("jpg","gif","png")) ) {
+      $pocet++;
+      $files[]= $file;
+      $filens[]= $fnp[0];
+    }
+  }
+  if ( $handle ) {
+    closedir($handle);
+  }
+  else {
+    $foto.= "Složka '$path' s fotografiemi není dostupná";
+  }
+  #$gn->gn_debug($files); $gn->gn_debug($filens);
+  // utřiď podle jména
+  sort($files); sort($filens);
+  // projdi fotky
+  for ($i= 0; $i<$pocet; $i++) {
+    // udělej miniaturu, pokud neexistuje
+    $file= $files[$i];
+    $filen= $filens[$i];
+    $src= "$path/$file";
+    $thumb= "$path/..$file";
+    if ( ! file_exists($thumb) ) {
+      #$cmd= "convert -geometry {$th}x$th +contrast -sharpen 10 $src $thumb";
+      #       //$cmd = ereg_replace('/','\\',$cmd);  #echo "$cmd<br>";  snad má být ve Windows potřeba - není
+      #system(IMAGE_TRANSFORM_LIB_PATH.$cmd);
+      $width= $height= $th;
+      x_resample($src,$thumb,$width,$height);
+    }
+    // udělej variantu pro web, pokud neexistuje
+    $small= "$path/.$file";
+    if ( ! file_exists($small) ) {
+      #$cmd= "convert -geometry 512x512 $src $small";
+      #system(IMAGE_TRANSFORM_LIB_PATH.$cmd);
+      $width= $height= 512;
+      x_resample($src,$small,$width,$height);
+    }
+    // připoj popisek
+    $txt= "$path/$filen.txt";
+    $popisek= '';
+    if ( file_exists($txt) ) {
+      $txt_desc= fopen($txt,'r');
+      $popisek= fread($txt_desc,64000);
+      fclose($txt_desc);
+    }
+    $popisek= strtr($popisek,'"','\"');
+    $texty.= "$del\"$popisek\"";
+    list($width, $height, $type, $attr) = getimagesize("$path/$file");
+    $popisy.= "$del'$file ({$width}x$height)'";
+    $fotky.= "$del'$filen'";
+    $text.= $file . ',' . str_replace( ',','##44;',$popisek) . ',';
+    $del= ', ';
+  }
+  query("UPDATE xfotky SET seznam=\"$text\" WHERE id_xfotky='$fid'");
+  return $pocet;
+}
 # --------------------------------------------------------------------------------==> . create fotky
 # přidání fotek - pokud je definováno x.kapitola pak pod příslušné part - jinak na konec
 function create_fotky($x) {
@@ -32,13 +113,16 @@ function load_fotky($fid) { trace();
   $last= count($fs)-1;
   for ($i= 0; $i<$last; $i+=2) {
     $mini= "inc/f/$fid/..$fs[$i]";
+    $midi= "inc/f/$fid/.$fs[$i]";
     if ( file_exists($mini) ) {
       $title= $fs[$i] ? "title='{$fs[$i]}'" : '';
       $tit= $fs[$i+1] ? "<div>{$fs[$i+1]}</div>" : '';
       $chk= "<input type='checkbox' onchange=\"this.parentNode.dataset.checked=this.checked;\" />";
+//          ['smazat fotku',foto_delete],
+//          ['upravit popis',foto_note]
       $menu= "oncontextmenu=\"Ezer.fce.contextmenu([
-          ['smazat fotku',foto_delete],
-          ['upravit popis',foto_note]
+          ['url fotky do schránky',function(){Ezer.fce.clipboard('$midi');}],
+          ['url miniatury do schránky',function(){Ezer.fce.clipboard('$mini');}]
         ],arguments[0]);return false;\"";
       $n= $i/2;
       $x->fotky.=
@@ -78,7 +162,59 @@ function save_fotky($x,$perm=null) {
          WHERE id_xfotky='$fid'");
   return 1;
 }
-# --------------------------------------------------------------------------------==> . upload fotky
+# --------------------------------------------------------------------------------==> . namiru fotky
+# upraví velikost obrázků podle dodané šířky
+# obrázek musí být ve složce inc/c/$id
+# pokud je $replace=1 nahradí v textu článku odkazy 
+# jinak vrátí dotaz, zda to udělat s informací o získaném prostoru
+function namiru_fotky($id,$imgs,$replace) { 
+  global $ezer_path_root, $ezer_local;
+  $y= (object)array('n'=>0,'msg'=>'');
+  $prefix= $ezer_local
+      ? "http://chlapi.bean:8080/"
+      : "http://www.chlapi.cz/";
+  $dir= "/inc/c/$id";
+  $text= select('web_text','xclanek',"id_xclanek=$id");
+  foreach ((array)$imgs as $img) {
+    if ( strpos($img->src,$dir)===0 ) {
+      $orig= $ezer_path_root.$img->src;
+      list($width, $height, $type)=@ getimagesize($orig);
+      if ( ceil($img->width) < $width ) {
+        $name= basename($orig);
+        $small= "$ezer_path_root$dir/.$name";
+        if ( x_resample($orig,$small,$img->width,$img->height) ) {
+          if ( $replace ) {
+            $text= preg_replace(
+                "~<img(.*)src=\"$dir/$name\"(.*)>~U",
+                "<a href='$prefix/$dir/$name' target='img'><img $1 src='$dir/.$name' $2></a>",
+                $text);
+          }
+          else {
+            $old= ceil(filesize($orig)/1024);
+            $new= ceil(filesize($small)/1024);
+            $y->msg.= "<br>$name byl zmenšený z {$old}KB na {$new}KB";
+          }
+          $y->n++;
+        }
+      }
+    }
+  }
+  if ( $y->n ) {
+    if ( $replace ) {
+      $text= escape_string($text);
+      query("UPDATE xclanek SET web_text=\"$text\" WHERE id_xclanek=$id");
+      log_obsah('r','c',$id);
+    }
+    else {
+      $y->msg.= "<hr>nahradit v článku?";
+    }
+  }
+  else {
+    $y->msg.= "žádný obrázek nelze zmenšit";
+  }
+  return $y;
+}
+# --------------------------------------------------------------------------------==> . minify fotky
 # originál fotky je již ve složce inc/f/fid mechanismem label.drop
 # vytvoří miniatury a přidá je do složky, název přidá do xfotky[fid].seznam
 function minify_fotky($file,$fid) { 
