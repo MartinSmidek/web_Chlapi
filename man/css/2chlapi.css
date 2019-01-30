@@ -259,6 +259,16 @@ div.sloupce div.back {
   /*display: flex;*/
   /*display: inline-block;*/
 }
+div.sloupce div.zmena {
+  background-image: url(upd.png);
+  background-position: top right;
+  background-repeat: no-repeat;
+}
+div.sloupce img.zmena {
+  float: right;
+  margin-right: -12px;
+  margin-top: -12px;
+}
 div.sloupce a.aclanek,
 div.sloupce a.aclanek_nojump {
   overflow: hidden;

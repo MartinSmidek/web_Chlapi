@@ -1,5 +1,6 @@
 <?php
 define(VERZE,   '22/9/2018'); 
+define(ZMENA, 3);   // je-li článek čerstvější => upozorni na změnu
 # -------------------------------------------------------------------------------------==> def user
 // obnovuje obsah základních proměnných, které řídí viditelnost obsahu 
 function def_user() { 
@@ -164,6 +165,7 @@ function eval_menu($path) {
 // ids  :: id1 [ / id2 ] , ...    -- id2 je klíč v lokální db pro ladění
 function eval_elem($desc,$book=null) {
   global $REDAKCE, $KLIENT, $ezer_local, $index, $load_ezer, $curr_menu, $top, $prefix;
+//  global  $menu, $topmenu, $mainmenu, $submenu, $submenu_shift, $elem, $curr_menu, $backref, $top;
 //  global $edit_entity, $edit_id;
   $elems= explode(';',$desc);
   $html= '';
@@ -202,7 +204,7 @@ __EOT;
       // projdi relevantní roky
       $html.= "<div id='roky'>";
       $rs= mysql_qry("SELECT YEAR(datum_do),COUNT(*) FROM xakce 
-          WHERE datum_do<DATE(NOW()) AND xelems!='' GROUP BY YEAR(datum_od) 
+          WHERE datum_od<DATE(NOW()) AND xelems!='' GROUP BY YEAR(datum_od) 
           ORDER BY datum_od DESC");
       while ($rs && list($r,$pocet)= mysql_fetch_row($rs) ) {
         $html.= "<br id='rok$r'>";
@@ -215,7 +217,7 @@ __EOT;
                      <div id='list'>";
           // seznam akcí
           $ra= mysql_qry("SELECT id_xakce,xelems FROM xakce 
-              WHERE datum_do<DATE(NOW()) AND YEAR(datum_od)=$r AND xelems!=''
+              WHERE datum_od<DATE(NOW()) AND YEAR(datum_od)=$r AND xelems!=''
               ORDER BY datum_od DESC");
           while ($ra && list($a,$elems)= mysql_fetch_row($ra) ) {
             // abstrakty akcí
@@ -340,10 +342,13 @@ __EOT;
       $links= "fotorama";
       $html.= "<script>jQuery('.fotorama').fotorama();</script>";
       $idn= $id;
-      list($obsah,$wskill,$cskill)= 
-          select("web_text,web_skill,cms_skill","xclanek","id_xclanek=$id");
+      list($obsah,$wskill,$cskill,$zmena)= 
+          select("web_text,web_skill,cms_skill,TO_DAYS(NOW())-IFNULL(TO_DAYS(ch_date),0)",
+              "xclanek","id_xclanek=$id");
       $wskill= 0+$wskill;
       $cskill= 0+$cskill;
+      // má se upozornit na změnu?
+      $zmena= $zmena < ZMENA ? ' zmena' : '';
       // dědění přístupnosti kapitoly knihy
       if ( $book ) {
         $idn= $book->open ? "$book->idk,$id" : $book->idk;
@@ -368,8 +373,11 @@ __EOT;
               "onclick=\"go(arguments[0],'page=$1','$prefix$1','',0);\" title='$1'", 
               $obsah);
         if ( !$book  ) {
+          $div_id= "c$id";
+          $namiru= $plny ? "['upravit obrázky článku',function(el){ namiru('$id','$div_id'); }],":'';
           $kod= "Ezer.fce.contextmenu([
                 ['editovat článek',function(el){ opravit('xclanek',$id); }],
+                $namiru
                 ['-zobrazit jako článek',function(el){ zmenit($curr_menu->mid,'aclanek',$id,'xclanek'); }],
                 ['-přidat fotky',function(el){ pridat('xfotky',$id); }],
                 ['-posunout nahoru',function(el){ posunout('aclanek',$curr_menu->mid,$id,0); }],
@@ -381,6 +389,7 @@ __EOT;
           if ( $_SESSION['platform']=='I')
             $ipad= "<span class='ipad_menu' onclick=\"arguments[0].stopPropagation();$kod\">
               <i class='fa fa-bars'></i></span>";
+            $menu.= " id='$div_id'";
         }
         elseif ( $book->open && $book->ida ) {
             $div_id= "a{$book->ida}-$id";
@@ -409,7 +418,7 @@ __EOT;
         // zobrazit jako plný článek
         $html.= "
           <div class='back' $menu>
-            <div id='fokus_part' class='home$redakce_style'>
+            <div id='fokus_part' class='home$redakce_style$zmena'>
               $obsah
             </div>
           </div>";
@@ -456,9 +465,11 @@ __EOT;
           if ( $book && !$book->first )
             break;
         }
+        $zmena= $zmena ? "<img src='man/img/upd.png' class='zmena'>" : '';
         $html.= "
           <div class='back' $menu $neodkaz>
             <a class='$styl home$redakce_style' $jmp>
+              $zmena
               $ipad
               $obsah
             </a>
@@ -467,11 +478,14 @@ __EOT;
       break;
 
     case 'xclanek': # ------------------------------------------------ . xčlánek
-      list($obsah,$wskill,$cskill)= 
-          select("web_text,web_skill,cms_skill","xclanek","id_xclanek=$id");
+      list($obsah,$wskill,$cskill,$zmena)= 
+          select("web_text,web_skill,cms_skill,TO_DAYS(NOW())-IFNULL(TO_DAYS(ch_date),0)",
+              "xclanek","id_xclanek=$id");
       if ( $wskill && !($KLIENT->level & $wskill) ) {
         break;
       }
+      // má se upozornit na změnu?
+      $zmena= $zmena < ZMENA ? ' zmena' : '';
       // viditelnost redakčních specialit
       $redakce_style= '';
       if ( $cskill ) {
@@ -488,21 +502,51 @@ __EOT;
 //              "onclick=\"go(arguments[0],'page=$1','$prefix$1','',0);\" title='$1'", 
               "onclick=\"go(arguments[0],'page=$1','$1','',0);\" title='$1'", 
               $obsah);
+        $div_id= "c$id";
         $menu= " title='článek $id' oncontextmenu=\"
             Ezer.fce.contextmenu([
               ['editovat článek',function(el){ opravit('xclanek',$id); }],
+              ['upravit obrázky článku',function(el){ namiru('$id','$div_id'); }],
               ['-zobrazit jako abstrakt',function(el){ zmenit($curr_menu->mid,'xclanek',$id,'aclanek'); }],
               ['-přidat článek na začátek',function(el){ pridat('xclanek',$curr_menu->mid,1); }],
-              ['přidat článek na konec',function(el){ pridat('xclanek',$curr_menu->mid,0); }]
+              ['přidat článek na konec',function(el){ pridat('xclanek',$curr_menu->mid,0); }],
+              ['-přidat knihu na začátek',function(el){ pridat('xkniha',$curr_menu->mid,1); }],
+              ['přidat knihu na konec',function(el){ pridat('xkniha',$curr_menu->mid,0); }]
             ],arguments[0],0,0,'#xclanek$id');return false;\"";
       }
       $html.= "
         <div class='back' $menu>
-          <div id='xclanek$id' class='home$redakce_style'>
+          <div id='xclanek$id' class='home$redakce_style$zmena'>
             $obsah
           </div>
         </div>
       ";
+        // pokud jsou fotky, přidáme
+        $rf= mysql_qry("SELECT id_xfotky,nazev,seznam,path,autor FROM xfotky WHERE id_xclanek=$id");
+        while ($rf && list($fid,$nazev,$seznam,$path,$podpis)=mysql_fetch_row($rf)) {
+          if ( $REDAKCE ) {
+            $note= "<span style='float:right;color:red;font-style:italic;font-size:x-small'>
+                  ... zjednodušené zobrazení fotogalerie pro editaci</span>";
+            $menu= " title='fotky $fid' oncontextmenu=\"
+                Ezer.fce.contextmenu([
+                  ['organizovat fotky',function(el){ opravit('xfotky',$fid); }],
+                  ['kopírovat ze setkání',function(el){ zcizit('fotky',$fid,0); }],
+                  ['... jen test',function(el){ zcizit('fotky',$fid,1); }]
+                ],arguments[0],0,0,'#xclanek$id');return false;\"";
+          }
+          $galery= show_fotky2($fid,$seznam);
+          $html.= "
+            <div class='galery_obal' $menu>
+              <div id='xfotky$fid' class='galerie'>
+                <div class='text'>
+                  <h1>&nbsp;&nbsp;&nbsp;$nazev $note</h1>
+                  $galery
+                  <div class='podpis'>$podpis</div>
+                </div>
+              </div>
+            </div>
+          ";
+        }
       break;
 
     case 'kalendar': # ----------------------------------------------- . kalendar
@@ -738,7 +782,7 @@ function show_page($html) {
   
   // jádro Ezer - jen pokud není aktivní CMS
   $script= '';
-  $client= "./ezer3/client";
+  $client= "./ezer3.1/client";
 
   // Google Analytics
   $GoogleAnalytics= $ezer_local ? '' : <<<__EOD
@@ -752,9 +796,13 @@ __EOD;
 
   // gmaps
   $api_key= "AIzaSyAq3lB8XoGrcpbCKjWr8hJijuDYzWzImXo"; // Google Maps JavaScript API 'answer-test'
+//    <script src="https://maps.googleapis.com/maps/api/js?key=$api_key&callback=initMap" async defer></script>
   $script.= !$load_ezer ? '' : <<<__EOJ
-    <script src="https://maps.googleapis.com/maps/api/js?libraries=places&key=$api_key"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=$api_key&callback=skup_mapka" async defer></script>
 __EOJ;
+//  $script.= !$load_ezer ? '' : <<<__EOJ
+//    <script src="https://maps.googleapis.com/maps/api/js?libraries=places&key=$api_key"></script>
+//__EOJ;
   
   $script.= <<<__EOJ
     <script src="$client/licensed/jquery-3.2.1.min.js" type="text/javascript" charset="utf-8"></script>
@@ -779,7 +827,7 @@ __EOJ
       Ezer.fce= {};
       Ezer.str= {};
       Ezer.obj= {};
-      Ezer.version= 'ezer3'; Ezer.root= 'man'; Ezer.app_root= 'man'; 
+      Ezer.version= 'ezer3.1'; Ezer.root= 'man'; Ezer.app_root= 'man'; 
       Ezer.options= {
         _oninit: 'skup_mapka',
         skin: 'db'
@@ -1307,11 +1355,15 @@ function log_report($par) { trace();
             $j=='d' ? ' smazání' : (
             $j=='r' ? ' resize' : '?')));
       }
-      $co= $tab=='c' ? 'článku' : 'akce';
-      $txt= $tab=='c' ? log_show('xclanek',$id_tab) : "akce $id_tab";
+      $co= $tab=='c' ? 'článku' : ( 
+           $tab=='b' ? 'knihy' : 'akce' );
+      $tab=$tab=='c' ? 'xclanek' : ( 
+           $tab=='b' ? 'xkniha' : 'xakce' );
+//      $txt= $tab=='c' ? log_show('xclanek',$id_tab) : "akce $id_tab";
+      $txt= log_show($tab,$id_tab);
       $krat= $krat==1 ? "" : " ($krat x)";
-      $html.= "$kdy <b>$username</b> - $jak $co $txt $krat<br>";
-//      $html.= "<dt>$kdy <b>$username</b></dt><dd>$jak $co $txt $krat</dd>";
+      $y= log_path($tab,$id_tab); // pokus nalézt umístění
+      $html.= "$kdy <b>$username</b> - $jak $co $txt $krat $y->url<br>";
     }
     $html.= "</dl>";
     break;
@@ -1333,24 +1385,127 @@ function log_report($par) { trace();
   }
   return $html;
 }
+# ----------------------------------------------------------------------------------------- log path
+# vrátí url článku nebo knihy
+function log_path($tab,$idc) { 
+  $y= (object)array('url'=>'','path'=>'');
+  $path= array();
+  switch ($tab) {
+  case 'xakce':  
+    $elems= select("xelems","xakce","id_xakce=$idc");
+    if ( $elems ) {
+      $html= 'viz akce $nazev';
+    }
+    else {
+      list($idm,$ref,$top,$menu)= 
+          select('mid,ref,mid_top,nazev','menu',"elem RLIKE 'kalendar(;|$)'");
+      if ( $idm ) {
+        if ( $top ) $path[]= select('ref','menu',"mid=$top");
+        $path[]= $ref;
+        $path[]= $idc;
+        $y->path= "v menu <i>$menu</i>";
+        goto end;
+      }
+    }
+    break;
+  case 'xkniha':  
+    // kniha v menu ?
+    list($idm,$ref,$top,$menu)= 
+        select('mid,ref,mid_top,nazev','menu',"elem RLIKE 'xkniha=$idc(;|$)'");
+    if ( $idm ) {
+      if ( $top ) $path[]= select('ref','menu',"mid=$top");
+      $path[]= $ref;
+      $path[]= $idc;
+      $y->path= "v menu <i>$menu</i>";
+      goto end;
+    }
+    break;
+  case 'xclanek':  
+    // článek v menu ?
+    list($idm,$ref,$top,$menu)= 
+        select('mid,ref,mid_top,nazev','menu',"elem RLIKE 'clanek=$idc(;|$)'");
+    if ( $idm ) {
+      if ( $top ) $path[]= select('ref','menu',"mid=$top");
+      $path[]= $ref;
+      $path[]= $idc;
+      $y->path= "v menu <i>$menu</i>";
+      goto end;
+    }
+    // článek v knize ?
+    list($idk,$kniha)= 
+        select('id_xkniha,nazev','xkniha',"xelems RLIKE 'clanek=$idc(;|$)'");
+    if ( $idk ) {
+      list($idm,$ref,$top,$menu)= 
+          select('mid,ref,mid_top,nazev','menu',"elem RLIKE 'kniha=$idk(;|$)'");
+      if ( $top ) $path[]= select('ref','menu',"mid=$top");
+      $path[]= $ref;
+      $path[]= "$idk,$idc";
+      $y->path= "v knize <i>$kniha</i> v menu <i>$menu</i>";
+      goto end;
+    }
+    // článek v akci ?
+    list($ida,$akce,$rok,$nazev)= 
+        select('id_xakce,nazev,YEAR(datum_od),nazev','xakce',"xelems RLIKE 'clanek=$idc(;|$)'");
+    if ( $ida ) {
+      $path[]= 'akce';
+      $path[]= "$rok,$idc";
+      $y->path= "v akci <i>$nazev</i> roku $rok";
+      goto end;
+    }
+    break;
+  }
+end:
+  $path= implode('!',$path);
+  $y->url= "<a onclick=\"go(0,'page=$path','$path')\">&nbsp;<i class='fa fa-arrow-right'></i>&nbsp;</a>";
+  return $y;
+}
 # ----------------------------------------------------------------------------------------- log show
 # zobrazí náhled článku
-function log_show($tab,$id_tab) { 
+function log_show($tab,$id_tab) { trace();
   global $index;
   $html= "$id_tab";
   switch ($tab) {
-  case 'xclanek':  
-  $obsah= select("web_text","xclanek","id_xclanek=$id_tab");
-  $obsah= str_replace('$index',$index,$obsah);
-  // zobrazit jako abstrakt
-  $obsah= x_shorting($obsah);
-  $html= "
-    <div class='back'>
-      <a class='aclanek home'>
-        $obsah
-      </a>
-    </div>";
+  case 'xakce':  
+    list($elems,$obsah,$nazev,$od,$do,$misto)= 
+      select("xelems,web_text,nazev,datum_od,datum_do,misto","xakce","id_xakce=$id_tab");
+    $oddo= datum_oddo($od,$do);
+    if ( $elems ) {
+      $html= 'viz akce $nazev';
+    }
+    else {
+      // zobrazit jako abstrakt
+      $obsah= x_shorting($obsah);
+      $html= "
+        <div class='back'>
+          <a class='aclanek home'>
+            <b>$oddo $nazev, $misto</b> 
+            <br>$obsah
+          </a>
+        </div>";
+    }
     $html= "<a onclick=\"Ezer.fce.alert(`$html`)\">$id_tab</a>";
+    break;
+  case 'kapitola':
+  case 'xclanek':  
+    $obsah= select("web_text","xclanek","id_xclanek=$id_tab");
+    $obsah= str_replace('$index',$index,$obsah);
+    // zobrazit jako abstrakt
+    $obsah= x_shorting($obsah);
+    $html= "
+      <div class='back'>
+        <a class='aclanek home'>
+          $obsah
+        </a>
+      </div>";
+    if ( $tab=='xclanek' )
+      $html= "<a onclick=\"Ezer.fce.alert(`$html`)\">$id_tab</a>";
+    break;
+  case 'xkniha':  
+    $elems= select("xelems","xkniha","id_xkniha=$id_tab");
+    list($elem)= explode(';',$elems);
+    list($filler,$idc)= explode('=',$elem);
+    $html_c= log_show('kapitola',$idc);
+    $html= "<a onclick=\"Ezer.fce.alert(`$html_c`)\">$id_tab</a>";
     break;
   }
   return $html;

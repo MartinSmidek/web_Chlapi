@@ -185,7 +185,7 @@ function namiru_fotky($id,$imgs,$replace) {
         if ( x_resample($orig,$small,$img->width,$img->height) ) {
           if ( $replace ) {
             $text= preg_replace(
-                "~<img(.*)src=\"$dir/$name\"(.*)>~U",
+                "~<img([^>]*)src=\"$dir/$name\"([^>]*)>~Umu",
                 "<a href='$prefix/$dir/$name' target='img'><img $1 src='$dir/.$name' $2></a>",
                 $text);
           }
@@ -760,7 +760,7 @@ function menu_add_elem($mid,$table,$first=0,$id_user=0) {
     query("INSERT INTO xclanek (editors,cms_skill) VALUES ('$id_user',4)");
     $idc= mysql_insert_id();
     log_obsah('i','c',$idc);
-    $ymd= "$mid-12-31";
+    $ymd= "$mid-01-01";
     query("INSERT INTO xakce (xelems,datum_od,datum_do) VALUES ('aclanek=$idc','$ymd','$ymd')");
     break;
   case 'xkniha':       // ---------------------------------- nová kniha s prvním článkem

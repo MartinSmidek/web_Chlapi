@@ -1,7 +1,7 @@
 <?php
 
   // volba verze jádra Ezer
-  $kernel= "ezer".(isset($_GET['ezer'])?$_GET['ezer']:'3'); 
+  $kernel= "ezer".(isset($_GET['ezer'])?$_GET['ezer']:'3.1'); 
 
   // rozlišení lokální a ostré verze
   $ezer_local= preg_match('/^\w+\.bean$/',$_SERVER["SERVER_NAME"])?1:0;
@@ -20,6 +20,10 @@
   // určení uživatele podle session.web.fe_user
   require_once("../$kernel/server/ae_slib.php");
   require_once '2template_ch.php';
+  if ( $kernel=='ezer3.1') {
+    require_once("../$kernel/mysql.inc.php");
+    require_once("../$kernel/server/ezer_pdo.php");
+  }
   db_connect();
   $username= select("username","_user","id_user={$_SESSION['web']['user']}");
   if ( $username ) {

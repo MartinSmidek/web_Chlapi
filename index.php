@@ -14,7 +14,6 @@ ini_set('display_errors', 'On');
 require_once("man/2template_ch.php");
 
 # ------------------------------------------ ajax
-
 if ( count($_POST) ) {
   require_once("man/2mini.php");
   $x= array2object($_POST);
@@ -22,15 +21,19 @@ if ( count($_POST) ) {
   ask_server($x);
   header('Content-type: application/json; charset=UTF-8');
   $yjson= json_encode($y);
+  $z= json_last_error();
+  if ( $z!=JSON_ERROR_NONE ) {
+    $z= (object)array('error'=>$z);
+    $yjson= json_encode($z);
+  }
   echo $yjson;
   exit;
 }
-
 def_user();
 if ( $REDAKCE ) {
   // ----------------------------------------- zobraz CMS pomocí Ezer
   chdir('man');
-  require_once("man/man.php"); 
+  require_once("man.php"); 
 }
 else {
   require_once("man/2mini.php");
@@ -44,7 +47,6 @@ else {
   // pamatování GET
   global $GET_rok;
   $GET_rok= isset($_GET['rok']) ? $_GET['rok'] : '';
-
   read_menu();
   $path= isset($_GET['page']) ? explode('!',$_GET['page']) : array('home');
   $elem= eval_menu($path);

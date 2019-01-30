@@ -28,6 +28,7 @@ panel p [0,0,*,*] { type:'main', _sys:'$'
   proc pridat(_typ,_mid,_first) { var me:number
     me.set(sys('user','id_user'));
     eq('xclanek',_typ); ask('menu_add_elem',_mid,_typ,_first,me); refresh 
+  | eq('xkniha',_typ); ask('menu_add_elem',_mid,_typ,_first,me); refresh 
   | eq('xkniha.elem',_typ); ask('menu_add_elem',_mid,_typ,_first,me); refresh 
   | eq('xfotky',_typ); FOTKY.novy(_mid); refresh 
   | eq('xakce',_typ); ask('menu_add_elem',_mid,_typ,0,me); refresh 
@@ -80,6 +81,33 @@ panel p [0,0,*,*] { type:'main', _sys:'$'
     f.verze.set(sys('ezer','version')); 
     ask_page(function("return Ezer.app_root;"),ref);
   }
+  # --------------------------------------------------------------------------==> stnd.funkce
+  # on=1 => nastaví class=obligatory pro elementy s par.obligatory=1
+  # on=0 => zruší ...
+  # pokud je f proměnná (use), musí se použít f.get
+  proc form_obligatory(f,on) {
+    on;      foreach(f,form_obligatory_do)
+  | not(on); foreach(f,form_obligatory_od)
+  }
+  proc form_obligatory_do(e) {
+    eq(e.par); eq(e.par.obligatory,1);
+    e.set_css('obligatory');
+  }
+  proc form_obligatory_od(e) {
+    eq(e.par); eq(e.par.obligatory,1);
+    e.set_css('','obligatory');
+  }
+  # vrátí počet nevyplněných povinných elementů tj. s par.obligatory=1
+  var form_obligatory_n:number
+  proc form_obligatory_test(f) {
+    form_obligatory_n.set(0);
+    foreach(f,form_obligatory_test_do);
+    return(form_obligatory_n.get);
+  }
+  proc form_obligatory_test_do(e) {
+    eq(e.par); eq(e.par.obligatory,1);
+    [ e.get | form_obligatory_n.set(sum(form_obligatory_n.get,1)) ]
+  }
 # ----------------------------------------------------------------------------==> control bar
   form _f [,,*,30] { css:'grey admin', style:'z-index:9999;position:fixed'
     proc hide_all() { CMS.hide; ADMIN.hide; REDAKCE.hide; OPTIONS.hide }
@@ -103,7 +131,7 @@ panel p [0,0,*,*] { type:'main', _sys:'$'
 //    }}
     button [-95,5,,] { skill:'r|a', title:"[fa-gears] menu" 
       proc onclick() { hide_all; CMS.modal(10,40) } }
-    label verze [-313,8,40,] { title:'ezer', style:'font-size:10pt;color:white' } 
+    label verze [-320,8,40,] { title:'ezer', style:'font-size:10pt;color:white' } 
     button [-238,5,,] { skill:'r|r', title:"[fa-file-text] přehledy" 
       proc onclick() { hide_all; ADMIN.modal(10,40) } }
     button [-160,5,,] { skill:'r|a', title:"[fa-user-circle] redakce" 
@@ -223,12 +251,13 @@ panel CMS [0,0,610,400] { type:'popup',  title:'CMS - definice menu',
     field mid [5,164,35,] { title:"^mid" }
     field mid_top [49,164,35,] { title:"^top" }
     field mid_sub [94,164,35,] { title:"^sub" }
-    field typ [153,164,22,17] { title:"^typ" }
-    field rank [186,164,22,17] { title:"^rank" }
-    field level [218,164,22,17] { title:"^level" }
-    field ref [6,203,79,] { title:"^ref" }
-    field nazev [97,203,146,] { title:"^název" }
-    field title [256,203,127,] { title:"^title" }
+    field typ [153,164,22,17] { title:"^typ" help:'0=top 1=hlavní 2=podmenu'}
+    field rank [186,164,22,17] { title:"^order" help:'pořadí v nadřízeném menu'}
+    field level [218,164,22,17] { title:"^level" help:'8=mrop' }
+    field redakce [252,164,22,17] { title:"^redakce" help:'0=každý 1=programátor 2=testér 4=redakce'}
+    field ref [6,203,79,] { title:"^ref" help:'objeví se v url'}
+    field nazev [97,203,146,] { title:"^název" help:'objeví se v menu'}
+//    field title [256,203,127,] { title:"^title" }
     edit elem [5,242,378,60] { title:"^definice obsahu" }
     proc onchanged(elem) {
       echo(elem.id); a.curr_data.set(elem.get,elem.id); elem.plain;
@@ -421,18 +450,22 @@ panel REDAKCE [0,0,840,515] {type:'popup', title:'Redakce', css:'dialog_menu',
     { u_test(uzivatel.key)
     | uzivatel.save; uzivatel.load;
       uzivatele.lst.browse_seek;
-      cmd.get.enable(0,'c');
+      cmd.get.enable(0,'c|z');
     }
+  | not(uzivatel.key);
+    p.form_obligatory_test(uzivatel.get);
+    alert("ještě nejsou vyplněny všechny povinné údaje (žluté)")
   | not(uzivatel.key);
     { u_test(0)
     | // vytvoření uživatele - musí platit id_user=ezer_db2.id_osoba
+      p.form_obligatory(uzivatel.get,0);
       idu.set(prompt(
             "pro správnou funkci emailového přihlašování je třeba vyplnit ID osoby z Answeru",0));
       idu;
       uzivatel.id_user.set(idu); uzivatel.id_user.change;
       uzivatel.insert; novy.set(uzivatel.key); uzivatel.load;
       uzivatele.lst.browse_load; uzivatele.lst.raise('onrowclick',novy.get);
-      cmd.get.enable(0,'c');
+      cmd.get.enable(0,'c|z');
     }
   }
   # test položek před uložením
@@ -546,18 +579,18 @@ panel REDAKCE [0,0,840,515] {type:'popup', title:'Redakce', css:'dialog_menu',
     label [5,6,89,15] { title:'<h1>Uživatel</h1>' }
     field id_user { data:u.id_user }
     field skills [2,46,146,] { data:u.skills, format:'n' }
-    field username [5,48,60,] { data:u.username, title:'^username' }
-    field password [74,48,42,] { data:u.password, title:'^heslo', format:'d' }
-    field znacka [124,48,34,] { data:u.abbr, title:'^zkratka' }
+    field username [5,48,60,] { data:u.username title:'^username' par:°{obligatory:1}}
+    field password [74,48,42,] { data:u.password title:'^heslo', format:'d' }
+    field znacka [124,48,34,] { data:u.abbr title:'^zkratka' par:°{obligatory:1}}
     select org [168,48,66,] { tag:'ac', data:u.org, format:'w', title:'^organizace' }
     select access [242,48,44,] { tag:'ac', data:u.access, format:'w', title:'^přístup k' }
-    field prijmeni [5,92,152,] { data:u.surname, title:'^příjmení' }
-    field jmeno [168,92,117,] { data:u.forename, title:'^jméno' }
+    field prijmeni [5,92,152,] { data:u.surname title:'^příjmení' par:°{obligatory:1}}
+    field jmeno [168,92,117,] { data:u.forename title:'^jméno' par:°{obligatory:1}}
     edit ips [298,47,127,64] { tag:'ip', data:u.ips, title:'^povolené IP adresy' }
     field login { data:u.login }
     field kdo { data:u.zmena_kdo }
     field kdy { data:u.zmena_kdy }
-    proc onchanged() { cmd.get.enable(1,'c') }
+    proc onchanged() { cmd.get.enable(1,'c|z') }
   }
   # ----------------------------------------------------------------==> ... desc_skills
   form desc_skills [,,433,351] { 
@@ -615,7 +648,7 @@ panel REDAKCE [0,0,840,515] {type:'popup', title:'Redakce', css:'dialog_menu',
 #       |
         uzivatel.skills.set(ask('sys_ids2skills',this.selected('get')));
         uzivatel.skills.change;
-        cmd.get.enable(1,'c');
+        cmd.get.enable(1,'c|z');
       }
     }
   }
@@ -643,18 +676,20 @@ panel REDAKCE [0,0,840,515] {type:'popup', title:'Redakce', css:'dialog_menu',
     button uloz_clena [449,12,,] { tag:'c', type:'html', title:'[fa-save] Uložit'                   skill:'a|m'
       proc onclick () { u_uloz
     } }
-    button zpet_clena [515,12,,] { tag:'c', type:'html', title:'[fa-undo] Zpět'                     skill:'a|m'
+    button zpet_clena [515,12,,] { tag:'z', type:'html', title:'[fa-undo] Zpět'                     skill:'a|m'
       proc onclick () {
-        uzivatel.key; uzivatel.load;
-        cmd.get.enable(0,'c');
+        p.form_obligatory(uzivatel.get,0);
+        uzivatele.lst.browse_key; uzivatel.load(uzivatele.lst.browse_key);
+        cmd.get.enable(0,'c|z');
     } }
     button vytvor_clena [651,12,,] { type:'html', title:'[fa-heart] Vytvořit'                       skill:'a|m'
       proc onclick () {
-        cmd.get.enable(0,'c');
+        cmd.get.enable(0,'c'); cmd.get.enable(1,'z');
         dskill.seznam.selected('clear');
         uzivatele.lst.blur; uzivatel.init; uzivatel.kdo.set(sys('user','id_user'));
         uzivatel.kdy.set(now);
         uzivatel.znacka.enable(1);
+        p.form_obligatory(uzivatel.get,1);
     } }
   }
 }
@@ -787,8 +822,12 @@ panel EDITOR [0,0,720,550] { type:'popup', style:"min-width:700px", _sys:'edi'
     button  [-46,5,,] { title:'Uložit', help:'ukončit editor a uložit změny'
       proc onclick() { 
         form.same
-      | form.key; form.save; form.load; panel.hide(1); 
-      | form.insert; form.load; panel.hide(1); 
+      | form.key; form.save; form.load; 
+        ask('log_obsah','u','a',id.get); 
+        panel.hide(1); 
+      | id.set(form.insert); form.load; 
+        ask('log_obsah','i','a',id.get); 
+        panel.hide(1); 
       }}
     button  [-1,5,,] { title:'Zpět', help:'ukončit editor bez uložení změn'
       proc onclick() { panel.hide(0); }}
@@ -859,6 +898,18 @@ panel EDITOR [0,0,720,550] { type:'popup', style:"min-width:700px", _sys:'edi'
   # oprava textu článku
   form _c [10,10,710,460] {
     field id_editors { data:xclanek.editors }
+    edit ch_date [-170,1,47,29] { format:'o' value:'31.12.2018' css:'edit_ch' data:xclanek.ch_date 
+      help:'datum poslední podstatné změny textu (lze ovládat tlačítky)' }
+    button [-196,15,17,17] { title:'[fa-exclamation-triangle]' css:'button_ch' 
+      help:'dnes došlo k podstatné změně'
+      proc onclick() {
+        ch_date.set(now); ch_date.change
+    }}
+    button [-180,15,17,17] { title:'[fa-close]' css:'button_ch' 
+      help:'zrušení data podstatné změny'
+      proc onclick() {
+        ch_date.set(''); ch_date.change
+    }}
     button  [-121,5,,] { title:'Uložit', help:'ukončit editor a uložit změny'
       proc onclick() { 
         form.save; 
@@ -877,11 +928,11 @@ panel EDITOR [0,0,720,550] { type:'popup', style:"min-width:700px", _sys:'edi'
       }
     }
     // autoři a oprávnění
-    select editors [46,5,150,] { type:'map+', title:'napsal', help:'+ kdo může text měnit'
+    select editors [40,5,150,] { type:'map+', title:'napsal', help:'+ kdo může text měnit'
         options:users.username, value:'0', data:xclanek.editors }
-    select  [231,5,100,] { type:'map', title:'uvidí', help:'zobrazí se jen pro ...'
+    select  [225,5,100,] { type:'map', title:'uvidí', help:'zobrazí se jen pro ...'
         options:cis_web.zkratka, value:'0', data:xclanek.web_skill }
-    select  [388,5,100,] { type:'map', title:'omezení', help:'zobrazí se jen pro ...'
+    select  [382,5,100,] { type:'map', title:'omezení', help:'zobrazí se jen pro ...'
         options:cis_cms.zkratka, value:'0', data:xclanek.cms_skill }
     // text
     edit obsah [0,40,712,480] { type:'html', data:xclanek.web_text, par:°{toolbar:'WEB'} }
@@ -1147,11 +1198,14 @@ table menu { key_id:'mid', db:'setkani'
   number mid { key:'primary' }
   number mid_top 
   number mid_sub
-  number level
-  number typ
-  number rank
-  text ref
+  number redakce 
+  number level   
+  number typ     
+  number rank    
+  text ref       
   text nazev
+  date cr_date
+  date ch_date
 }
 table xakce { key_id:'id_xakce', db:'setkani'
   number id_xakce { key:'primary' }
@@ -1175,6 +1229,7 @@ table xclanek { key_id:'id_xclanek', db:'setkani'
   number web_skill
   number cms_skill
   text web_text
+  date ch_date  { sql_pipe:'sql_date1' } // datum podstatné změny
 }
 table _help {  key_id:'id_help'                     // tabulka _help je v databázi aplikace
   number id_help { key:'primary' }

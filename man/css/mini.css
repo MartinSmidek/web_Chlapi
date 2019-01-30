@@ -1,3 +1,13 @@
+/* ovládací prvky */
+button.button_ch { 
+  padding:0 !important; }
+textarea.edit_ch { 
+  font-size:9px; text-align:center; overflow:hidden;
+  border: 1px solid white !important; }
+
+.obligatory input { 
+  background-color:yellow }
+
 /* popup panely */
 div.Popup3 {
   left: 20px;  

@@ -52,6 +52,7 @@ function bar_menu(e,x) {
   else {
     switch (x) {
     case 'me_login':
+//      alert('Je mi líto, ale nyní se nelze přihlásit. Našemu serveru je špatně.\nŽivot je těžký ... Martin');
       jQuery('#user_mail').css({display:'block'}).addClass('key_in').attr('data-login','me');
       break;
     }

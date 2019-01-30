@@ -571,7 +571,7 @@ function mail_send($reply_to,$address,$subject,$body) { trace();
 //   $subject= "test";
 //   $body= "TEST";
   $TEST= 0;
-  $ezer_path_serv= "ezer3/server";
+  $ezer_path_serv= "ezer3.1/server";
   $phpmailer_path= "$ezer_path_serv/licensed/phpmailer";
   require_once("$phpmailer_path/class.phpmailer.php");
   require_once("$phpmailer_path/class.smtp.php");
