@@ -221,6 +221,7 @@ var code= {
 };
 // -------------------------------------------------------------------------------------- skup mapka
 function skup_mapka() {
+  if ( !Ezer.App ) return;
   label= jQuery('div.cms_mapa');
   if ( label[0] ) {
     label.css({display:'block'});
