@@ -409,6 +409,8 @@ __EOT;
                 ['editovat článek',function(el){ opravit('xclanek',$id); }],
                 ['-zobrazit jako článek',function(el){ zmenit($curr_menu->mid,'aclanek',$id,'xclanek'); }],
                 ['-přidat fotky',function(el){ pridat('xfotky',$id); }],
+                ['-posunout nahoru',function(el){ posunout('xkniha.elem',$book->idk,$id,0); }],
+                ['posunout dolů',function(el){ posunout('xkniha.elem',$book->idk,$id,1); }],
                 ['-nová kapitola na začátek',function(el){ pridat('xkniha.elem',$book->idk,1); }],
                 ['nová kapitola na konec',function(el){ pridat('xkniha.elem',$book->idk,0); }]
               ],arguments[0],0,0,'#xclanek$id');return false;\"";

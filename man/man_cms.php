@@ -821,9 +821,16 @@ function menu_chng_elem($mid,$typ1,$id,$typ2) {
 }
 # ---------------------------------------------------------------------------------- menu shift_elem
 # posune element o jedno dolů (pro down=0 nahoru)
-function menu_shift_elem($typ,$mid,$id,$down) {
-  // zjistíme všechna menu na stejné úrovni
-  $elems= select("elem","menu","mid=$mid");
+function menu_shift_elem($typ0,$mid,$id,$down) {
+  // zjistíme seznam elementů
+  if ( $typ0=='xkniha.elem' ) {
+    $elems= select("xelems","xkniha","id_xkniha=$mid");
+    $typ= 'aclanek';
+  }
+  else {
+    $elems= select("elem","menu","mid=$mid");
+    $typ= $typ0;
+  }
                                                       display($elems);
   $ms= explode(';',$elems);
   $elem= "$typ=$id";
@@ -843,7 +850,12 @@ function menu_shift_elem($typ,$mid,$id,$down) {
   }
   $elems= implode(';',$ms);                 
                                                       display($elems);
-  query("UPDATE menu SET elem='$elems' WHERE wid=2 AND mid=$mid");
+  if ( $typ0=='xkniha.elem' ) {
+    query("UPDATE xkniha SET xelems='$elems' WHERE id_xkniha=$mid");
+  }
+  else {
+    query("UPDATE menu SET elem='$elems' WHERE wid=2 AND mid=$mid");
+  }
   return 1;
 }
 # --------------------------------------------------------------------------------------- menu shift
