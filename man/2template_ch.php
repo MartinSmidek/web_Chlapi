@@ -382,8 +382,10 @@ __EOT;
                 ['-přidat fotky',function(el){ pridat('xfotky',$id); }],
                 ['-posunout nahoru',function(el){ posunout('aclanek',$curr_menu->mid,$id,0); }],
                 ['posunout dolů',function(el){ posunout('aclanek',$curr_menu->mid,$id,1); }],
-                ['-nový článek na začátek',function(el){ pridat('xclanek',$curr_menu->mid,1); }],
-                ['nový článek na konec',function(el){ pridat('xclanek',$curr_menu->mid,0); }]
+                ['-přidat článek na začátek',function(el){ pridat('xclanek',$curr_menu->mid,1); }],
+                ['přidat článek na konec',function(el){ pridat('xclanek',$curr_menu->mid,0); }],
+                ['-přidat knihu na začátek',function(el){ pridat('xkniha',$curr_menu->mid,1); }],
+                ['přidat knihu na konec',function(el){ pridat('xkniha',$curr_menu->mid,0); }]
               ],arguments[0],0,0,'#xclanek$id');return false;";
           $menu= " title='$co $idn' oncontextmenu=\"$kod\"";
           if ( $_SESSION['platform']=='I')
@@ -628,7 +630,7 @@ __EOT;
 
     case 'skupiny': # ------------------------------------------------ . skupiny
       $load_ezer= true;
-      $tabulku= $KLIENT->level
+      $tabulku= $REDAKCE
           ? "<a target='tab' href='https://docs.google.com/spreadsheets/d/1mp-xXrF1I0PAAXexDH5FA-n5L71r5y0Qsg75cU82X-4/edit#gid=0'>Tabulku</a>"
           : "Tabulku";
       $html.= <<<__EOT
