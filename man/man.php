@@ -4,7 +4,11 @@
   $kernel= "ezer".(isset($_GET['ezer'])?$_GET['ezer']:'3.1'); 
 
   // rozlišení lokální a ostré verze
-  $ezer_local= preg_match('/^\w+\.bean$/',$_SERVER["SERVER_NAME"])?1:0;
+//  $ezer_local= preg_match('/^\w+\.bean$/',$_SERVER["SERVER_NAME"])?1:0;
+  $ezer_server= 
+      $_SERVER["SERVER_NAME"]=='chlapi.bean' ? 0 : (          // 0:lokální 
+      $_SERVER["SERVER_NAME"]=='www.chlapi.cz' ? 1 : (        // x:ostrý server
+      $_SERVER["SERVER_NAME"]=='web.chlapi.online' ? 2 : -1));
 
   // parametry aplikace MAN
   $app_name=  "chlapi.cz";
@@ -14,8 +18,10 @@
   $app_css=   array("/man/css/mini.css","/man/css/2chlapi.css","/man/css/edit.css",
                     "/man/fotorama/fotorama.css");
   $skin=      'ck';
-  $abs_roots= array("/home/users/gandi/chlapi.online/web","C:/Ezer/beans/chlapi.online");
-  $rel_roots= array("http://www.chlapi.cz","http://chlapi.bean:8080");
+//  $abs_roots= array("/home/users/gandi/chlapi.online/web","C:/Ezer/beans/chlapi.online");
+//  $rel_roots= array("http://www.chlapi.cz","http://chlapi.bean:8080");
+  $abs_roots= array("C:/Ezer/beans/chlapi.online","/home/users/gandi/chlapi.online/web","/var/services/web/www/chlapi");
+  $rel_roots= array("http://chlapi.bean:8080","http://www.chlapi.cz","http://web.chlapi.cz");
   
   // určení uživatele podle session.web.fe_user
   require_once("../$kernel/server/ae_slib.php");
@@ -33,7 +39,7 @@
   else {
     // nebo odmítnutí přihlášení
     session_destroy();
-    header("Location: $rel_roots[$ezer_local]"); 
+    header("Location: $rel_roots[$ezer_server]"); 
   }
 
   // specifická část aplikace předávaná do options
@@ -43,14 +49,14 @@
   $add_options= (object)array(
     'to_trace' => 1,
     'mini_debug' => 1,
-    'path_files_href' => "'$rel_roots[$ezer_local]'",
-    'path_files_s' => "'$abs_roots[$ezer_local]/'"  // absolutní cesta pro přílohy
+    'path_files_href' => "'$rel_roots[$ezer_server]'",
+    'path_files_s' => "'$abs_roots[$ezer_server]/'"  // absolutní cesta pro přílohy
   );
 
   // (re)definice Ezer.options
   $add_pars= array(
     'log_login' => false,   // nezapisovat standardně login do _touch (v ezer2.php)
-    'favicon' => $ezer_local ? 'chlapi_ico_local.png' : 'chlapi_ico.png',    
+    'favicon' => array('chlapi_ico_local.png','chlapi_ico.png','chlapi_ico_dsm.png')[$ezer_server],    
     'template' => "user",
     'template_meta' => $template_meta,
     'template_body' => $template,

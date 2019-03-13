@@ -168,11 +168,9 @@ function save_fotky($x,$perm=null) {
 # pokud je $replace=1 nahradí v textu článku odkazy 
 # jinak vrátí dotaz, zda to udělat s informací o získaném prostoru
 function namiru_fotky($id,$imgs,$replace) { 
-  global $ezer_path_root, $ezer_local;
+  global $ezer_path_root, $ezer_server;
   $y= (object)array('n'=>0,'msg'=>'');
-  $prefix= $ezer_local
-      ? "http://chlapi.bean:8080/"
-      : "http://www.chlapi.cz/";
+  $prefix= get_prefix();
   $dir= "/inc/c/$id";
   $text= select('web_text','xclanek',"id_xclanek=$id");
   foreach ((array)$imgs as $img) {
@@ -539,11 +537,8 @@ function TEST() {
 # zkopíruje chybějící fotky ze setkani.org/filedamin/photo do chlapi.cz/inc/f
 # je voláno po založení záznamu pro fotky v menu_copy_elem('F',...)
 function menu_copy_foto($fid,$test=1) {
-  global $ezer_local, $abs_root;
-  $fileadmin= $ezer_local 
-      ? "http://setkani.bean:8080/fileadmin"
-      : "https://www.setkani.org/fileadmin";
-//  $fileadmin= "https://www.setkani.org/fileadmin";
+  global $ezer_server, $abs_root;
+  $fileadmin= get_fileadmin();
   $msg= '?';
   // složka pro fotky
   list($lst,$pid)= select("seznam,path","xfotky","id_xfotky='$fid'");
@@ -584,10 +579,8 @@ function menu_copy_foto($fid,$test=1) {
 # ----------------------------------------------------------------------------------- menu copy_elem
 # zkopíruje ze setkani.org článek nebo knihu
 function menu_copy_elem($co,$pid,$mid,$test=true) {
-  global $y, $ezer_local, $abs_root;
-  $fileadmin= $ezer_local 
-      ? "http://setkani.bean:8080/fileadmin"
-      : "https://www.setkani.org/fileadmin";
+  global $y, $ezer_server, $abs_root;
+  $fileadmin= get_fileadmin();
   $msg= '?';
   $elems= '';
   $aid= 0; 

@@ -16,6 +16,26 @@ function def_user() {
       'level' => isset($_SESSION['man']['level']) ? 0+$_SESSION['man']['level'] : 0  
   ) : NULL; 
 }
+# ------------------------------------------------------------------------------------ get fileadmin
+# vrátí fileadmin pro web setkani
+function get_fileadmin() {
+  global $ezer_server;
+  $fileadmin= array(
+      "http://setkani.bean:8080/fileadmin",
+      "https://www.setkani.org/fileadmin",
+      "https://web.setkani.org/fileadmin")[$ezer_server];
+  return $fileadmin;
+}
+# --------------------------------------------------------------------------------------- get prefix
+# vrátí prefix
+function get_prefix() {
+  global $ezer_server;
+  $prefix= array(
+      "http://chlapi.bean:8080/",
+      "http://www.chlapi.cz/",
+      "http://web.chlapi.cz/")[$ezer_server];
+  return $prefix;
+}
 # -------------------------------------------------------------------------------------==> page
 // jen pro CMS mod: vrací objekt se stránkou
 function page($a,$b) { 
@@ -61,16 +81,10 @@ function read_menu() {
 # -------------------------------------------------------------------------------------==> eval_menu
 # path = [ mid, ...]
 function eval_menu($path) { 
-  global $REDAKCE, $currpage, $tm_active, $ezer_local;
+  global $REDAKCE, $currpage, $tm_active, $ezer_server;
   global  $menu, $topmenu, $mainmenu, $submenu, $submenu_shift, $elem, $curr_menu, $backref, $top;
   global $prefix, $href, $input;
-//      ? "http://chlapi.bean:8080/$index?page="
-//      : "http://chlapi.online/$index?page=";
-  $prefix= $ezer_local
-      ? "http://chlapi.bean:8080/"
-      : "http://www.chlapi.cz/";
-//      ? "http://chlapi.bean:8080/"
-//      : "http://chlapi.online/";
+  $prefix= get_prefix();
   $topmenu= $mainmenu= $submenu= '';
   $currpage= implode('!',$path);
   $top= array_shift($path);
@@ -164,7 +178,7 @@ function eval_menu($path) {
 // desc :: key [ = ids ]
 // ids  :: id1 [ / id2 ] , ...    -- id2 je klíč v lokální db pro ladění
 function eval_elem($desc,$book=null) {
-  global $REDAKCE, $KLIENT, $ezer_local, $index, $load_ezer, $curr_menu, $top, $prefix;
+  global $REDAKCE, $KLIENT, $ezer_server, $http_server, $index, $load_ezer, $curr_menu, $top, $prefix;
 //  global  $menu, $topmenu, $mainmenu, $submenu, $submenu_shift, $elem, $curr_menu, $backref, $top;
 //  global $edit_entity, $edit_id;
   $elems= explode(';',$desc);
@@ -179,7 +193,7 @@ function eval_elem($desc,$book=null) {
       $id= array();
       foreach (explode(',',$ids) as $id12) {
         list($id_server,$id_local)= explode('/',$id12);
-        $id[]= $id_local ? ($ezer_local ? $id_local : $id_server) : $id_server; 
+        $id[]= $id_local ? (!$ezer_server ? $id_local : $id_server) : $id_server; 
       }
       $id= implode(',',$id);
     }
@@ -369,7 +383,7 @@ __EOT;
       $obsah= x_cenzura($obsah);
       $menu= $note= '';
       if ( $REDAKCE ) {
-        $obsah= preg_replace("~href=\"(?:http://www.chlapi.cz/|/|(?!https?://))(.*)\"~U", 
+        $obsah= preg_replace("~href=\"(?:$http_server/|/|(?!https?://))(.*)\"~U", 
               "onclick=\"go(arguments[0],'page=$1','$prefix$1','',0);\" title='$1'", 
               $obsah);
         if ( !$book  ) {
@@ -502,7 +516,7 @@ __EOT;
       $obsah= str_replace('$index',$index,$obsah);
       $menu= '';
       if ( $REDAKCE ) {
-        $obsah= preg_replace("~href=\"(?:http://www.chlapi.cz/|/|(?!https?://))(.*)\"~U", 
+        $obsah= preg_replace("~href=\"(?:$http_server/|/|(?!https?://))(.*)\"~U", 
 //              "onclick=\"go(arguments[0],'page=$1','$prefix$1','',0);\" title='$1'", 
               "onclick=\"go(arguments[0],'page=$1','$1','',0);\" title='$1'", 
               $obsah);
@@ -656,9 +670,7 @@ __EOT;
       // úzké abstrakty
       $ys_html.= str_replace("abstr-line","abstr",$y->obsah);
       // překlad na globální odkazy do setkani.(org|bean)
-      $fileadmin= $ezer_local 
-          ? "http://setkani.bean:8080/fileadmin"
-          : "https://www.setkani.org/fileadmin";
+      $fileadmin= get_fileadmin();  
       $ys_html= preg_replace("/(src|href)=(['\"])(?:\\/|)fileadmin/","$1=$2$fileadmin",$ys_html);
       if ( $top ) {
         if ( $REDAKCE ) {
@@ -695,9 +707,7 @@ __EOT;
           "<hr style='clear:both;border:none'>"  => "<hr style='clear:both;display:none'>"
       ));
       // překlad na globální odkazy do setkani.(org|bean)
-      $fileadmin= $ezer_local 
-          ? "http://setkani.bean:8080/fileadmin"
-          : "https://www.setkani.org/fileadmin";
+      $fileadmin= get_fileadmin();  
       $ys_html= preg_replace("/(src|href)=(['\"])(?:\\/|)fileadmin/","$1=$2$fileadmin",$ys_html);
       // vložení tranformované prezentace
       // 1) z PPT uložené jako PDF s minimalizací pro web
@@ -740,9 +750,7 @@ __EOT;
     case 'clanek':  # ------------------------------------------------ . clanek
       global $y;
       ask_server((object)array('cmd'=>'clanek','pid'=>$id));
-      $fileadmin= $ezer_local 
-          ? "http://setkani.bean:8080/fileadmin"
-          : "https://www.setkani.org/fileadmin";
+      $fileadmin= get_fileadmin();  
       $obsah= preg_replace("/(src|href)=(['\"])(?:\\/|)fileadmin/","$1=$2$fileadmin",$y->obsah);
       $obsah= str_replace('$index',$index,$obsah);
       $nadpis= "<h1>$y->nadpis</h1>";
@@ -761,9 +769,7 @@ __EOT;
       global $y, $backref, $top, $links;
       ask_server((object)array('cmd'=>'kniha','back'=>$backref,
           'cid'=>$ids,'kapitola'=>1)); //isset($path[0]) ? $path[0] : 0)); 
-      $fileadmin= $ezer_local 
-          ? "http://setkani.bean:8080/fileadmin"
-          : "https://www.setkani.org/fileadmin";
+      $fileadmin= get_fileadmin(); 
       $obsah= preg_replace("/(src|href)=(['\"])(?:\\/|)fileadmin/","$1=$2$fileadmin",$y->obsah);
       $html.= "
         <div id='list'>
@@ -780,7 +786,7 @@ __EOT;
 }
 # -------------------------------------------------------------------------------------==> show_page
 function show_page($html) {
-  global $REDAKCE, $KLIENT, $index, $GET_rok, $mode, $load_ezer, $ezer_local, $prefix;
+  global $REDAKCE, $KLIENT, $index, $GET_rok, $mode, $load_ezer, $ezer_server, $prefix;
   global  $bar_menu, $topmenu, $mainmenu, $submenu, $links, $currpage, $tm_active;
   // definice do <HEAD>
   
@@ -789,7 +795,7 @@ function show_page($html) {
   $client= "./ezer3.1/client";
 
   // Google Analytics
-  $GoogleAnalytics= $ezer_local ? '' : <<<__EOD
+  $GoogleAnalytics= $ezer_server==1 ? '' : <<<__EOD
     (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
     (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
     m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
@@ -857,7 +863,8 @@ __EOJ;
 __EOJ;
 
   // head
-  $icon= $ezer_local ? "/man/img/chlapi_ico_local.png" : "/man/img/chlapi_ico.png";
+  $icon= array(
+      '/man/img/chlapi_ico_local.png','/man/img/chlapi_ico.png','/man/img/chlapi_ico_dsw.png')[$ezer_server];
   $head=  <<<__EOD
   <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
   <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en" dir="ltr">
@@ -1108,11 +1115,12 @@ function show_fotky($fid,$lst,$back_href) {
 /** ========================================================================================> SERVER */
 # funkce na serveru přes AJAX
 function servant($qry,$context=null) {
-  global $y, $servant, $ezer_local;
+  global $y, $servant, $ezer_server;
   $secret= "WEBKEYNHCHEIYSERVANTAFVUOVKEYWEB";
-  $servant= $ezer_local
-    ? "http://setkani.bean:8080/servant.php?secret=$secret"
-    : "https://www.setkani.org/servant.php?secret=$secret";
+  $servant= array(
+    "http://setkani.bean:8080/servant.php?secret=$secret",
+    "https://www.setkani.org/servant.php?secret=$secret",
+    "https://www.setkani.org/servant.php?secret=$secret")[$ezer_server];
   $json= file_get_contents("$servant&$qry",false,$context);
                                           display("<b style='color:red'>servant</b> $servant$qry");
   if ( $json===false ) {
@@ -1320,16 +1328,32 @@ function session($is,$value=null) {
 # --------------------------------------------------------------------------------------- db connect
 # připojí databázi
 function db_connect() { 
-  global $ezer_db;
-  $ezer_local= preg_match('/^.*\.(bean)$/',$_SERVER["SERVER_NAME"]);
-  $hst1= 'localhost';
-  $nam1= $ezer_local ? 'gandi'    : 'gandi';
-  $pas1= $ezer_local ? ''         : 'radost';
-  $db1=  $ezer_local ? 'chlapi'  : 'ezerweb';
-  $ezer_db= array( /* lokální */
-    'setkani'  =>  array(0,$hst1,$nam1,$pas1,'utf8',$db1),
+//  global $ezer_db;
+//  $ezer_local= preg_match('/^.*\.(bean)$/',$_SERVER["SERVER_NAME"]);
+//  $hst1= 'localhost';
+//  $nam1= $ezer_local ? 'gandi'    : 'gandi';
+//  $pas1= $ezer_local ? ''         : 'radost';
+//  $db1=  $ezer_local ? 'chlapi'  : 'ezerweb';
+//  $ezer_db= array( /* lokální */
+//    'setkani'  =>  array(0,$hst1,$nam1,$pas1,'utf8',$db1),
+//  );
+//  ezer_connect('setkani');
+  
+  global $ezer_db, $ezer_server, $http_server;
+  $http_server= "http://$ezer_server";
+  $dbs= array(
+    array(  // lokální
+      'setkani' => array(0,'localhost','gandi','','utf8','chlapi')
+    ),
+    array(  // ostré - endora
+      'setkani' => array(0,'localhost','gandi','radost','utf8','ezerweb')
+    ),
+    array(  // ostré - dsm
+      'setkani' => array(0,'localhost','ymca','JW4YNPTDf4Axkj9','utf8','chlapi')
+    ),
   );
-  ezer_connect('setkani');
+  $ezer_db= $dbs[$ezer_server];
+  ezer_connect('setkani'); 
 }
 /** =========================================================================================> ADMIN */
 # --------------------------------------------------------------------------------------- log report

@@ -1,14 +1,19 @@
 <?php
 
 date_default_timezone_set('Europe/Prague');
-$ezer_local= $_SERVER['SERVER_NAME']=='chlapi.bean' ? 1 : 0;
-$index= $ezer_local ? "index.php" : "index.php";
+//$ezer_local= $_SERVER['SERVER_NAME']=='chlapi.bean' ? 1 : 0;
+//$index= $ezer_local ? "index.php" : "index.php";
+$ezer_server= 
+    $_SERVER["SERVER_NAME"]=='chlapi.bean' ? 0 : (          // 0:lokální 
+    $_SERVER["SERVER_NAME"]=='www.chlapi.cz' ? 1 : (        // x:ostrý server
+    $_SERVER["SERVER_NAME"]=='web.chlapi.online' ? 2 : -1));
 
 # ------------------------------------------ init
 
 $microtime_start= microtime();
 if ( !isset($_SESSION) ) session_start();
-$_SESSION['web']['index']= $index;
+$_SESSION['web']['index']= 'index.php';
+$_SESSION['web']['server']= $ezer_server;
 if ( isset($_GET['err']) && $_GET['err'] ) error_reporting(E_ERROR); else error_reporting(0);
 ini_set('display_errors', 'On');
 require_once("man/2template_ch.php");
@@ -42,7 +47,7 @@ else {
   $href= $_SERVER['REQUEST_SCHEME'].'://'.$_SERVER['SERVER_NAME'].':'.$_SERVER['SERVER_PORT'].
     $_SERVER['SCRIPT_NAME'].'?page=';
   $path= isset($_GET['page']) ? explode('!',$_GET['page']) : array('home');
-  $ezer_local= preg_match('/^\w+\.bean/',$_SERVER["SERVER_NAME"]);
+//  $ezer_local= preg_match('/^\w+\.bean/',$_SERVER["SERVER_NAME"]);
 
   // pamatování GET
   global $GET_rok;
