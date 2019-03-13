@@ -1121,16 +1121,21 @@ function servant($qry,$context=null) {
     "http://setkani.bean:8080/servant.php?secret=$secret",
     "https://www.setkani.org/servant.php?secret=$secret",
     "https://www.setkani.org/servant.php?secret=$secret")[$ezer_server];
+  $_SESSION['web']['servant_last']= "$servant&$qry";
   $json= file_get_contents("$servant&$qry",false,$context);
                                           display("<b style='color:red'>servant</b> $servant$qry");
   if ( $json===false ) {
     $y->msg= "$qry vrátilo false";
+    $err= error_get_last();
+    $_SESSION['web']['servant_state']= "false:{$err['type']},{$err['message']}";
   }
   elseif ( substr($json,0,1)=='{' ) {
     $y= json_decode($json);
+    $_SESSION['web']['servant_state']= "json";
   }
   else {
     $y->msg= "Sorry, došlo k chybě č.4, martin@smidek.eu ti poradí ...";
+    $_SESSION['web']['servant_state']= "text:$json";
                                                   display($y->msg);
 //    $y->msg= "'$servant&$qry' vrátil '$json'";
   }
@@ -1343,13 +1348,16 @@ function db_connect() {
   $http_server= "http://$ezer_server";
   $dbs= array(
     array(  // lokální
-      'setkani' => array(0,'localhost','gandi','','utf8','chlapi')
+      'setkani'  => array(0,'localhost','gandi','','utf8','chlapi'),
+      'ezertask' => array(0,'localhost','gandi','','utf8')
     ),
     array(  // ostré - endora
-      'setkani' => array(0,'localhost','gandi','radost','utf8','ezerweb')
+      'setkani'  => array(0,'localhost','gandi','radost','utf8','ezerweb'),
+      'ezertask' => array(0,'localhost','gandi','radost','utf8')
     ),
     array(  // ostré - dsm
-      'setkani' => array(0,'localhost','ymca','JW4YNPTDf4Axkj9','utf8','chlapi')
+      'setkani'  => array(0,'localhost','ymca','JW4YNPTDf4Axkj9','utf8','chlapi'),
+      'ezertask' => array(0,'localhost','ymca','JW4YNPTDf4Axkj9','utf8','myslenky')
     ),
   );
   $ezer_db= $dbs[$ezer_server];
@@ -1755,8 +1763,8 @@ function rr_myslenka() {
   $dnes= date('j/n/Y',mktime(0,0,0,date('n'),date('j'),date('Y')));
   $html= "neni pro $dnes nastaveno!";
   //return $html;
-//  ezer_connect();
-  $qry= "SELECT * FROM ezertask.rr WHERE datum=curdate()";
+  ezer_connect('ezertask');
+  $qry= "SELECT * FROM rr WHERE datum=curdate()";
   $res= mysql_qry($qry);
                                                 $html.= "<br>$res=$qry";
   while ( $res && ($o= mysql_fetch_object($res)) ) {
