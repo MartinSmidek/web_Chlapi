@@ -21,7 +21,7 @@
 //  $abs_roots= array("/home/users/gandi/chlapi.online/web","C:/Ezer/beans/chlapi.online");
 //  $rel_roots= array("http://www.chlapi.cz","http://chlapi.bean:8080");
   $abs_roots= array("C:/Ezer/beans/chlapi.online","/home/users/gandi/chlapi.online/web","/var/services/web/www/chlapi");
-  $rel_roots= array("http://chlapi.bean:8080","http://www.chlapi.cz","http://web.chlapi.cz");
+  $rel_roots= array("http://chlapi.bean:8080","http://www.chlapi.cz","http://web.chlapi.online");
   
   // určení uživatele podle session.web.fe_user
   require_once("../$kernel/server/ae_slib.php");

@@ -16,7 +16,7 @@ function def_user() {
       'level' => isset($_SESSION['man']['level']) ? 0+$_SESSION['man']['level'] : 0  
   ) : NULL; 
 }
-# ------------------------------------------------------------------------------------ get fileadmin
+# --------------------------------------------------------------------------------==> get fileadmin
 # vrátí fileadmin pro web setkani
 function get_fileadmin() {
   global $ezer_server;
@@ -26,14 +26,14 @@ function get_fileadmin() {
       "https://web.setkani.org/fileadmin")[$ezer_server];
   return $fileadmin;
 }
-# --------------------------------------------------------------------------------------- get prefix
+# -----------------------------------------------------------------------------------==> get prefix
 # vrátí prefix
 function get_prefix() {
   global $ezer_server;
   $prefix= array(
       "http://chlapi.bean:8080/",
       "http://www.chlapi.cz/",
-      "http://web.chlapi.cz/")[$ezer_server];
+      "http://web.chlapi.online/")[$ezer_server];
   return $prefix;
 }
 # -------------------------------------------------------------------------------------==> page
@@ -864,7 +864,7 @@ __EOJ;
 
   // head
   $icon= array(
-      '/man/img/chlapi_ico_local.png','/man/img/chlapi_ico.png','/man/img/chlapi_ico_dsw.png')[$ezer_server];
+      '/man/img/chlapi_ico_local.png','/man/img/chlapi_ico.png','/man/img/chlapi_ico_dsm.png')[$ezer_server];
   $head=  <<<__EOD
   <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
   <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en" dir="ltr">
