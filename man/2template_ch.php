@@ -967,13 +967,24 @@ __EOD;
   <!-- konec -->
 __EOD;
 
+  // upozornění na testovací verzi
+  $demo= '';
+  if ( $ezer_server==2 ) {
+    $click= "jQuery('#DEMO').fadeOut(1000).delay(2000).fadeIn(1000);";
+    $dstyle= "left:0; top:0; position:fixed; transform:rotate(320deg) translate(-128px,-20px); "
+        . "width:500px;height:100px;background:orange; color:white; font-weight: bolder; "
+        . "text-align: center; font-size: 40px; line-height: 96px; z-index: 16; opacity: .5;";
+    $demo= "<div id='DEMO' onclick=\"$click\" style='$dstyle'>testovací verze</div>";
+  }
+
   if ( $REDAKCE ) {
-    return $body;
+    return $demo.$body;
   }
   // dokončení stránky
   echo <<<__EOD
   $head
   <body onload="jump_fokus();">
+    $demo
     <div id='web'>
       <div id='work'>
       $body
@@ -1120,7 +1131,7 @@ function servant($qry,$context=null) {
   $servant= array(
     "http://setkani.bean:8080/servant.php?secret=$secret",
     "https://www.setkani.org/servant.php?secret=$secret",
-    "https://www.setkani.org/servant.php?secret=$secret")[$ezer_server];
+    "http://192.168.1.213/www/setkani/servant.php?secret=$secret")[$ezer_server];
   $_SESSION['web']['servant_last']= "$servant&$qry";
   $json= file_get_contents("$servant&$qry",false,$context);
                                           display("<b style='color:red'>servant</b> $servant$qry");
