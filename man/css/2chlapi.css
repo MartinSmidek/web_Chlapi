@@ -177,6 +177,11 @@ div.filler {
   background-color: #FFFFFF !important;
   color: #000000 !important;
 }
+#menu a.upd {
+  background-image: url(menu_upd.gif);
+  background-position: right top;
+  background-repeat: no-repeat;
+}
 #menu a span {
   vertical-align: middle;
   height: 2.2em;

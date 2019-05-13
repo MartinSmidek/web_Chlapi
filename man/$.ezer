@@ -53,7 +53,7 @@ panel p [0,0,*,*] { type:'main', _sys:'$'
 # ----------------------------------------------------------------------------==> emulace událostí
   var page: object // {html,edit,id}
   proc cms_go(ref) { echo("přepnutí webu na ",ref); do_go.get; go(ref) }
-  proc cms_menu(ref) { echo("přepnutí dle menu ",ref); do_go.get; go_menu(ref) }
+  proc cms_menu(ref) { clear; echo("přepnutí dle menu ",ref); do_go.get; go_menu(ref) }
   proc refresh() { cms_go(last.get); }
   proc ask_page(a,b) {
     page.set(ask('page',a,b));
@@ -903,7 +903,7 @@ panel EDITOR [0,0,720,550] { type:'popup', style:"min-width:700px", _sys:'edi'
     button [-196,15,17,17] { title:'[fa-exclamation-triangle]' css:'button_ch' 
       help:'dnes došlo k podstatné změně'
       proc onclick() {
-        ch_date.set(now); ch_date.change
+        ch_date.set(now); ch_date.change;
     }}
     button [-180,15,17,17] { title:'[fa-close]' css:'button_ch' 
       help:'zrušení data podstatné změny'
@@ -912,6 +912,7 @@ panel EDITOR [0,0,720,550] { type:'popup', style:"min-width:700px", _sys:'edi'
     }}
     button  [-121,5,,] { title:'Uložit', help:'ukončit editor a uložit změny'
       proc onclick() { 
+        [ ch_date.changed; ask('log_path','xclanek',id.get,1) ]; // zápis ch_date do menu.ch_date
         form.save; 
         ask('record_unlock','xclanek',id.get);
         ask('log_obsah','u','c',id.get); 

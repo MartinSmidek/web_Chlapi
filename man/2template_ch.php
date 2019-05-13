@@ -39,10 +39,12 @@ function get_prefix() {
 # -------------------------------------------------------------------------------------==> page
 // jen pro CMS mod: vrací objekt se stránkou
 function page($a,$b) { 
+  global $amenu;
   def_user();
   read_menu();
   $path= explode('!',$b);
   $elem= eval_menu($path);
+                                                  debug($amenu,"amenu");
   $html= eval_elem($elem);
   $page= show_page($html);
   return (object)array('html'=>$page);
@@ -62,8 +64,14 @@ function read_menu() {
   db_connect();
   // načtení menu
   $menu= array();
-  $mn= mysql_qry("SELECT * FROM menu WHERE wid=2 ORDER BY typ,rank");
+  $amenu= (object)array('top'=>array(),'main'=>array(),'sub'=>array());
+  $mn= mysql_qry("
+    SELECT nazev,elem,mid,mid_top,mid_sub,ref,typ,level,redakce,klient,
+      TO_DAYS(NOW())-IFNULL(TO_DAYS(ch_date),0) AS _zmena
+    FROM menu WHERE wid=2 ORDER BY typ,rank");
   while ($mn && ($m= mysql_fetch_object($mn))) {
+    // má se upozornit na změnu?
+    $m->_zmena= $m->_zmena < ZMENA ? 1 : 0;
     // redakční klientům nezobrazovat
     if ( !$REDAKCE && $m->redakce ) continue;  
     // redakční menu filtrovat (m=1 programátor, t=2 testér)
@@ -82,10 +90,9 @@ function read_menu() {
 # path = [ mid, ...]
 function eval_menu($path) { 
   global $REDAKCE, $currpage, $tm_active, $ezer_server;
-  global  $menu, $topmenu, $mainmenu, $submenu, $submenu_shift, $elem, $curr_menu, $backref, $top;
+  global  $menu, $amenu, $submenu_shift, $elem, $curr_menu, $backref, $top;
   global $prefix, $href, $input;
   $prefix= get_prefix();
-  $topmenu= $mainmenu= $submenu= '';
   $currpage= implode('!',$path);
   $top= array_shift($path);
   $main= $main_ref= $main_sub= 0;
@@ -124,7 +131,7 @@ function eval_menu($path) {
           : "href='{$prefix}$href!*'";
         $top= array_shift($path);
       }
-      $topmenu.= $m->nazev ? "<a $jmp class='jump$level$active'><span>$m->nazev</span></a>" : '';
+      $amenu->top[]= $m->nazev ? array($m->nazev,"jump$level$active",$jmp,$m->_zmena) : '-';
       break;
     case 1:                             // zobrazení main menu
       $n_main++;
@@ -142,6 +149,7 @@ function eval_menu($path) {
           : "href='{$prefix}$href!*'";
         $top= array_shift($path);
       }
+      $amenu->main[]= $m->nazev ? array($m->nazev,"jump$level$active",$jmp,$m->_zmena) : '-';
       $mainmenu.= "<a $jmp class='jump$level$active'><span>$m->nazev</span></a>";
       break;
     case 2:                             // zobrazení submenu aktivního mainmenu
@@ -161,6 +169,7 @@ function eval_menu($path) {
         $jmp= $REDAKCE 
           ? "onclick=\"go(arguments[0],'page=$href','{$prefix}$href','$input',0);\""
           : "href='{$prefix}$href'";
+        $amenu->sub[]= $m->nazev ? array($m->nazev,"jump$level$active",$jmp,$m->_zmena) : '-';
         $submenu.= "<a $jmp class='jump$level$active'><span>$m->nazev</span></a>";
       }
       break;
@@ -174,13 +183,22 @@ function eval_menu($path) {
   }
   return $elem;
 }
+# -------------------------------------------------------------------------------------==> show menu
+# zobrazení menu
+function show_menu($part) {
+  global $amenu;
+  $html= '';
+  foreach($amenu->$part as $m) {
+    $class= $m[1].($m[3] ? " upd" : '');
+    $html.= "<a $m[2] class='$class'><span>$m[0]</span></a>";
+  }
+  return $html;
+}
 # -------------------------------------------------------------------------------------==> eval_elem
 // desc :: key [ = ids ]
 // ids  :: id1 [ / id2 ] , ...    -- id2 je klíč v lokální db pro ladění
 function eval_elem($desc,$book=null) {
   global $REDAKCE, $KLIENT, $ezer_server, $http_server, $index, $load_ezer, $curr_menu, $top, $prefix;
-//  global  $menu, $topmenu, $mainmenu, $submenu, $submenu_shift, $elem, $curr_menu, $backref, $top;
-//  global $edit_entity, $edit_id;
   $elems= explode(';',$desc);
   $html= '';
   $html= $REDAKCE ? "<script>skup_mapka_off();</script>" : '';
@@ -483,7 +501,7 @@ __EOT;
           if ( $book && !$book->first )
             break;
         }
-        $zmena= $zmena ? "<img src='man/img/upd.png' class='zmena'>" : '';
+        $zmena= $zmena ? "<img src='man/css/upd.gif' class='zmena'>" : '';
         $html.= "
           <div class='back' $menu $neodkaz>
             <a class='$styl home$redakce_style' $jmp>
@@ -787,7 +805,7 @@ __EOT;
 # -------------------------------------------------------------------------------------==> show_page
 function show_page($html) {
   global $REDAKCE, $KLIENT, $index, $GET_rok, $mode, $load_ezer, $ezer_server, $prefix;
-  global  $bar_menu, $topmenu, $mainmenu, $submenu, $links, $currpage, $tm_active;
+  global  $bar_menu, $amenu, $links, $currpage, $tm_active;
   // definice do <HEAD>
   
   // jádro Ezer - jen pokud není aktivní CMS
@@ -901,7 +919,9 @@ __EOD;
 __EOD;
 
   // menu
-//  $filler= $submenu_shift ? str_repeat("<a><span class='menu_filler'></span></a>",$submenu_shift) : '';
+  $topmenu= show_menu('top');
+  $mainmenu= show_menu('main');
+  $submenu= show_menu('sub');
   $filler= $submenu ? "<div class='filler'></div>" : '';
   $submenu= $submenu ? "<div id='page_sm'><span>$submenu</span>$filler</div>" : '';
   $menu= "
@@ -1433,9 +1453,12 @@ function log_report($par) { trace();
   return $html;
 }
 # ----------------------------------------------------------------------------------------- log path
-# vrátí url článku nebo knihy
-function log_path($tab,$idc) { 
+# vrátí url článku nebo knihy a zkusí zjistit id_menu
+# pokud tab=xclanek a zmena=1 tak zapíše menu.ch_date=MAX(menu.ch_date,xclanek.ch_date)
+function log_path($tab,$idc,$zmena=0) { 
   $y= (object)array('url'=>'','path'=>'');
+  $ch_date= '0000-00-00';
+  $idm= 0;
   $path= array();
   switch ($tab) {
   case 'xakce':  
@@ -1470,7 +1493,7 @@ function log_path($tab,$idc) {
   case 'xclanek':  
     // článek v menu ?
     list($idm,$ref,$top,$menu)= 
-        select('mid,ref,mid_top,nazev','menu',"elem RLIKE 'clanek=$idc(;|$)'");
+        select('mid,ref,mid_top,nazev,ch_date','menu',"elem RLIKE 'clanek=$idc(;|$)'");
     if ( $idm ) {
       if ( $top ) $path[]= select('ref','menu',"mid=$top");
       $path[]= $ref;
@@ -1502,6 +1525,12 @@ function log_path($tab,$idc) {
     break;
   }
 end:
+  // zapíše změny do menu
+  if ( $zmena && $tab=='xclanek' && $idc && $idm ) {
+    $ch_date= select('ch_date','xclanek',"id_xclanek=$idc");
+    query("UPDATE menu SET ch_date=GREATEST(ch_date,'$ch_date') WHERE mid=$idm");
+  }
+  // konec
   $path= implode('!',$path);
   $y->url= "<a onclick=\"go(0,'page=$path','$path')\">&nbsp;<i class='fa fa-arrow-right'></i>&nbsp;</a>";
   return $y;
