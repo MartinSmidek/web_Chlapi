@@ -40,6 +40,7 @@ function get_prefix() {
 // jen pro CMS mod: vrací objekt se stránkou
 function page($a,$b) { 
   global $amenu;
+  $page= '';
   def_user();
   read_menu();
   $path= explode('!',$b);
@@ -188,9 +189,11 @@ function eval_menu($path) {
 function show_menu($part) {
   global $amenu;
   $html= '';
-  foreach($amenu->$part as $m) {
-    $class= $m[1].($m[3] ? " upd" : '');
-    $html.= "<a $m[2] class='$class'><span>$m[0]</span></a>";
+  if ( isset($amenu->$part) ) {
+    foreach($amenu->$part as $m) {
+      $class= $m[1].($m[3] ? " upd" : '');
+      $html.= "<a $m[2] class='$class'><span>$m[0]</span></a>";
+    }
   }
   return $html;
 }

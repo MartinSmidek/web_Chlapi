@@ -8,7 +8,8 @@
   $ezer_server= 
       $_SERVER["SERVER_NAME"]=='chlapi.bean' ? 0 : (          // 0:lokální 
       $_SERVER["SERVER_NAME"]=='www.chlapi.cz' ? 1 : (        // x:ostrý server
-      $_SERVER["SERVER_NAME"]=='web.chlapi.online' ? 2 : -1));
+      $_SERVER["SERVER_NAME"]=='chlapi.cz' ? 1 : (            // x:ostrý server
+      $_SERVER["SERVER_NAME"]=='web.chlapi.online' ? 2 : -1)));
 
   // parametry aplikace MAN
   $app_name=  "chlapi.cz";
