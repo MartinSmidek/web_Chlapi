@@ -416,7 +416,10 @@ __EOT;
               $obsah);
         if ( !$book  ) {
           $div_id= "c$id";
-          $namiru= $plny ? "['upravit obrázky článku',function(el){ namiru('$id','$div_id'); }],":'';
+//          $namiru= $plny ? "['upravit obrázky článku',function(el){ namiru('$id','$div_id'); }],":'';
+          $namiru= $plny ? 
+                "['upravit obrázky článku',function(el){ namiru('$id','$div_id'); }],
+                 ['vyjmout embeded obrázky',function(el){ bez_embeded('$id'); }],":'';
           $kod= "Ezer.fce.contextmenu([
                 ['editovat článek',function(el){ opravit('xclanek',$id); }],
                 $namiru
@@ -437,7 +440,10 @@ __EOT;
         }
         elseif ( $book->open && $book->ida ) {
             $div_id= "a{$book->ida}-$id";
-            $namiru= $plny ? "['upravit obrázky článku',function(el){ namiru('$id','$div_id'); }],":'';
+//            $namiru= $plny ? "['upravit obrázky článku',function(el){ namiru('$id','$div_id'); }],":'';
+            $namiru= $plny ? 
+                "['upravit obrázky článku',function(el){ namiru('$id','$div_id'); }],
+                 ['vyjmout embeded obrázky',function(el){ bez_embeded('$id'); }],":'';
             $menu= " title='".($plny?'':'abstrakt ')."akce $book->idk: $book->ida/$id' oncontextmenu=\"
               Ezer.fce.contextmenu([
                 ['editovat akci',function(el){ opravit('xakce',$id,$book->ida); }],
@@ -451,6 +457,7 @@ __EOT;
             $menu= " title='".($plny?'kapitola':'abstrakt kapitoly')." $book->ida/$idn' oncontextmenu=\"
               Ezer.fce.contextmenu([
                 ['editovat článek',function(el){ opravit('xclanek',$id); }],
+                ['vyjmout embeded obrázky',function(el){ bez_embeded('$id'); }],
                 ['-zobrazit jako článek',function(el){ zmenit($curr_menu->mid,'aclanek',$id,'xclanek'); }],
                 ['-přidat fotky',function(el){ pridat('xfotky',$id); }],
                 ['-posunout nahoru',function(el){ posunout('xkniha.elem',$book->idk,$id,0); }],
@@ -553,6 +560,7 @@ __EOT;
             Ezer.fce.contextmenu([
               ['editovat článek',function(el){ opravit('xclanek',$id); }],
               ['upravit obrázky článku',function(el){ namiru('$id','$div_id'); }],
+              ['vyjmout embeded obrázky',function(el){ bez_embeded('$id'); }],
               ['-zobrazit jako abstrakt',function(el){ zmenit($curr_menu->mid,'xclanek',$id,'aclanek'); }],
               ['-přidat článek na začátek',function(el){ pridat('xclanek',$curr_menu->mid,1); }],
               ['přidat článek na konec',function(el){ pridat('xclanek',$curr_menu->mid,0); }],
@@ -1303,6 +1311,7 @@ function ask_server($x) {
       $_SESSION['web']['user']= $y->user;
       $_SESSION['web']['level']= $_SESSION['web']['level0']= $y->klient;
       $_SESSION['web']['username']= $y->name;
+      $_SESSION['web']['usermail']= $x->mail;
       $_SESSION['web']['news']= 1;
       // případně jako BE
       if ( $y->redakce ) {
@@ -1310,9 +1319,13 @@ function ask_server($x) {
       }
       else {
         // pokud to není redaktor zapiš me_login 
+        log_login('u',$_SESSION['web']['usermail']);
         unset($_SESSION['man']);
-        log_login('u',$x->mail);
       }
+    }
+    else if ( isset($y->state) && $y->state=='wait') {
+      // čekání na reakci nezapisujeme
+      log_login('w',$x->mail);
     }
     else {
       // zapiš problém s me_login
@@ -1325,16 +1338,16 @@ function ask_server($x) {
     $y->username= $_SESSION['web']['username'];
     if ( $x->noedit ) {
       // zrušení možnosti editovat => jen prohlížení bez natažení Ezer
+      log_login('u',$_SESSION['web']['usermail']);
       unset($_SESSION['man']);
-      log_login('u',$x->mail);
     }
     else {
-      log_login('r',$x->mail);
+      log_login('r',$_SESSION['web']['usermail']);
     }
     break;
 
   case 'be_logout': // ---------------------------------------------------------------------- logout
-    log_login('x');
+    log_login('x',$_SESSION['web']['usermail']);
     unset($_SESSION['web']);
     unset($_SESSION['man']);
     session_write_close();
@@ -1436,7 +1449,7 @@ function db_connect() {
 # vrátí seznam 
 # - změn obsahu
 # - chybných pokusů o přihlášení do chlapi.online
-function log_report($par) { trace();
+function log_report($par) { debug($par,'log_report');
   $html= "";
   switch ($par->cmd) {
   case 'obsah':    // -------------------------------------- obsah
@@ -1473,13 +1486,14 @@ function log_report($par) { trace();
     break;
   case 'me_login': // -------------------------------------- přihlášení
     $html.= "<dl>";
-    $cond= $par->typ==='ok'
-        ? "msg RLIKE '^ok'"
-        : "msg RLIKE '^ko' AND NOT msg RLIKE 'byl odeslán'";
+    $cond= 
+      $par->typ==='ok' ? "msg RLIKE '^ok|^x'" : (
+      $par->typ==='ko' ? "msg RLIKE '^ko' AND NOT msg RLIKE 'byl odeslán'" : (
+      $par->typ==='r'  ? "msg RLIKE '^ed'" : "/*typ=$par->typ*/" ));
     $cr= mysql_qry("
       SELECT day,time,msg
       FROM _touch
-      WHERE module='log' AND menu='me_login' AND $cond
+      WHERE module='log' AND menu='login' AND $cond
       ORDER BY day DESC, time desc
     ");
     while ( $cr && (list($day,$time,$msg)= mysql_fetch_row($cr)) ) {
@@ -1655,32 +1669,40 @@ function log_login($ok,$mail='') {
   // detekuj relogin a zvyš jej
   $relog= isset($_SESSION['web']['cms_relog']) ? $_SESSION['web']['cms_relog'] : 0;
   $_SESSION['web']['cms_relog']= $relog+1;
-  $abbr= $username= '';
   db_connect();
   if ( $id_user ) {
-    list($abbr,$username)= select("abbr,username","_user","id_user='$id_user'");
+    list($abbr)= select("abbr","_user","id_user='$id_user'");
     // uvolni všechny uzamčené záznamy, které jsi zamkl
     record_unlock('xclanek',0,true);
     record_unlock('xkniha',0,true);
   }
   if ( $ok=='x') {
     // odhlášení
-    $menu= 'logout';
-    $msg= "$username|";
+//    $menu= 'logout';
+//    $msg= "$username|";
+    $menu= 'login';
+    $msg= "x|$mail|odhlášení";
   }
   elseif ( $ok=='r') {
     $menu= 'login';
-    $msg= "$username||$ip|{$_SESSION['platform']}|{$_SESSION['browser']}|$browser";
+    $msg= "ed|$mail||$ip|{$_SESSION['platform']}|{$_SESSION['browser']}|$browser";
   }
-  else { // $ok= u|-
+  elseif ( $ok=='w') {
+    $menu= 'wait';
+    $msg= "wait|$mail|$ip|{$_SESSION['platform']}|{$_SESSION['browser']}|$browser";
+  }
+  elseif ( $ok=='u' ) {
+    $menu= 'login';
+    $msg= "ok|$mail|$ip|{$_SESSION['platform']}|{$_SESSION['browser']}|$browser";
+  }
+  else { 
+    $ok= '-';
     $txt= str_replace("'","\\'",(isset($y->txt)?$y->txt:'?').(isset($y->msg)?$y->msg:'?'));
-    $menu= 'me_login';
-    $msg= $ok=='u'
-        ? "ok|$mail|$ip|{$_SESSION['platform']}|{$_SESSION['browser']}|$browser" 
-        : "ko|$mail|$ip||||$txt";
+    $menu= 'login';
+    $msg= "ko|$mail|$ip||||$txt";
   }
   // do _touch zapiš odhlášení nebo první přihlášení 
-  if ( $ok=='x' || !$relog ) {
+  if ( $ok=='u' || $ok=='x' || !$relog ) {
     $qry= "INSERT INTO _touch (day,time,user,module,menu,msg)
            VALUES ('$day','$time','$abbr','log','$menu','$msg')";
     mysql_qry($qry);

@@ -50,6 +50,14 @@ panel p [0,0,*,*] { type:'main', _sys:'$'
     | alert(_y.msg)
     }
   }
+  proc bez_embeded(_id) { var _list:array, _y:object
+    _y.set(ask('bez_embeded',_id,0)); 
+    { _y.n; [ 
+      confirm(_y.msg);
+      ask('bez_embeded',_id,1); refresh ]
+    | alert(_y.msg)
+    }
+  }
 # ----------------------------------------------------------------------------==> emulace událostí
   var page: object // {html,edit,id}
   proc cms_go(ref) { echo("přepnutí webu na ",ref); do_go.get; go(ref) }
@@ -319,17 +327,18 @@ panel ADMIN [0,0,600,465] { title:'Aktivita CMS', type:'popup', css:'dialog_menu
       item { title:'čekající BUGs'      par:°{s:'chyby',c:'BUG1'}}
       item { title:'vyřešené BUGs'      par:°{s:'chyby',c:'BUG2'}}
     }
-    menu p { title:'Přihlášení - redakce', type:'group', skill:'s'
-      item d { title:'dnes'             par:°{s:'login',c:'dnes'}}
-      item { title:'včera'              par:°{s:'login',c:'vcera'}}
-      item { title:'týden'              par:°{s:'login',c:'tyden'}}
-      item { title:'měsíc'              par:°{s:'login',c:'mesic'}}
-      item { title:'nastavený den'      par:°{s:'login',c:'den'}}
-      item { title:'všechna hlášení'    par:°{s:'login',c:'vsechny'}}
-    }
+//    menu p { title:'Přihlášení - redakce', type:'group', skill:'s'
+//      item d { title:'dnes'             par:°{s:'login',c:'dnes'}}
+//      item { title:'včera'              par:°{s:'login',c:'vcera'}}
+//      item { title:'týden'              par:°{s:'login',c:'tyden'}}
+//      item { title:'měsíc'              par:°{s:'login',c:'mesic'}}
+//      item { title:'nastavený den'      par:°{s:'login',c:'den'}}
+//      item { title:'všechna hlášení'    par:°{s:'login',c:'vsechny'}}
+//    }
     menu c { title:'Přihlášení - chlapi',type:'group', skill:'a'
-      item c { title:'chybná přihlášení'   par:°{cmd:'me_login',typ:'ko'}}
-      item   { title:'správná přihlášení'  par:°{cmd:'me_login',typ:'ok'}}
+      item c { title:'chybná přihlášení'    par:°{cmd:'me_login',typ:'ko'}}
+      item   { title:'správná přihlášení'   par:°{cmd:'me_login',typ:'ok'}}
+      item   { title:'přihlášení k editaci' par:°{cmd:'me_login',typ:'r'}}
       proc onclick (i) {  var y:text
         panel.display(2,'mu'); u.den.display(0);
         y.set(ask('log_report',i.par));

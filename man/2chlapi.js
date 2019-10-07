@@ -124,6 +124,7 @@ function me_login__(y) {
   var txt= jQuery('#user_mail_txt');
   if ( y && y.txt ) {
     txt.html(y.txt);
+    jQuery('#pin').focus();
   }
   if ( y && y.msg ) {
 //    jQuery('#user_mail').html(y.msg);

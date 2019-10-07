@@ -213,6 +213,29 @@ function namiru_fotky($id,$imgs,$replace) {
   }
   return $y;
 }
+# --------------------------------------------------------------------------------------- img oprava
+# opraví obrázky v part
+#  a) odstraní embeded obrázky
+function bez_embeded($idxc,$update) {
+  $y= (object)array('n'=>0,'msg'=>'');
+  $text= select("web_text","xclanek","id_xclanek=$idxc");
+  $text= preg_replace("/<img[^>]+src=.data:image[^>]+\>/i","(embeded image)",$text,-1,$y->n);
+  if ( $y->n ) {
+    if ( $update ) {
+      $text= pdo_real_escape_string($text);
+  //                                                       display($text);
+      mysql_qry("UPDATE xclanek SET web_text='$text' WHERE id_xclanek=$idxc");
+      $y->msg.= "z článku $idxc byl odstraněno $y->n embeded obrázek";
+    }
+    else {
+      $y->msg.= "v článku $idxc je $y->n embeded obrázek - mám je(j) vyjmout?";
+    }
+  }
+  else {
+    $y->msg.= "v článku $idxc není žádný embeded obrázek";
+  }
+  return $y;
+}
 # --------------------------------------------------------------------------------==> . minify fotky
 # originál fotky je již ve složce inc/f/fid mechanismem label.drop
 # vytvoří miniatury a přidá je do složky, název přidá do xfotky[fid].seznam
