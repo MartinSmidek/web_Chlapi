@@ -242,6 +242,10 @@ div.home, a.home, #user_mail, #skup0, #skup1, #skup2 {
 div.neodkaz {
   position: fixed; margin-top: 1em; z-index: 2;
 }
+// upozornění pro přihlášené
+div.news {
+  position: fixed; margin-top: 1em; z-index: 2;
+}
 // kalendář
 table.kalendar tr {
   td {
@@ -325,8 +329,7 @@ div.pdf {
 #sidebar {
   display:none; }
 #page-container {
-  background: transparent !important; position: relative !important; 
-  width: -moz-fit-content; }
+  background: transparent !important; position: relative !important; width: -moz-fit-content; }
 
 // =============================================================================== responsive design 
 
@@ -377,7 +380,7 @@ div.pdf {
   #logo {
     left: 0.1em; top: 0.1em; width: 5em; }
   div.prezentace { 
-    zoom: 40%; -moz-transform: scale(0.4) translate(-76%, -79%);  }
+    zoom: 40%; -moz-transform: scale(0.4); -moz-transform-origin: left top; }
 }
 // ------------------------------------------------------------------------------- L mobil na šířku
 
@@ -390,15 +393,18 @@ div.pdf {
     div.abstr { width:50%; }
   }
   div.prezentace { 
-    zoom: 72%;
-    /*zoom: 60%; -moz-transform: scale(0.6) translate(-26%, -35%);*/ 
+    zoom: 72%; -moz-transform: scale(0.72); -moz-transform-origin: left top;
   }
   div.Popup3 {
     zoom:80%;  }
 }
+
+// ---------------------------------------------------------------------------------------- 
+
 @media all and (min-width: 40em) and (max-width: 55em) {
   div.prezentace { 
-    zoom: 78%; -moz-transform: scale(0.8) translate(-12%, -15%); }
+    zoom: 78%; -moz-transform: scale(0.78); -moz-transform-origin: left top;
+  }
 }
 
 // ---------------------------------------------------------------------------------------- T tablet 
@@ -412,7 +418,7 @@ div.pdf {
     div.abstr { width:33.3%; }
   }
   div.prezentace { 
-    zoom: 72%; }
+    zoom: 72%; -moz-transform: scale(0.72); -moz-transform-origin: left top; }
 }
 // ------------------------------------------------------------------------------ PC velká obrazovka 
 
@@ -424,5 +430,5 @@ div.pdf {
     div.abstr { width:25%; }
   }
   div.prezentace { 
-    zoom: 72%; }
+    zoom: 72%; -moz-transform: scale(0.72); -moz-transform-origin: left top; }
 }

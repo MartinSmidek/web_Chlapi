@@ -470,6 +470,11 @@ div.neodkaz {
   margin-top: 1em;
   z-index: 2;
 }
+div.news {
+  position: fixed;
+  margin-top: 1em;
+  z-index: 2;
+}
 table.kalendar tr td {
   margin-top: 1em;
   border-top: 1px solid silver;
@@ -688,7 +693,8 @@ div.pdf span.sorry {
   }
   div.prezentace {
     zoom: 40%;
-    -moz-transform: scale(0.4) translate(-76%, -79%);
+    -moz-transform: scale(0.4);
+    -moz-transform-origin: left top;
   }
 }
 @media all and (min-width: 30em) and (max-width: 55em) {
@@ -706,7 +712,8 @@ div.pdf span.sorry {
   }
   div.prezentace {
     zoom: 72%;
-    /*zoom: 60%; -moz-transform: scale(0.6) translate(-26%, -35%);*/
+    -moz-transform: scale(0.72);
+    -moz-transform-origin: left top;
   }
   div.Popup3 {
     zoom: 80%;
@@ -715,7 +722,8 @@ div.pdf span.sorry {
 @media all and (min-width: 40em) and (max-width: 55em) {
   div.prezentace {
     zoom: 78%;
-    -moz-transform: scale(0.8) translate(-12%, -15%);
+    -moz-transform: scale(0.78);
+    -moz-transform-origin: left top;
   }
 }
 @media all and (min-width: 55em) and (max-width: 70em) {
@@ -733,6 +741,8 @@ div.pdf span.sorry {
   }
   div.prezentace {
     zoom: 72%;
+    -moz-transform: scale(0.72);
+    -moz-transform-origin: left top;
   }
 }
 @media all and (min-width: 70em) {
@@ -754,6 +764,8 @@ div.pdf span.sorry {
   }
   div.prezentace {
     zoom: 72%;
+    -moz-transform: scale(0.72);
+    -moz-transform-origin: left top;
   }
 }
 /*# sourceMappingURL=2chlapi.css.map */

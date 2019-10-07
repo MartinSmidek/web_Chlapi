@@ -44,6 +44,7 @@ function corr_fotky($fid) { global $gn;
   else {
     $foto.= "Složka '$path' s fotografiemi není dostupná";
   }
+//            display("$path ... $pocet"); return 0;
   #$gn->gn_debug($files); $gn->gn_debug($filens);
   // utřiď podle jména
   sort($files); sort($filens);
@@ -168,7 +169,7 @@ function save_fotky($x,$perm=null) {
 # pokud je $replace=1 nahradí v textu článku odkazy 
 # jinak vrátí dotaz, zda to udělat s informací o získaném prostoru
 function namiru_fotky($id,$imgs,$replace) { 
-  global $ezer_path_root, $ezer_server;
+  global $ezer_path_root;
   $y= (object)array('n'=>0,'msg'=>'');
   $prefix= get_prefix();
   $dir= "/inc/c/$id";
@@ -537,7 +538,7 @@ function TEST() {
 # zkopíruje chybějící fotky ze setkani.org/filedamin/photo do chlapi.cz/inc/f
 # je voláno po založení záznamu pro fotky v menu_copy_elem('F',...)
 function menu_copy_foto($fid,$test=1) {
-  global $ezer_server, $abs_root;
+  global $abs_root;
   $fileadmin= get_fileadmin();
   $msg= '?';
   // složka pro fotky
@@ -579,7 +580,7 @@ function menu_copy_foto($fid,$test=1) {
 # ----------------------------------------------------------------------------------- menu copy_elem
 # zkopíruje ze setkani.org článek nebo knihu
 function menu_copy_elem($co,$pid,$mid,$test=true) {
-  global $y, $ezer_server, $abs_root;
+  global $y, $abs_root;
   $fileadmin= get_fileadmin();
   $msg= '?';
   $elems= '';

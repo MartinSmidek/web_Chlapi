@@ -1,6 +1,8 @@
 <?php
 define(VERZE,   '22/9/2018'); 
-define(ZMENA, 3);   // je-li článek čerstvější => upozorni na změnu
+define(ZMENA, 3);     // je-li článek čerstvější => upozorni na změnu
+define(NEWS, 264);    // článek obsahující změny na webu - zobrazuje se iniciovaným
+define(NAVOD, 268);   // článek obsahující návod na přihlášení
 # -------------------------------------------------------------------------------------==> def user
 // obnovuje obsah základních proměnných, které řídí viditelnost obsahu 
 function def_user() { 
@@ -32,8 +34,9 @@ function get_prefix() {
   global $ezer_server;
   $prefix= array(
       "http://chlapi.bean:8080/",
-      "http://www.chlapi.cz/",
-      "http://web.chlapi.online/")[$ezer_server];
+      "http://chlapi.online/",
+      "http://chlapi.cz/"
+      )[$ezer_server];
   return $prefix;
 }
 # -------------------------------------------------------------------------------------==> page
@@ -339,6 +342,10 @@ __EOT;
 
     case 'note':    # ----------------------------------------------- . note
       $html.= "<div style='background:white;color:black;text-align:center'>POZNAMKA</div>";
+      break;
+    
+    case 'jirka':    # ----------------------------------------------- . note
+      $html.= "<div style='background:white;color:black;text-align:center'>Jirko ahoj</div>";
       break;
     
     case 'myslenka':# ----------------------------------------------- . myšlenka
@@ -816,7 +823,7 @@ function show_page($html) {
   $client= "./ezer3.1/client";
 
   // Google Analytics
-  $GoogleAnalytics= $ezer_server==1 ? '' : <<<__EOD
+  $GoogleAnalytics= $ezer_server==2 ? '' : <<<__EOD
     (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
     (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
     m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
@@ -885,7 +892,7 @@ __EOJ;
 
   // head
   $icon= array(
-      '/man/img/chlapi_ico_local.png','/man/img/chlapi_ico.png','/man/img/chlapi_ico_dsm.png')[$ezer_server];
+      '/man/img/chlapi_ico_local.png','/man/img/chlapi_ico_dsm.png','/man/img/chlapi_ico.png')[$ezer_server];
   $head=  <<<__EOD
   <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
   <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en" dir="ltr">
@@ -945,6 +952,27 @@ __EOD;
   $cookie_email= str_replace("'",'',isset($_COOKIE['email']) ? $_COOKIE['email'] : '');  
   $logo_title= isset($_SESSION['web']['username']) ? " title='{$_SESSION['web']['username']}'" : '';
   
+  // informace pro přihlášené = článek NEWS - zobrazí se jen jednou 
+  $news= '';
+  if ( isset($KLIENT) && $KLIENT->level && $_SESSION['web']['news'] ) {
+    list($obsah,$wskill,$cskill,$zmena)= 
+        select("web_text,web_skill,cms_skill,TO_DAYS(NOW())-IFNULL(TO_DAYS(ch_date),0)",
+            "xclanek","id_xclanek=".NEWS);
+    $wskill= 0+$wskill;
+    // zneplatnění a přebarvení nekompetentních odkazů
+    $obsah= x_cenzura($obsah);
+    // po kliknutí na validní odkaz zneviditelní div
+    $obsah= str_replace('href=',"onclick=\"jQuery('clanek2').fadeOut();\" href=",$obsah);
+    $news= <<<__EOD
+      <div class='neodkaz' style="display:block">
+        <div id='clanek2' class='home' style="background:#cfdde6d6">
+          $obsah
+        </div>
+      </div>
+__EOD;
+    $_SESSION['web']['news']= 0;
+  }
+  $navod= NAVOD;
   $body=  <<<__EOD
     <div id='page'>
       <a $go_home style="cursor:pointer"><img id='logo' src='/man/img/kriz.png'$logo_title></a>
@@ -956,16 +984,18 @@ __EOD;
         $bar_menu
         $menu
       </div>
+      $news
       <div class='neodkaz' style="display:none">
         <div id='clanek2' class='home' style="background:#cfdde6d6">
           <p>Modré <span class='neodkaz'><a class='jump'>odkazy</a></span> 
           a <span class='neodkaz'><a class='odkaz'>čárkovaně podtržené</a></span> odkazy jsou bez přihlášení neaktivní.</p>
           <p> Pokud chceš vidět úplné texty článků, musíš být přihlášen.</p>
-          <p>K přihlašovacímu dialogu se dostaneš pomocí menu <i class="fa fa-bars"></i> v pravém horním rohu.</p>
+          <!-- p>K přihlašovacímu dialogu se dostaneš pomocí menu <i class="fa fa-bars"></i> v pravém horním rohu.</p>
           <p>Přihlásit se můžeš pomocí mailové adresy, kterou jsi 
           uvedl v přihlášce na akci (iniciaci, firming). Pokud ses takové akce ještě nezúčastnil, 
-          přihlášení možné nebude.</p>
-          <a class='jump' onclick="jQuery('div.neodkaz').fadeOut();">Rozumím</a>
+          přihlášení možné nebude.</p -->
+          <a class='jump' onclick="jQuery('div.neodkaz').fadeOut();">Nemám zájem</a>
+          <a class='jump' href="kontakty!$navod">Jak se přihlásím?</a>
         </div>
       </div>
       <div id='user_mail' style="display:$login_display">
@@ -990,15 +1020,15 @@ __EOD;
   <!-- konec -->
 __EOD;
 
-  // upozornění na testovací verzi
+  // upozornění na testovací verzi 
   $demo= '';
-  if ( $ezer_server==2 ) {
-    $click= "jQuery('#DEMO').fadeOut(1000).delay(2000).fadeIn(1000);";
-    $dstyle= "left:0; top:0; position:fixed; transform:rotate(320deg) translate(-128px,-20px); "
-        . "width:500px;height:100px;background:orange; color:white; font-weight: bolder; "
-        . "text-align: center; font-size: 40px; line-height: 96px; z-index: 16; opacity: .5;";
-    $demo= "<div id='DEMO' onclick=\"$click\" style='$dstyle'>testovací verze</div>";
-  }
+//  if ( $ezer_server==2 ) {
+//    $click= "jQuery('#DEMO').fadeOut(1000).delay(2000).fadeIn(1000);";
+//    $dstyle= "left:0; top:0; position:fixed; transform:rotate(320deg) translate(-128px,-20px); "
+//        . "width:500px;height:100px;background:orange; color:white; font-weight: bolder; "
+//        . "text-align: center; font-size: 40px; line-height: 96px; z-index: 16; opacity: .5;";
+//    $demo= "<div id='DEMO' onmouseover=\"$click\" style='$dstyle'>nový server</div>";
+//  }
 
   if ( $REDAKCE ) {
     return $demo.$body;
@@ -1154,7 +1184,7 @@ function servant($qry,$context=null) {
   $servant= array(
     "http://setkani.bean:8080/servant.php?secret=$secret",
     "https://www.setkani.org/servant.php?secret=$secret",
-    "http://192.168.1.213/www/setkani/servant.php?secret=$secret")[$ezer_server];
+    "https://www.setkani.org/servant.php?secret=$secret")[$ezer_server];
   $_SESSION['web']['servant_last']= "$servant&$qry";
   $json= file_get_contents("$servant&$qry",false,$context);
                                           display("<b style='color:red'>servant</b> $servant$qry");
@@ -1273,6 +1303,7 @@ function ask_server($x) {
       $_SESSION['web']['user']= $y->user;
       $_SESSION['web']['level']= $_SESSION['web']['level0']= $y->klient;
       $_SESSION['web']['username']= $y->name;
+      $_SESSION['web']['news']= 1;
       // případně jako BE
       if ( $y->redakce ) {
         $_SESSION['man']['level']= $_SESSION['man']['level0']= $y->redakce;
@@ -1381,15 +1412,18 @@ function db_connect() {
   global $ezer_db, $ezer_server, $http_server;
   $http_server= "http://$ezer_server";
   $dbs= array(
-    array(  // lokální
+    array(  // 0 = lokální
       'setkani'  => array(0,'localhost','gandi','','utf8','chlapi'),
       'ezertask' => array(0,'localhost','gandi','','utf8')
     ),
-    array(  // ostré - endora
-      'setkani'  => array(0,'localhost','gandi','radost','utf8','ezerweb'),
-      'ezertask' => array(0,'localhost','gandi','radost','utf8')
+    array(  // 1 = ostré - Synology + online 
+      'setkani'  => array(0,'localhost','ymca','JW4YNPTDf4Axkj9','utf8','chlapi'),
+      'ezertask' => array(0,'localhost','ymca','JW4YNPTDf4Axkj9','utf8','myslenky')
+// endora.cz ... 4/10/2019 přepnuto na Synology     
+//      'setkani'  => array(0,'localhost','gandi','radost','utf8','ezerweb'),
+//      'ezertask' => array(0,'localhost','gandi','radost','utf8')
     ),
-    array(  // ostré - dsm
+    array(  // 2 = ostré - Synology + cz
       'setkani'  => array(0,'localhost','ymca','JW4YNPTDf4Axkj9','utf8','chlapi'),
       'ezertask' => array(0,'localhost','ymca','JW4YNPTDf4Axkj9','utf8','myslenky')
     ),
@@ -1439,10 +1473,13 @@ function log_report($par) { trace();
     break;
   case 'me_login': // -------------------------------------- přihlášení
     $html.= "<dl>";
+    $cond= $par->typ==='ok'
+        ? "msg RLIKE '^ok'"
+        : "msg RLIKE '^ko' AND NOT msg RLIKE 'byl odeslán'";
     $cr= mysql_qry("
       SELECT day,time,msg
       FROM _touch
-      WHERE module='log' AND menu='me_login'
+      WHERE module='log' AND menu='me_login' AND $cond
       ORDER BY day DESC, time desc
     ");
     while ( $cr && (list($day,$time,$msg)= mysql_fetch_row($cr)) ) {

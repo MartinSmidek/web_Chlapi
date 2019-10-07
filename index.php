@@ -1,12 +1,13 @@
 <?php
 
 date_default_timezone_set('Europe/Prague');
-//$ezer_local= $_SERVER['SERVER_NAME']=='chlapi.bean' ? 1 : 0;
-//$index= $ezer_local ? "index.php" : "index.php";
+
 $ezer_server= 
-    $_SERVER["SERVER_NAME"]=='chlapi.bean' ? 0 : (          // 0:lokální 
-    $_SERVER["SERVER_NAME"]=='www.chlapi.cz' ? 1 : (        // x:ostrý server
-    $_SERVER["SERVER_NAME"]=='web.chlapi.online' ? 2 : -1));
+    $_SERVER["SERVER_NAME"]=='chlapi.bean'       ? 0 : (        // 0:lokální         = oranžové logo
+    $_SERVER["SERVER_NAME"]=='chlapi.online'     ? 1 : (        // Synology - online = modré logo
+    $_SERVER["SERVER_NAME"]=='www.chlapi.online' ? 1 : (
+    $_SERVER["SERVER_NAME"]=='chlapi.cz'         ? 2 : (        // Synology - cz     = šedé logo
+    $_SERVER["SERVER_NAME"]=='www.chlapi.cz'     ? 2 : -1))));
 
 # ------------------------------------------ init
 
