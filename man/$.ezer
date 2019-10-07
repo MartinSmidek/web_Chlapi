@@ -920,8 +920,10 @@ panel EDITOR [0,0,720,550] { type:'popup', style:"min-width:700px", _sys:'edi'
         ch_date.set(''); ch_date.change
     }}
     button  [-121,5,,] { title:'Uložit', help:'ukončit editor a uložit změny'
-      proc onclick() { 
-        [ ch_date.changed; ask('log_path','xclanek',id.get,1) ]; // zápis ch_date do menu.ch_date
+      proc onclick() { var _y:object
+        _y.set(ask('bez_embeded',0,0,obsah.get));
+        _y.n; alert(_y.msg) 
+      | [ ch_date.changed; ask('log_path','xclanek',id.get,1) ]; // zápis ch_date do menu.ch_date
         form.save; 
         ask('record_unlock','xclanek',id.get);
         ask('log_obsah','u','c',id.get); 

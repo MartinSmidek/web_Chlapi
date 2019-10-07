@@ -216,11 +216,14 @@ function namiru_fotky($id,$imgs,$replace) {
 # --------------------------------------------------------------------------------------- img oprava
 # opraví obrázky v part
 #  a) odstraní embeded obrázky
-function bez_embeded($idxc,$update) {
+function bez_embeded($idxc,$update,$inline='') {
   $y= (object)array('n'=>0,'msg'=>'');
-  $text= select("web_text","xclanek","id_xclanek=$idxc");
+  $text= $inline ? $inline : select("web_text","xclanek","id_xclanek=$idxc");
   $text= preg_replace("/<img[^>]+src=.data:image[^>]+\>/i","(embeded image)",$text,-1,$y->n);
-  if ( $y->n ) {
+  if ( $inline && $y->n ) {
+    $y->msg.= "POZOR obrázky do článku je třeba přidávat přes Přílohy";
+  }
+  elseif ( $y->n ) {
     if ( $update ) {
       $text= pdo_real_escape_string($text);
   //                                                       display($text);
