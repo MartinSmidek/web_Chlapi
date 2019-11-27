@@ -22,10 +22,15 @@ function escape_string($inp) {
 // 4) dát zprávu $gn->gn_msg("$n fotografií bylo přidáno do pásu $uid");
 function corr_fotky($fid) { global $gn;
   $path= "inc/f/$fid";
-  $x= simple_glob("$path/..*.*");
+//  $x= simple_glob("$path/..*.*");
 
   $th= 80;
+  if ( !is_dir($path) ) {
+    $ok= mkdir($path,0777);
+                                    display("mkdir($path)=$ok");
+  }
   $handle= @opendir($path); #$gn->gn_echo("gn_reloadFoto: handle=$handle<br>");
+                                    display("opendir($path)=$handle");
   $max= 9999; // ochrana proti zacyklení
   $text= '';
   $pocet= 0;
@@ -106,6 +111,7 @@ function create_fotky($x) {
 function load_fotky($fid) { trace();
   global $REDAKCE, $href0, $clear;
   $x= (object)array();
+  $time= time();
   list($id_xclanek,$x->editors,$x->autor,$x->nadpis,$lst,$psano)=
     select('id_xclanek,editors,autor,nazev,seznam,kdy','xfotky',"id_xfotky=$fid");
   $x->fotky= "<span class='foto drop' data-foto-n='-1'></span><ul class='foto' id='foto'>";
@@ -113,21 +119,26 @@ function load_fotky($fid) { trace();
   $fs= explode(',',$lst);
   $last= count($fs)-1;
   for ($i= 0; $i<$last; $i+=2) {
-    $mini= "inc/f/$fid/..$fs[$i]";
-    $midi= "inc/f/$fid/.$fs[$i]";
+    $fsi= $fs[$i];
+    $mini= "inc/f/$fid/..$fsi";
+    $midi= "inc/f/$fid/.$fsi";
     if ( file_exists($mini) ) {
-      $title= $fs[$i] ? "title='{$fs[$i]}'" : '';
+      $title= $fsi ? "title='$fsi'" : '';
       $tit= $fs[$i+1] ? "<div>{$fs[$i+1]}</div>" : '';
-      $chk= "<input type='checkbox' onchange=\"this.parentNode.dataset.checked=this.checked;\" />";
-//          ['smazat fotku',foto_delete],
+      $chk= '';
+//      $chk= "<input type='checkbox' onchange=\"this.parentNode.dataset.checked=this.checked;\" />";
 //          ['upravit popis',foto_note]
       $menu= "oncontextmenu=\"Ezer.fce.contextmenu([
           ['url fotky do schránky',function(){Ezer.fce.clipboard('$midi');}],
-          ['url miniatury do schránky',function(){Ezer.fce.clipboard('$mini');}]
+          ['url miniatury do schránky',function(){Ezer.fce.clipboard('$mini');}],
+          ['-otočit doleva',function(){cmd_fotky($fid,'$fsi','rotate_l')}],
+          ['otočit doprava',function(){cmd_fotky($fid,'$fsi','rotate_r')}],
+          ['zkopírovat do příloh',function(){cmd_fotky($fid,'$fsi','attach')}],
+          ['-smazat fotku',function(){cmd_fotky($fid,'$fsi','delete')}]
         ],arguments[0]);return false;\"";
       $n= $i/2;
       $x->fotky.=
-        " <li class='foto' data-foto-n='$n' $title $menu style='background-image:url($mini)'>"
+        " <li class='foto' data-foto-n='$n' $title $menu style='background-image:url($mini?time=$time)'>"
         . "$chk$tit</li>";
     }
   }
@@ -162,6 +173,79 @@ function save_fotky($x,$perm=null) {
            $set_seznam
          WHERE id_xfotky='$fid'");
   return 1;
+}
+# ---------------------------------------------------------------------------------------- cmd fotky 
+# různé operace nad jednou fotkou
+function cmd_fotky($fid,$foto,$cmd) {
+  $ok= 0;
+  $deg= 90;
+  $path= "inc/f/$fid";
+  // extrakce seznamu fotek do $fotky, $n je index $foto
+  $chng= 0; // je třeba změnit seznam
+  list($seznam,$idc)= select('seznam,id_xclanek','xfotky',"id_xfotky=$fid");
+  $fotky= explode(',',$seznam);
+  $n= array_search($foto,$fotky);
+  if ( $n===false ) goto end;   // $foto nebyla nalezena
+  // operace
+  switch ($cmd) {
+  case 'delete':  // ---------------------------------------- smazání fotky
+    $ok= unlink("$path/$foto"); 
+    unlink("$path/.$foto"); unlink("$path/..$foto");
+    unset($fotky[$n]); unset($fotky[$n+1]);
+    $chng= $ok;
+    break;
+  case 'attach':  // ---------------------------------------- zkopírování do příloh
+    $path_c= "inc/c/$idc";
+    if ( !file_exists($path_c) && !mkdir($path_c) ) {
+      goto end;
+    }
+    $ok= copy("$path/$foto","$path_c/$foto"); 
+    break;
+  case 'rotate_r':  // -------------------------------------- otočit fotku o -90
+    $deg= 270;
+  case 'rotate_l':  // -------------------------------------- otočit fotku o +90
+    $part= pathinfo("$path/$foto");
+    $ext= strtolower($part['extension']);
+    switch ($ext) {
+    case 'jpg':
+      $img= @imagecreatefromjpeg("$path/$foto");
+      if ( !$img ) { $err= "$foto nema format JPEG"; goto end; }
+      $img= imagerotate($img,$deg,0);
+      if ( !imagejpeg($img,"$path/$foto") ) { $err= "$foto nelze ulozit"; goto end; }
+      $ok= 1;
+      break;
+    case 'png':
+      $img= @imagecreatefrompng("$path/$foto");
+      if ( !$img ) { $err= "$foto nema format PNG"; goto end; }
+      $img= imagerotate($img,$deg,0);
+      if ( !imagepng($img,"$path/$foto") ) { $err= "$foto nelze ulozit"; goto end; }
+      $ok= 1;
+      break;
+    case 'gif':
+      $img= @imagecreatefromgif("$path/$foto");
+      if ( !$img ) { $err= "$foto nema format GIF"; goto end; }
+      $img= imagerotate($img,$deg,0);
+      if ( !imagegif($img,"$path/$foto") ) { $err= "$foto nelze ulozit"; goto end; }
+      $ok= 1;
+      break;
+    default:
+      $err= "$foto ma neznamy typ";
+    }
+    if ( $ok ) {
+      $width= $height= 512;
+      x_resample("$path/$foto","$path/.$foto",$width,$height);
+      $width= $height= 80;
+      x_resample("$path/$foto","$path/..$foto",$width,$height);
+    }
+    break;
+  }
+  // pokud je třeba změň seznam
+  if ( $chng ) {
+    $seznam= implode(',', $fotky);
+    query("UPDATE xfotky SET seznam=\"$seznam\" WHERE id_xfotky='$fid'");
+  }
+end:  
+  return $ok;
 }
 # --------------------------------------------------------------------------------==> . namiru fotky
 # upraví velikost obrázků podle dodané šířky
@@ -265,26 +349,8 @@ function minify_fotky($file,$fid) {
 end:
   return $file;
 }
-# ------------------------------------------------------------------------------------- delete fotky
-function delete_fotky($uid,$foto) {
-//  global $ezer_path_root, $ezer_root;
-//  // zrušení odkazu na fotku
-//  $text= select('text','tx_gncase_part',"uid=$uid");
-//  $fotky= explode(',',$text);
-//  while (1) {
-//    $n= array_search($foto,$fotky);
-//    if ( $n===false ) break;
-//    unset($fotky[$n]); unset($fotky[$n+1]);
-//  }
-//  $text= implode(',', $fotky);
-//  query("UPDATE xfotky SET text='$text' WHERE uid=$uid");
-//  // smazání fotky
-//  $path= "$ezer_path_root/fileadmin/photo/$uid";
-//  unlink("$path/$foto"); unlink("$path/.$foto"); unlink("$path/..$foto");
-  return 1;
-}
 # --------------------------------------------------------------------------------------- note fotky
-function note_fotky($uid,$foto0,$note) {
+//function note_fotky($uid,$foto0,$note) {
 //  // načtení
 //  $text= select('text',"setkani.tx_gncase_part","uid='$uid'");
 //  $f= array();
@@ -301,11 +367,11 @@ function note_fotky($uid,$foto0,$note) {
 //    $text.= "$foto,$desc,";
 //  }
 //  query("UPDATE xfotky SET text='$text' WHERE uid='$uid'");
-  return 1;
-}
-# ----------------------------------------------------------------------------------==> . sort fotky
-# seřadí fotky podle jména souboru
-function sort_fotky($uid) { trace();
+//  return 1;
+//}
+//# ----------------------------------------------------------------------------------==> . sort fotky
+//# seřadí fotky podle jména souboru
+//function sort_fotky($uid) { trace();
 //  $text= select('text',"setkani.tx_gncase_part","uid='$uid'");
 //  $f= array();
 //  $t= explode(',',$text);
@@ -325,11 +391,11 @@ function sort_fotky($uid) { trace();
 //                                                        display($text);
 //  // zápis
 //  query("UPDATE setkani.tx_gncase_part SET text='$text' WHERE uid='$uid'");
-  return 1;
-}
-# ----------------------------------------------------------------------------------==> . move fotky
-# přesune fotky s pořadími uvedenými v lst z part.uid=from do part.uid=to
-function move_fotky($from,$to,$checked) { trace();
+//  return 1;
+//}
+//# ----------------------------------------------------------------------------------==> . move fotky
+//# přesune fotky s pořadími uvedenými v lst z part.uid=from do part.uid=to
+//function move_fotky($from,$to,$checked) { trace();
 //  global $ezer_path_root, $ezer_root;
 //  $path_from= "$ezer_path_root/fileadmin/photo/$from";
 //  $text_from= select('text',"setkani.tx_gncase_part","uid='$from'");
@@ -372,11 +438,11 @@ function move_fotky($from,$to,$checked) { trace();
 //  query("UPDATE setkani.tx_gncase_part SET text='$text_from' WHERE uid='$from'");
 //  query("UPDATE setkani.tx_gncase_part SET text='$text_to' WHERE uid='$to'");
 //end:
-  return 1;
-}
-# ----------------------------------------------------------------------------------==> . upload url
-# zapíše soubor zadaný urldo fileadmin/img/cid
-function upload_url($url,$cid) { trace();
+//  return 1;
+//}
+//# ----------------------------------------------------------------------------------==> . upload url
+//# zapíše soubor zadaný urldo fileadmin/img/cid
+//function upload_url($url,$cid) { trace();
 //  global $ezer_path_root, $ezer_root;
 //  $ret= (object)array('err'=>'');
 //  // zajisti složku
@@ -410,9 +476,9 @@ function upload_url($url,$cid) { trace();
 //  if (!copy($url,$pathfile)) { $ret->err= "POZOR soubor $file se nepodařilo přečíst"; goto end; }
 //end:
 //  return $ret;
-}
-# ----------------------------------------------------------------------------------==> . upload zip
-function upload_zip($url,$uid,$cid) { trace();
+//}
+//# ----------------------------------------------------------------------------------==> . upload zip
+//function upload_zip($url,$uid,$cid) { trace();
 //  global $ezer_path_root;
 //  $ret= (object)array('err'=>'');
 //  $free= floor(disk_free_space("/")/(1024*1024));
@@ -473,7 +539,7 @@ function upload_zip($url,$uid,$cid) { trace();
 //  // uvolni prostor
 //  if ( file_exists("tmp_file.zip") ) unlink("tmp_file.zip");
 //  return $ret;
-}
+//}
 # -------------------------------------- x_resample
 // změna velikosti obrázku typu gif, jpg nebo png (na jiných zde není realizována)
 //   $source, $dest -- cesta k souboru, ktery chcete zmensit  a cesta, kam zmenseny soubor ulozit

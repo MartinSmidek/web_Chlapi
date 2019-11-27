@@ -41,6 +41,11 @@ panel p [0,0,*,*] { type:'main', _sys:'$'
   proc posunout(_typ,_mid,_id,_dolu) { 
     ask('menu_shift_elem',_typ,_mid,_id,_dolu); refresh
   }
+  proc cmd_fotky(_fid,_name,_cmd) { var ok:number // cmd=delete|attach
+    ok.set(ask('cmd_fotky',_fid,_name,_cmd)); 
+    ok; FOTKY.refresh
+  | alert("operace ",_cmd," pro ",_name," selhala")
+  }
   proc namiru(_id,_div_id) { var _list:array, _y:object
     _list.set(function('div',"return namiru_fotky(div);",_div_id));
     _y.set(ask('namiru_fotky',_id,_list,0)); 

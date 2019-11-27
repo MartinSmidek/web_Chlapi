@@ -371,7 +371,7 @@ __EOT;
         $html.= "
           <div class='back'>
             <a class='$styl home' $jmp>
-              <img src='man/img/rr_gr.jpg' style='width:80px;margin-right:40px;float:right;'>
+              <img src='/man/img/rr_gr.jpg' style='width:80px;margin-right:40px;float:right;'>
               $obsah
             </a>
           </div>";
@@ -457,6 +457,7 @@ __EOT;
             $menu= " title='".($plny?'kapitola':'abstrakt kapitoly')." $book->ida/$idn' oncontextmenu=\"
               Ezer.fce.contextmenu([
                 ['editovat článek',function(el){ opravit('xclanek',$id); }],
+                ['upravit obrázky článku',function(el){ namiru('$id','fokus_part'); }],
                 ['vyjmout embeded obrázky',function(el){ bez_embeded('$id'); }],
                 ['-zobrazit jako článek',function(el){ zmenit($curr_menu->mid,'aclanek',$id,'xclanek'); }],
                 ['-přidat fotky',function(el){ pridat('xfotky',$id); }],
@@ -518,7 +519,7 @@ __EOT;
           if ( $book && !$book->first )
             break;
         }
-        $zmena= $zmena ? "<img src='man/css/upd.gif' class='zmena'>" : '';
+        $zmena= $zmena ? "<img src='/man/css/upd.gif' class='zmena'>" : '';
         $html.= "
           <div class='back' $menu $neodkaz>
             <a class='$styl home$redakce_style' $jmp>
@@ -922,9 +923,9 @@ __EOD;
          <i class='fa fa-power-off'></i> odhlásit se</span>"
     : "<span onclick=\"bar_menu(arguments[0],'me_login');\" class='separator'>
          <i class='fa fa-user-secret'></i> přihlásit se emailem</span>";
-//      <span onclick="bar_menu(arguments[0],'new1');"><img src='man/img/new.png'> změny za den</span>
-//      <span onclick="bar_menu(arguments[0],'new7');"><img src='man/img/new.png'> změny za týden</span>
-//      <span onclick="bar_menu(arguments[0],'new30');"><img src='man/img/new.png'> změny za měsíc</span>
+//      <span onclick="bar_menu(arguments[0],'new1');"><img src='/man/img/new.png'> změny za den</span>
+//      <span onclick="bar_menu(arguments[0],'new7');"><img src='/man/img/new.png'> změny za týden</span>
+//      <span onclick="bar_menu(arguments[0],'new30');"><img src='/man/img/new.png'> změny za měsíc</span>
 //      <span onclick="bar_menu(arguments[0],'grid');" class='separator'><i class='fa fa-th'></i> akce jako mřížka</span>
 //      <span onclick="bar_menu(arguments[0],'rows');"><i class='fa fa-bars'></i> akce jako řádky</span>
   $bar_menu= <<<__EOD
@@ -1051,7 +1052,7 @@ __EOD;
       $body
       </div>
     </div>
-    <img id='go_up' onclick="jQuery('#menu').Ezer_scrollIntoView();" src='man/css/backtotop.png'>
+    <img id='go_up' onclick="jQuery('#menu').Ezer_scrollIntoView();" src='/man/css/backtotop.png'>
   </body>
   </html>
 __EOD;
