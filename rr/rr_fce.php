@@ -1,6 +1,6 @@
 <?php # (c) 2007-2012 Martin Smidek <martin@smidek.eu>
-# ================================================================================================== RR
-# -------------------------------------------------------------------------------------------------- rr_nastav
+# =============================================================================================== RR
+# ---------------------------------------------------------------------------------------- rr nastav
 # $par = {den:ode dneška,poslat: 0/1}
 function rr_nastav($den,$datum,$pocet) {  trace();
   $ret= (object)array('msg'=>'','last'=>'','next'=>'');
@@ -18,7 +18,7 @@ function rr_nastav($den,$datum,$pocet) {  trace();
   $ret->msg= "nastaveno $nastaveno dnů od $dat po $ndatum";
   return $ret;
 }
-# -------------------------------------------------------------------------------------------------- rr_send
+# ------------------------------------------------------------------------------------------ rr send
 # $par = {den:ode dneška,poslat: 0/1}
 function rr_send($par) {
   global $EZER;
@@ -27,7 +27,7 @@ function rr_send($par) {
   $dnes= date('j/n/Y',mktime(0,0,0,date('n'),date('j')+$plus,date('Y')));
   $html= "neni pro $dnes nastaveno! ($offset)";
   //return $html;
-  ezer_connect();
+  ezer_connect("ezertask");
   $qry= "SELECT * FROM rr WHERE datum=curdate()$offset ";
   $res= mysql_qry($qry);
                                                 $html.= "<br>$res=$qry";
@@ -74,7 +74,7 @@ function rr_send($par) {
   }
   return $html;
 }
-# -------------------------------------------------------------------------------------------------- send_gmail
+# --------------------------------------------------------------------------------------- send gmail
 # pošle mail přes GMAIL
 # $to může být seznam adres oddělený čárkou
 function send_simple_mail($subject,$html,$from='',$to='',$fromname='') { trace();

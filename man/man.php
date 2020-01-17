@@ -7,8 +7,8 @@
   // rozlišení lokální a ostré verze
 //  $ezer_local= preg_match('/^\w+\.bean$/',$_SERVER["SERVER_NAME"])?1:0;
   $ezer_server= 
-      $_SERVER["SERVER_NAME"]=='chlapi.bean' ? 0 : (          // 0:lokální 
-      $_SERVER["SERVER_NAME"]=='chlapi.cz' ? 2 : (            // x:ostrý server
+      $_SERVER["SERVER_NAME"]=='chlapi.bean'   ? 0 : (        // 0:lokální 
+      $_SERVER["SERVER_NAME"]=='chlapi.cz'     ? 2 : (        // x:ostrý server
       $_SERVER["SERVER_NAME"]=='www.chlapi.cz' ? 2 : (        // x:ostrý server
       $_SERVER["SERVER_NAME"]=='chlapi.online' ? 1 : (        // x:ostrý server
       $_SERVER["SERVER_NAME"]=='www.chlapi.online' ? 1 : -1))));

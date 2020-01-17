@@ -6,7 +6,7 @@ define(NAVOD, 268);   // článek obsahující návod na přihlášení
 # -------------------------------------------------------------------------------------==> def user
 // obnovuje obsah základních proměnných, které řídí viditelnost obsahu 
 function def_user() { 
-  global $REDAKCE, $KLIENT;
+  global $REDAKCE, $KLIENT, $mobile;
   $KLIENT= (object)array(
       // osoba.id_osoba z Answeru
       'id'    => isset($_SESSION['web']['user'])  ? 0+$_SESSION['web']['user'] : 0,  
@@ -17,6 +17,7 @@ function def_user() {
       // 0-kdokoliv, 1-programátor, 2-testér, 4-redaktor
       'level' => isset($_SESSION['man']['level']) ? 0+$_SESSION['man']['level'] : 0  
   ) : NULL; 
+  $mobile= in_array($_SESSION['platform'],array('I','M','A'));
 }
 # --------------------------------------------------------------------------------==> get fileadmin
 # vrátí fileadmin pro web setkani
@@ -204,8 +205,9 @@ function show_menu($part) {
 // desc :: key [ = ids ]
 // ids  :: id1 [ / id2 ] , ...    -- id2 je klíč v lokální db pro ladění
 function eval_elem($desc,$book=null) {
-  global $REDAKCE, $KLIENT, $ezer_server, $http_server, $index, $load_ezer, $curr_menu, $top, $prefix;
+  global $REDAKCE, $KLIENT, $ezer_server, $http_server, $index, $load_ezer, $curr_menu, $top, $prefix, $mobile;
   $elems= explode(';',$desc);
+  $ipad= '';
   $html= '';
   $html= $REDAKCE ? "<script>skup_mapka_off();</script>" : '';
   $layout= ''; // default layout stránky 
@@ -295,18 +297,23 @@ __EOT;
       if ( $otevrena ) {
         // otevřená kniha
         if ( $REDAKCE ) {
-          $menu= " title='kniha $idk' oncontextmenu=\"
-              Ezer.fce.contextmenu([
+          $kod= "Ezer.fce.contextmenu([
                 ['upravit název',function(el){ opravit('xkniha',$idk); }],
                 ['-nová kapitola na začátek',function(el){ pridat('xkniha.elem',$idk,1); }],
                 ['nová kapitola na konec',function(el){ pridat('xkniha.elem',$idk,0); }]
               ],arguments[0],0,0,'#xclanek$id');return false;\"";
+          $menu= " title='kniha $idk' oncontextmenu=\"$kod\"";
+          if ( $mobile ) {
+            $ipad= "<span class='ipad_menu' onclick=\"arguments[0].stopPropagation();$kod\">
+              <i class='fa fa-bars'></i></span>";
+          }
         }
         // nadpis
         $html.= "
           <div class='kniha_bg' id='fokus_page'>
             <div class='kniha_br' $menu>
               <b>$nazev</b>
+              $ipad
             </div>";
         // kapitoly
         $top= $ida;
@@ -321,15 +328,7 @@ __EOT;
           </div>";
       }
       else {
-        // zavřená kniha
-        if ( $REDAKCE ) {
-          $menu= " oncontextmenu=\"
-              Ezer.fce.contextmenu([
-                ['posunout nahoru',function(el){ posunout('akniha',$curr_menu->mid,$id,0); }],
-                ['posunout dolů',function(el){ posunout('akniha',$curr_menu->mid,$id,1); }]
-              ],arguments[0],0,0,'#xclanek$id');return false;\"";
-        }
-        // zobrazení 1. kapitoly - musí to být aclanek
+        // zavřená kniha - zobrazení 1. kapitoly - musí to být aclanek
         list($xelem)= explode(';',$xelems);
         if ( $xelem ) {
           $html.= "<div title='kniha $id' $menu>";
@@ -380,7 +379,6 @@ __EOT;
     
     case 'aclanek': # ------------------------------------------------ . ačlánek - abstrakt
       global $backref, $links;
-      $ipad= '';
       $links= "fotorama";
       $html.= "<script>jQuery('.fotorama').fotorama();</script>";
       $idn= $id;
@@ -425,18 +423,19 @@ __EOT;
                 $namiru
                 ['-zobrazit jako článek',function(el){ zmenit($curr_menu->mid,'aclanek',$id,'xclanek'); }],
                 ['-přidat fotky',function(el){ pridat('xfotky',$id); }],
-                ['-posunout nahoru',function(el){ posunout('aclanek',$curr_menu->mid,$id,0); }],
-                ['posunout dolů',function(el){ posunout('aclanek',$curr_menu->mid,$id,1); }],
+                ['-posunout článek nahoru',function(el){ posunout('aclanek',$curr_menu->mid,$id,0); }],
+                ['posunout článek dolů',function(el){ posunout('aclanek',$curr_menu->mid,$id,1); }],
                 ['-přidat článek na začátek',function(el){ pridat('xclanek',$curr_menu->mid,1); }],
                 ['přidat článek na konec',function(el){ pridat('xclanek',$curr_menu->mid,0); }],
                 ['-přidat knihu na začátek',function(el){ pridat('xkniha',$curr_menu->mid,1); }],
                 ['přidat knihu na konec',function(el){ pridat('xkniha',$curr_menu->mid,0); }]
               ],arguments[0],0,0,'#xclanek$id');return false;";
           $menu= " title='$co $idn' oncontextmenu=\"$kod\"";
-          if ( $_SESSION['platform']=='I')
+          if ( $mobile ) {
             $ipad= "<span class='ipad_menu' onclick=\"arguments[0].stopPropagation();$kod\">
               <i class='fa fa-bars'></i></span>";
-            $menu.= " id='$div_id'";
+          }
+          $menu.= " id='$div_id'";
         }
         elseif ( $book->open && $book->ida ) {
             $div_id= "a{$book->ida}-$id";
@@ -444,18 +443,21 @@ __EOT;
             $namiru= $plny ? 
                 "['upravit obrázky článku',function(el){ namiru('$id','$div_id'); }],
                  ['vyjmout embeded obrázky',function(el){ bez_embeded('$id'); }],":'';
-            $menu= " title='".($plny?'':'abstrakt ')."akce $book->idk: $book->ida/$id' oncontextmenu=\"
-              Ezer.fce.contextmenu([
+            $kod= "Ezer.fce.contextmenu([
                 ['editovat akci',function(el){ opravit('xakce',$id,$book->ida); }],
                 $namiru
                 ['-přidat fotky',function(el){ pridat('xfotky',$id); }],
                 ['-přidat novou akci $book->idk',function(el){ pridat('xakce',$book->idk,1); }]
               ],arguments[0],0,0,'#xclanek$id');return false;\"";
-            $menu.= " id='$div_id'";
+            $menu= " title='".($plny?'':'abstrakt ')."akce $book->idk: $book->ida/$id' 
+              oncontextmenu=\"$kod\" id='$div_id'";
+            if ( $mobile ) {
+              $ipad= "<span class='ipad_menu' onclick=\"arguments[0].stopPropagation();$kod\">
+                <i class='fa fa-bars'></i></span>";
+            }
         }
-        else
-            $menu= " title='".($plny?'kapitola':'abstrakt kapitoly')." $book->ida/$idn' oncontextmenu=\"
-              Ezer.fce.contextmenu([
+        else {
+            $kod= "Ezer.fce.contextmenu([
                 ['editovat článek',function(el){ opravit('xclanek',$id); }],
                 ['upravit obrázky článku',function(el){ namiru('$id','fokus_part'); }],
                 ['vyjmout embeded obrázky',function(el){ bez_embeded('$id'); }],
@@ -463,9 +465,17 @@ __EOT;
                 ['-přidat fotky',function(el){ pridat('xfotky',$id); }],
                 ['-posunout nahoru',function(el){ posunout('xkniha.elem',$book->idk,$id,0); }],
                 ['posunout dolů',function(el){ posunout('xkniha.elem',$book->idk,$id,1); }],
+                ['-posunout knihu nahoru',function(el){ posunout('akniha',$curr_menu->mid,$book->idk,0); }],
+                ['posunout knihu dolů',function(el){ posunout('akniha',$curr_menu->mid,$book->idk,1); }],
                 ['-nová kapitola na začátek',function(el){ pridat('xkniha.elem',$book->idk,1); }],
                 ['nová kapitola na konec',function(el){ pridat('xkniha.elem',$book->idk,0); }]
               ],arguments[0],0,0,'#xclanek$id');return false;\"";
+            $menu= " title='".($plny?'kapitola':'abstrakt kapitoly')." $book->ida/$idn' oncontextmenu=\"$kod\"";
+            if ( $mobile ) {
+              $ipad= "<span class='ipad_menu' onclick=\"arguments[0].stopPropagation();$kod\">
+                <i class='fa fa-bars'></i></span>";
+            }
+        }
       }
       $jmp= str_replace('*',$idn,$backref);
       if ( $plny ) {
@@ -473,6 +483,7 @@ __EOT;
         $html.= "
           <div class='back' $menu>
             <div id='fokus_part' class='home$redakce_style$zmena'>
+              $ipad
               $obsah
             </div>
           </div>";
@@ -482,18 +493,23 @@ __EOT;
           if ( $REDAKCE ) {
             $note= "<span style='float:right;color:red;font-style:italic;font-size:x-small'>
                   ... zjednodušené zobrazení fotogalerie pro editaci</span>";
-            $menu= " title='fotky $fid' oncontextmenu=\"
-                Ezer.fce.contextmenu([
+            $kod= "Ezer.fce.contextmenu([
                   ['organizovat fotky',function(el){ opravit('xfotky',$fid); }],
-                  ['kopírovat ze setkání',function(el){ zcizit('fotky',$fid,0); }],
-                  ['... jen test',function(el){ zcizit('fotky',$fid,1); }]
+                  //['kopírovat ze setkání',function(el){ zcizit('fotky',$fid,0); }],
+                  //['... jen test',function(el){ zcizit('fotky',$fid,1); }]
                 ],arguments[0],0,0,'#xclanek$id');return false;\"";
+            $menu= " title='fotky $fid' oncontextmenu=\"$kod\"";
+            if ( $mobile ) {
+              $ipad= "<span class='ipad_menu' onclick=\"arguments[0].stopPropagation();$kod\">
+                <i class='fa fa-bars'></i></span>";
+            }
           }
           $galery= show_fotky2($fid,$seznam);
           $html.= "
             <div class='galery_obal' $menu>
               <div id='xfotky$fid' class='galerie'>
                 <div class='text'>
+                  $ipad
                   <h1>&nbsp;&nbsp;&nbsp;$nazev $note</h1>
                   $galery
                   <div class='podpis'>$podpis</div>
@@ -557,8 +573,7 @@ __EOT;
               "onclick=\"go(arguments[0],'page=$1','$1','',0);\" title='$1'", 
               $obsah);
         $div_id= "c$id";
-        $menu= " title='článek $id' oncontextmenu=\"
-            Ezer.fce.contextmenu([
+        $kod= "Ezer.fce.contextmenu([
               ['editovat článek',function(el){ opravit('xclanek',$id); }],
               ['upravit obrázky článku',function(el){ namiru('$id','$div_id'); }],
               ['vyjmout embeded obrázky',function(el){ bez_embeded('$id'); }],
@@ -568,40 +583,46 @@ __EOT;
               ['-přidat knihu na začátek',function(el){ pridat('xkniha',$curr_menu->mid,1); }],
               ['přidat knihu na konec',function(el){ pridat('xkniha',$curr_menu->mid,0); }]
             ],arguments[0],0,0,'#xclanek$id');return false;\"";
+        $menu= " title='článek $id' oncontextmenu=\"$kod\"";
+        if ( $mobile ) {
+          $ipad= "<span class='ipad_menu' onclick=\"arguments[0].stopPropagation();$kod\">
+            <i class='fa fa-bars'></i></span>";
+        }
       }
       $html.= "
         <div class='back' $menu>
           <div id='xclanek$id' class='home$redakce_style$zmena'>
+            $ipad
             $obsah
           </div>
         </div>
       ";
-        // pokud jsou fotky, přidáme
-        $rf= mysql_qry("SELECT id_xfotky,nazev,seznam,path,autor FROM xfotky WHERE id_xclanek=$id");
-        while ($rf && list($fid,$nazev,$seznam,$path,$podpis)=mysql_fetch_row($rf)) {
-          if ( $REDAKCE ) {
-            $note= "<span style='float:right;color:red;font-style:italic;font-size:x-small'>
-                  ... zjednodušené zobrazení fotogalerie pro editaci</span>";
-            $menu= " title='fotky $fid' oncontextmenu=\"
-                Ezer.fce.contextmenu([
-                  ['organizovat fotky',function(el){ opravit('xfotky',$fid); }],
-                  ['kopírovat ze setkání',function(el){ zcizit('fotky',$fid,0); }],
-                  ['... jen test',function(el){ zcizit('fotky',$fid,1); }]
-                ],arguments[0],0,0,'#xclanek$id');return false;\"";
-          }
-          $galery= show_fotky2($fid,$seznam);
-          $html.= "
-            <div class='galery_obal' $menu>
-              <div id='xfotky$fid' class='galerie'>
-                <div class='text'>
-                  <h1>&nbsp;&nbsp;&nbsp;$nazev $note</h1>
-                  $galery
-                  <div class='podpis'>$podpis</div>
-                </div>
-              </div>
-            </div>
-          ";
-        }
+//        // pokud jsou fotky, přidáme
+//        $rf= mysql_qry("SELECT id_xfotky,nazev,seznam,path,autor FROM xfotky WHERE id_xclanek=$id");
+//        while ($rf && list($fid,$nazev,$seznam,$path,$podpis)=mysql_fetch_row($rf)) {
+//          if ( $REDAKCE ) {
+//            $note= "<span style='float:right;color:red;font-style:italic;font-size:x-small'>
+//                  ... zjednodušené zobrazení fotogalerie pro editaci</span>";
+//            $menu= " title='fotky $fid' oncontextmenu=\"
+//                Ezer.fce.contextmenu([
+//                  ['organizovat fotky',function(el){ opravit('xfotky',$fid); }],
+//                  ['kopírovat ze setkání',function(el){ zcizit('fotky',$fid,0); }],
+//                  ['... jen test',function(el){ zcizit('fotky',$fid,1); }]
+//                ],arguments[0],0,0,'#xclanek$id');return false;\"";
+//          }
+//          $galery= show_fotky2($fid,$seznam);
+//          $html.= "
+//            <div class='galery_obal' $menu>
+//              <div id='xfotky$fid' class='galerie'>
+//                <div class='text'>
+//                  <h1>&nbsp;&nbsp;&nbsp;$nazev $note</h1>
+//                  $galery
+//                  <div class='podpis'>$podpis</div>
+//                </div>
+//              </div>
+//            </div>
+//          ";
+//        }
       break;
 
     case 'kalendar': # ----------------------------------------------- . kalendar
@@ -628,13 +649,17 @@ __EOT;
       });
       $menu= '';
       if ( $REDAKCE ) {
-        $menu= " oncontextmenu=\"
-            Ezer.fce.contextmenu([
+        $kod= "Ezer.fce.contextmenu([
               ['editovat kalendář',function(el){ opravit('kalendar',$edit_id); }]
             ],arguments[0],0,0,'#xclanek$id');return false;\"";
+        $menu= " oncontextmenu=\"$kod\"";
+        if ( $mobile ) {
+          $ipad= "<span class='ipad_menu' onclick=\"arguments[0].stopPropagation();$kod\">
+            <i class='fa fa-bars'></i></span>";
+        }
       }
       // zformátujeme kalendář
-      $html.= "<div class='back' $menu><div id='clanek2' class='home'><table class='kalendar'>";
+      $html.= "<div class='back' $menu><div id='clanek2' class='home'>$ipad<table class='kalendar'>";
       if ( count($y->akce) ) {
         foreach ($y->akce as $a) {
           if ( $a->org ) {
@@ -696,35 +721,35 @@ __EOT;
 __EOT;
       break;
 
-    // clanky=vzor získání abstraktů akcí podle roků a vzoru  {tx_gncase.chlapi RLIKE vzor}
-    case 'akce':      # ------------------------------------------------ . akce
-      global $y, $backref, $top, $links;
-      $links= "fotorama";
-      $ys_html= "<script>jQuery('.fotorama').fotorama();</script>";
-      // získání pole abstraktů akcí
-      $patt= $top ? "$id!$top" : $id;
-      ask_server((object)array('cmd'=>'akce','chlapi'=>$patt,'back'=>$backref)); 
-      // úzké abstrakty
-      $ys_html.= str_replace("abstr-line","abstr",$y->obsah);
-      // překlad na globální odkazy do setkani.(org|bean)
-      $fileadmin= get_fileadmin();  
-      $ys_html= preg_replace("/(src|href)=(['\"])(?:\\/|)fileadmin/","$1=$2$fileadmin",$ys_html);
-      if ( $top ) {
-        if ( $REDAKCE ) {
-          list($rok,$idp)= explode(',',$top);
-          $menu= " title='akce setkani.org: $idp' oncontextmenu=\"
-              Ezer.fce.contextmenu([
-                ['kopie akce ze setkání/$idp',function(el){ zcizit('akce',$idp,$curr_menu->mid); }],
-                ['... jen test',function(el){ zcizit('?akce',$idp,$curr_menu->mid); }]
-              ],arguments[0],0,0,'#clanek$idp');return false;\"";
-          $ys_html= strtr($ys_html,array(
-              "id='fokus_case'"  => "id='fokus_case' $menu" //,
-//              "id='clanek$top'"  => "id='clanek$top' $menu"
-          ));
-        }
-      }
-      $html.= $ys_html;
-      break;
+//    // clanky=vzor získání abstraktů akcí podle roků a vzoru  {tx_gncase.chlapi RLIKE vzor}
+//    case 'akce':      # ------------------------------------------------ . akce
+//      global $y, $backref, $top, $links;
+//      $links= "fotorama";
+//      $ys_html= "<script>jQuery('.fotorama').fotorama();</script>";
+//      // získání pole abstraktů akcí
+//      $patt= $top ? "$id!$top" : $id;
+//      ask_server((object)array('cmd'=>'akce','chlapi'=>$patt,'back'=>$backref)); 
+//      // úzké abstrakty
+//      $ys_html.= str_replace("abstr-line","abstr",$y->obsah);
+//      // překlad na globální odkazy do setkani.(org|bean)
+//      $fileadmin= get_fileadmin();  
+//      $ys_html= preg_replace("/(src|href)=(['\"])(?:\\/|)fileadmin/","$1=$2$fileadmin",$ys_html);
+//      if ( $top ) {
+//        if ( $REDAKCE ) {
+//          list($rok,$idp)= explode(',',$top);
+//          $menu= " title='akce setkani.org: $idp' oncontextmenu=\"
+//              Ezer.fce.contextmenu([
+//                ['kopie akce ze setkání/$idp',function(el){ zcizit('akce',$idp,$curr_menu->mid); }],
+//                ['... jen test',function(el){ zcizit('?akce',$idp,$curr_menu->mid); }]
+//              ],arguments[0],0,0,'#clanek$idp');return false;\"";
+//          $ys_html= strtr($ys_html,array(
+//              "id='fokus_case'"  => "id='fokus_case' $menu" //,
+////              "id='clanek$top'"  => "id='clanek$top' $menu"
+//          ));
+//        }
+//      }
+//      $html.= $ys_html;
+//      break;
 
     // clanky=vzor získání abstraktů článků s danou hodnotou {tx_gncase.chlapi RLIKE vzor}
     case 'clanky':    # ------------------------------------------------ . clanky
@@ -754,11 +779,15 @@ __EOT;
           $ys_kniha= preg_match("~id='fokus_page'~", $ys_html);
           $co= "setkani_".($ys_kniha?"k":"c");
           $cosi= $ys_kniha?'knihy':'článku';
-          $menu= " title='".($ys_kniha?'kniha':'článek')." setkani.org: $top' oncontextmenu=\"
-              Ezer.fce.contextmenu([
+          $kod= "Ezer.fce.contextmenu([
                 ['kopie $cosi ze setkání/$top',function(el){ zcizit('$co',$top,$curr_menu->mid); }],
                 ['... jen test',function(el){ zcizit('?$co',$top,$curr_menu->mid); }]
               ],arguments[0],0,0,'#clanek$top');return false;\"";
+          $menu= " title='".($ys_kniha?'kniha':'článek')." setkani.org: $top' oncontextmenu=\"$kod\"";
+          if ( $mobile ) {
+            $ipad= "<span class='ipad_menu' onclick=\"arguments[0].stopPropagation();$kod\">
+              <i class='fa fa-bars'></i></span>";
+          }
           $ys_html= strtr($ys_html,array(
               "id='fokus_page'"  => "id='fokus_page' $menu",
               "id='clanek$top'"  => "id='clanek$top' $menu"
@@ -766,17 +795,17 @@ __EOT;
         }
         $ys_html= preg_replace_callback("/(###([\w\-]+)###)/",
           function($m) {
-            global $REDAKCE;
+            global $REDAKCE, $ipad;
             $fname= "pdf/$m[2].html";
             if ( file_exists($fname) ) {
               if ( $REDAKCE )
-                return "<span class='sorry'>soubor $fname existuje, 
+                return "<span class='sorry'>$ipad soubor $fname existuje, 
                         ale jako administrátor jej neuvidíš (velký overhead)</span>";
               else
                 return file_get_contents($fname);
             }
             else
-              return "<span class='sorry'>soubor $fname neexistuje</span>";
+              return "<span class='sorry'>$ipad soubor $fname neexistuje</span>";
           }, 
           $ys_html);
       }
@@ -1860,7 +1889,7 @@ function closetags($html) {
   }
   return $html;
 }
-# ------------------------------------------------------------------------------------------ rr_send
+# ------------------------------------------------------------------------------------------ rr send
 # $par = {den:ode dneška dnes=0,poslat: 0/1}
 function rr_myslenka() {
   $dnes= date('j/n/Y',mktime(0,0,0,date('n'),date('j'),date('Y')));

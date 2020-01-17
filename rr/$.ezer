@@ -56,15 +56,15 @@ menu rr { type:'main', active:rr.richard
           show barva { expr:"IF(errata='',0,1)" }
           proc onrowclick () { nacti }
           proc nacti() { g.load(id_rr.get) } }
-        button [725,6,438,77] { title:'Dnes' proc onclick() {
+        button [725,6,,] { title:'Dnes' proc onclick() {
           b.browse_seek(conc("datum='",now_sql(),"'"));
           b.nacti
         } }
         field czt [0,181,404,] { data:rr.title_cz }
         field ent [422,181,401,] { data:rr.title_en }
         button [778,6,,] { title:'Uložit' proc onclick() { g.save; g.load } }
-        edit cz [0,209,405,548] { type:'html', data:rr.text_cz, par:°{toolbar:'IntranetSlim'} }
-        edit en [421,209,405,548] { type:'html', data:rr.text_en, par:°{toolbar:'IntranetSlim'} }
+        edit cz [0,209,405,548] { type:'html', data:rr.text_cz, par:°{toolbar:'Minimal'} }
+        edit en [421,209,405,548] { type:'html', data:rr.text_en, par:°{toolbar:'Minimal'} }
         label [423,19,,] { title:'Důvod pozměnění překladu' }
         edit errata [421,39,402,131] { data:rr.errata }
       }
@@ -82,9 +82,9 @@ menu rr { type:'main', active:rr.richard
         }
         label [340,10,,] { title:"Nastav pořadové číslo dne, počáteční datum a počet dnů" }
         field den [340,40,30,] { format:'t' }
-        field datum [380,40,80,] { type:'date', format:'t' }
-        field pocet [470,40,40,] { format:'t' }
-        button [530,38,,] { title:'nastav'
+        field datum [380,40,90,] { type:'date', format:'t' }
+        field pocet [480,40,40,] { format:'t' }
+        button [530,40,,] { title:'nastav'
           proc onclick() { var ret:object
             ret.set(ask('rr_nastav',den.get,datum.get,pocet.get));
             msg.set(ret.msg);

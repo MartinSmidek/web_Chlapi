@@ -1,0 +1,47 @@
+/* obecné barvy a hodnoty pro atributy css */
+
+.red    { background-color:#faa !important; }
+.red2   { background-color:#f00 !important; }
+.green  { background-color:#afa !important; }
+.green2 { background-color:#3f3 !important; }
+.blue   { background-color:#abf !important; }
+.yellow { background-color:#ffa !important; }
+.yellow2{ background-color:#ff0 !important; }
+.orange { background-color:#fa0 !important; }
+.white  { background-color:#fff !important; }
+.grey   { background-color:#aaa !important; }
+
+.red_text   { color:#f00 !important; }
+.green_text { color:#0f0 !important; }
+.blue_text  { color:#00f !important; }
+
+/* zmenšení toolbar v CKEditoru */
+
+.cke_top {
+  padding: 6px 0 0 6px !important;
+}
+.cke_voice_label,
+.cke_button_label,
+.cke_combo_label {
+  display: none !important;
+}
+a.cke_button {
+  padding: 3px 4px !important;
+}
+a.cke_button_off:hover,
+a.cke_button_off:focus,
+a.cke_button_off:active {
+  border: none !important;
+  outline: 1px solid #bcbcbc;
+}
+.cke_combo_text {
+  padding-left: 6px !important;
+  line-height: 24px !important;
+}
+.cke_combo_open {
+  height: 18px !important;
+  line-height: 16px !important;
+}
+.cke_combo_arrow {
+  margin: 10px 0 0 !important;
+}

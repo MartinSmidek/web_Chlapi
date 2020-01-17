@@ -766,6 +766,8 @@ panel EDITOR [0,0,720,550] { type:'popup', style:"min-width:700px", _sys:'edi'
     panel.display(2,'k'); 
     [ _key; k.load(_key) | k.init ];
     panel.set_attrib('title','Úprava položky kalendáře');
+    path.set(conc('/inc/c/',_key));                  // cesta pro přílohy
+    ask('session','man,inc_path',path.get);
     panel.modal(10,40) 
   }
   proc Kniha(_key) { var lock:object
@@ -845,11 +847,18 @@ panel EDITOR [0,0,720,550] { type:'popup', style:"min-width:700px", _sys:'edi'
       }}
     button  [-1,5,,] { title:'Zpět', help:'ukončit editor bez uložení změn'
       proc onclick() { panel.hide(0); }}
+    button [-1,40,,] { title:'[fa-files-o] Přílohy', help:'seznam souborů sdružených s textem'
+      proc onclick() {
+        UPLOAD.ckeditor.set(obsah);
+        UPLOAD.path.set(path.get);
+        UPLOAD.modal //(50,100)
+      }
+    }
     // položky akce
     field [0,40,85,] { type:'date', title:'^ode dne', data:xakce.datum_od }
     field [95,40,85,] { type:'date', title:'^do dne', data:xakce.datum_do }
-    field [190,40,268,] { title:'^název', data:xakce.nazev }
-    field [470,40,240,] { title:'^místo', data:xakce.misto }
+    field [190,40,248,] { title:'^název', data:xakce.nazev }
+    field [450,40,183,] { title:'^místo', data:xakce.misto }
     // anotace
     label [0,70,300,20] { title:'anotace s odkazem na pozvánku' }
     edit obsah [0,90,710,150] { type:'html', data:xakce.web_text, par:°{toolbar:'WEB'} }
