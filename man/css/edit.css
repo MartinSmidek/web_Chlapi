@@ -59,7 +59,7 @@ span.neodkaz a.jump a {
 
 /* konec */
 
-body.cke_editable img { margin:.2em; height:auto !important; max-width:100%; }
+body.cke_editable img { margin:.2em; /*height:auto !important;*/ max-width:100%; }
 
 *.cke * {/* box-sizing: border-box; */}
 figure {margin: 10px 0;}

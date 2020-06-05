@@ -314,6 +314,18 @@ panel ADMIN [0,0,600,465] { title:'Aktivita CMS', type:'popup', css:'dialog_menu
           ask('doc_chngs_show','a',i.par.days)));
       }
     }
+    menu { title:'GitHub',type:'group',skill:'m'
+      item { title:'[fa-question] CMS: git status'  par:°{folder:'cms',op:'cmd',cmd:'status'}}
+      item { title:'[fa-gear] CMS: git log'         par:°{folder:'cms',op:'cmd',cmd:'log'}}
+      item { title:'[fa-gear] CMS: git pull'        par:°{folder:'cms',op:'cmd',cmd:'pull'}}
+      item { title:'[fa-question] Ezer: git status' par:°{folder:'ezer',op:'cmd',cmd:'status'}}
+      item { title:'[fa-gears] Ezer: git log'       par:°{folder:'ezer',op:'cmd',cmd:'log'}}
+      item { title:'[fa-gears] Ezer: git pull'      par:°{folder:'ezer',op:'cmd',cmd:'pull'}}
+      proc onclick (i) {  
+        panel.display(2,'mu'); 
+        u.result.set(conc("<div id=''>",ask('git_make',i.par),"</div>"));
+      }
+    }
     menu { title:'Aktivní redaktoři', type:'group', skill:'s'
       item { title:'dnes'               par:°{s:'uzivatele',c:'dnes',short:'1'}}
       item { title:'včera'              par:°{s:'uzivatele',c:'vcera',short:'1'}}

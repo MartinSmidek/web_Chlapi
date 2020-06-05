@@ -227,6 +227,31 @@ function eval_elem($desc,$book=null) {
 
     switch ($typ) {
 
+    case 'fb':      # ----------------------------------------------- . fb
+      $fb_site= "fortnahradcany";
+      $fb_name= "Fortna";
+      $fb_note= $REDAKCE ? "<i>V redakčním režimu se FB ukáže jen poprvé po ctrl-r či F5</i>" : '';
+      $fb= <<<__EOT
+        <script async defer crossorigin="anonymous" src="https://connect.facebook.net/cs_CZ/sdk.js#xfbml=1&version=v6.0"></script>
+        <div id='fb-root'></div>
+        <div class="fb-page" data-href="https://www.facebook.com/$fb_site/" 
+            data-tabs="timeline" data-width="500" data-height="500" data-small-header="false" 
+            data-adapt-container-width="true" data-hide-cover="false" data-show-facepile="false">
+          <blockquote cite="https://www.facebook.com/$fb_site/" class="fb-xfbml-parse-ignore">
+            <a href="https://www.facebook.com/$fb_site/">$fb_name</a>
+          </blockquote>
+        </div>
+__EOT;
+      $html.= "
+        <div class='back'>
+          <div id='xclanek$id' class='home' style='text-align:center'>
+            $fb
+            $fb_note
+          </div>
+        </div>
+      ";
+      break; 
+    
     case 'verze':   # ----------------------------------------------- . verze
       $v= VERZE;
       $html.= <<<__EOT
@@ -853,32 +878,41 @@ __EOT;
 # -------------------------------------------------------------------------------------==> show_page
 function show_page($html) {
   global $REDAKCE, $KLIENT, $index, $GET_rok, $mode, $load_ezer, $ezer_server, $prefix;
-  global  $bar_menu, $amenu, $links, $currpage, $tm_active;
+  global $bar_menu, $links, $currpage, $tm_active;
+  
   // definice do <HEAD>
   
   // jádro Ezer - jen pokud není aktivní CMS
   $script= '';
   $client= "./ezer3.1/client";
+  
+  // Facebook
+//  $fb_root= "<div id='fb-root'></div>";      
+//  $fb_script= <<<__EOD
+//      <script async defer crossorigin="anonymous" src="https://connect.facebook.net/cs_CZ/sdk.js#xfbml=1&version=v6.0"></script>'
+//__EOD;      
 
-  // Google Analytics
-  $GoogleAnalytics= $ezer_server==2 ? '' : <<<__EOD
-    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-    })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
-    ga('create', 'UA-99235788-2', 'auto');
-    ga('send', 'pageview');
+ // Google Analytics - chlapi.cz=UA-163664361-1 chlapi.online=UA-99235788-2
+  $GoogleAnalytics= $ezer_server!==2 ? '' : <<<__EOD
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-163664361-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'UA-163664361-1');
+</script>
 __EOD;
 
   // gmaps
   $api_key= "AIzaSyAq3lB8XoGrcpbCKjWr8hJijuDYzWzImXo"; // Google Maps JavaScript API 'answer-test'
 //    <script src="https://maps.googleapis.com/maps/api/js?key=$api_key&callback=initMap" async defer></script>
-  $script.= !$load_ezer ? '' : <<<__EOJ
-    <script src="https://maps.googleapis.com/maps/api/js?key=$api_key&callback=skup_mapka" async defer></script>
-__EOJ;
 //  $script.= !$load_ezer ? '' : <<<__EOJ
-//    <script src="https://maps.googleapis.com/maps/api/js?libraries=places&key=$api_key"></script>
+//    <script src="https://maps.googleapis.com/maps/api/js?key=$api_key&callback=skup_mapka" async defer></script>
 //__EOJ;
+  $script.= !$load_ezer ? '' : <<<__EOJ
+    <script src="https://maps.googleapis.com/maps/api/js?libraries=places&key=$api_key"></script>
+__EOJ;
   
   $script.= <<<__EOJ
     <script src="$client/licensed/jquery-3.2.1.min.js" type="text/javascript" charset="utf-8"></script>
@@ -887,6 +921,7 @@ __EOJ;
 __EOJ;
   
   $script.= $links!='fotorama' ? '' : <<<__EOJ
+    $fb_script
     <script src="/man/fotorama/fotorama.js" type="text/javascript" charset="utf-8"></script>
     <link rel="stylesheet" href="/man/fotorama/fotorama.css" type="text/css" media="screen" charset="utf-8">
 __EOJ;
@@ -896,6 +931,7 @@ __EOJ;
       ? <<<__EOJ
 __EOJ
       : <<<__EOJ
+    $GoogleAnalytics
     <script type="text/javascript">
       var Ezer= {};
       Ezer.web= {rok:'$GET_rok',index:'$index'};
@@ -908,7 +944,6 @@ __EOJ
         _oninit: 'skup_mapka',
         skin: 'db'
       };
-    $GoogleAnalytics
     </script>
 __EOJ;
 
@@ -1012,6 +1047,7 @@ __EOD;
   }
   $navod= NAVOD;
   $body=  <<<__EOD
+    $fb_root
     <div id='page'>
       <a $go_home style="cursor:pointer"><img id='logo' src='/man/img/kriz.png'$logo_title></a>
       <div id='motto'>Mladý muž, který neumí plakat, je barbar.
@@ -1220,16 +1256,22 @@ function servant($qry,$context=null) {
   global $y, $servant, $ezer_server;
   $secret= "WEBKEYNHCHEIYSERVANTAFVUOVKEYWEB";
   $servant= array(
-    "http://setkani.bean:8080/servant.php?secret=$secret",
+    "http://setkani4m.bean:8080/servant.php?secret=$secret",
     "https://www.setkani.org/servant.php?secret=$secret",
-    "https://www.setkani.org/servant.php?secret=$secret")[$ezer_server];
+    "https://www.setkani.org/servant.php?secret=$secret"
+    )[$ezer_server];
   $_SESSION['web']['servant_last']= "$servant&$qry";
-  $json= file_get_contents("$servant&$qry",false,$context);
+  $json= url_get_contents("$servant&$qry",false,$context);
                                           display("<b style='color:red'>servant</b> $servant$qry");
   if ( $json===false ) {
-    $y->msg= "$qry vrátilo false";
+    $y->msg= "$ezer_server:$qry vrátil false";
     $err= error_get_last();
     $_SESSION['web']['servant_state']= "false:{$err['type']},{$err['message']}";
+    $_SESSION['web']['wrappers']= stream_get_wrappers();
+    $_SESSION['web']['openssl']= extension_loaded('openssl');
+    $y->ses= $_SESSION;
+//    session_write_close ();
+//    exit;
   }
   elseif ( substr($json,0,1)=='{' ) {
     $y= json_decode($json);
@@ -1389,6 +1431,42 @@ function ask_server($x) {
 
   }
   return 1;
+}
+# --------------------------------------------------------------------------------- url get_contents
+function url_get_contents($url, $useragent='cURL', $headers=false, $follow_redirects=true, $debug=false) {
+  // initialise the CURL library
+  $ch = curl_init();
+  // specify the URL to be retrieved
+  curl_setopt($ch, CURLOPT_URL,$url);
+  // we want to get the contents of the URL and store it in a variable
+  curl_setopt($ch, CURLOPT_RETURNTRANSFER,1);
+  // specify the useragent: this is a required courtesy to site owners
+  curl_setopt($ch, CURLOPT_USERAGENT, $useragent);
+  // ignore SSL errors
+  curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+  // return headers as requested
+  if ($headers==true){
+    curl_setopt($ch, CURLOPT_HEADER,1);
+  }
+  // only return headers
+  if ($headers=='headers only') {
+    curl_setopt($ch, CURLOPT_NOBODY ,1);
+  }
+  // follow redirects - note this is disabled by default in most PHP installs from 4.4.4 up
+  if ($follow_redirects==true) {
+    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1); 
+  }
+  // if debugging, return an array with CURL's debug info and the URL contents
+  if ($debug==true) {
+    $result['contents']=curl_exec($ch);
+    $result['info']=curl_getinfo($ch);
+  }
+  // otherwise just return the contents as a variable
+  else $result=curl_exec($ch);
+  // free resources
+  curl_close($ch);
+  // send back the data
+  return $result;
 }
 # --------------------------------------------------------------------------------------- datum oddo
 function datum_oddo($x1,$x2) {

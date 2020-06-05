@@ -12,6 +12,42 @@ function escape_string($inp) {
       array('\\', "\0", "\n", "\r", "'", '"', "\x1a"), 
       array('\\\\', '\\0', '\\n', '\\r', "\\'", '\\"', '\\Z'), $inp); 
 }
+/** ===========================================================================================> GIT */
+# ----------------------------------------------------------------------------------------- git make
+# provede git par.cmd>.git.log a zobrazí jej
+function git_make($par) {
+  global $abs_root;
+  $cmd= $par->cmd;
+  $msg= "";
+  // proveď operaci
+  switch ($par->op) {
+  case 'cmd':
+    $state= 0;
+    // zruš starý obsah .git.log
+    $f= @fopen("$abs_root/docs/.git.log", "r+");
+    if ($f !== false) {
+        ftruncate($f, 0);
+        fclose($f);
+    }
+    if ( $par->folder=='cms') {
+      $exec= "git {$par->cmd}>$abs_root/docs/.git.log";
+      exec($exec,$lines,$state);
+    }
+    else if ( $par->folder=='ezer') {
+      chdir("ezer3.1");
+      $exec= "git {$par->cmd}>$abs_root/docs/.git.log";
+      exec($exec,$lines,$state);
+      chdir($abs_root);
+    }
+    debug($lines,$state);
+    $msg= "$state:$exec<hr>";
+  case 'show':
+    $msg.= file_get_contents("$abs_root/docs/.git.log");
+    $msg= nl2br(htmlentities($msg));
+    break;
+  }
+  return $msg;
+}
 /** =========================================================================================> FOTKY */
 # --------------------------------------------------------------------------------------- corr fotky
 // 1) fotky a popisy se berou z adresáře a přemístí do textu

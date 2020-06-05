@@ -1,5 +1,11 @@
 RewriteEngine on
 Options -Indexes
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteCond %{HTTP_HOST} ^chlapi.online [OR]
+  RewriteCond %{HTTP_HOST} ^www.chlapi.online
+  RewriteRule (.*)$ http://chlapi.cz/$1 [R=301,L]
+</IfModule>
 <IfModule mod_headers.c>
     Header set Access-Control-Allow-Origin *
     Header set Access-Control-Allow-Credentials true
