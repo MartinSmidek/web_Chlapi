@@ -1,8 +1,8 @@
 <?php
-define(VERZE,   '22/9/2018'); 
-define(ZMENA, 3);     // je-li článek čerstvější => upozorni na změnu
-define(NEWS, 264);    // článek obsahující změny na webu - zobrazuje se iniciovaným
-define(NAVOD, 268);   // článek obsahující návod na přihlášení
+define('VERZE',   '22/9/2018'); 
+define('ZMENA', 3);     // je-li článek čerstvější => upozorni na změnu
+define('NEWS', 264);    // článek obsahující změny na webu - zobrazuje se iniciovaným
+define('NAVOD', 268);   // článek obsahující návod na přihlášení
 # -------------------------------------------------------------------------------------==> def user
 // obnovuje obsah základních proměnných, které řídí viditelnost obsahu 
 function def_user() { 
@@ -1564,7 +1564,7 @@ function log_report($par) { debug($par,'log_report');
     $dnu= $par->days;
     $html.= "<dl>";
     $cr= mysql_qry("
-      SELECT kdo,MAX(kdy),GROUP_CONCAT(DISTINCT jak ORDER BY jak) AS _jak,tab,id_tab,
+      SELECT kdo,LEFT(MAX(kdy),16),GROUP_CONCAT(DISTINCT jak ORDER BY jak) AS _jak,tab,id_tab,
         IFNULL(username,kdo),COUNT(*) AS _krat
       FROM log LEFT JOIN _user ON id_user=kdo
       WHERE kdy > DATE_SUB(NOW(),INTERVAL $dnu DAY)

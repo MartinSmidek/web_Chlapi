@@ -145,17 +145,10 @@ panel p [0,0,*,*] { type:'main', _sys:'$'
     button [-95,5,,] { skill:'r|a', title:"[fa-gears] menu" 
       proc onclick() { hide_all; CMS.modal(10,40) } }
     label verze [-320,8,40,] { title:'ezer', style:'font-size:10pt;color:white' } 
-    button [-238,5,,] { skill:'r|r', title:"[fa-file-text] přehledy" 
+    button [-238,5,,] { skill:'r|r', title:"[fa-empire] admin" 
       proc onclick() { hide_all; ADMIN.modal(10,40) } }
-    button [-160,5,,] { skill:'r|a', title:"[fa-user-circle] redakce" 
+    button [-160,5,,] { skill:'r|a', title:"[fa-edit] redakce" 
       proc onclick() { hide_all; REDAKCE.modal(10,40) } }
-//    button [-35,5,,] { title:"odhlásit", style:'z-index:999'
-//      proc onclick() { var ref:text
-//        //logout;
-//        ask('ask_server',°{cmd:'be_logout'});
-//        ref.set(conc(function("return Ezer.web.index"),"?page=",last.get));
-//        function('ref',"location.href= ref;",ref);
-//    } }
     button [-10,5,,] { skill:'r|r', title:"[fa-bars]"           
       proc onclick() { hide_all; OPTIONS.modal(10,115) } }
   }
@@ -288,32 +281,29 @@ panel ADMIN [0,0,600,465] { title:'Aktivita CMS', type:'popup', css:'dialog_menu
       item   {title:'Přehled změn za měsíc',  par:°{cmd:'obsah',days:30} }
       item   {title:'Přehled změn za rok',    par:°{cmd:'obsah',days:365} }
       item   {title:'Přehled uskutečněných změn', par:°{cmd:'obsah',days:99999} }
-      proc onclick(i) {
+      func onclick(i) {
         panel.display(2,'mu'); u.den.display(0);
-        u.result.set(conc(
-          "<div class='karta'>",i.owner.title,' - ',replace_fa(i.title),"</div>",
-          ask('log_report',i.par),"</div>"));
+        u.fill(conc(i.owner.title,' - ',replace_fa(i.title)),ask('log_report',i.par));
       }
     }
-    menu a {title:'Změny aplikace',type:'group'
-      item   {title:'[fa-exclamation] změna aplikace' 
-        proc onclick(i) {
-          u.result.set(conc(
-            "<div class='karta'>",i.owner.title,' - ',replace_fa(i.title),"</div>"));
-          panel.display(2,'ma');
-          panel.call('msg_a.start');
-        }
-      }
-      item d {title:'Přehled změn za měsíc', par:°{days:30} }
-      item   {title:'Přehled změn za rok', par:°{days:365} }
-      item   {title:'Přehled uskutečněných změn', par:°{days:9999} }
-      proc onclick(i) {
-        panel.display(2,'mu'); u.den.display(0);
-        u.result.set(conc(
-          '<br><div class="karta">Změny aplikace za posledních ',i.par.days,' dní</div><br>',
-          ask('doc_chngs_show','a',i.par.days)));
-      }
-    }
+//    menu a {title:'Změny aplikace',type:'group'
+//      item   {title:'[fa-exclamation] změna aplikace' 
+//        proc onclick(i) {
+//          u.result.set(conc(
+//            "<div class='karta'>",i.owner.title,' - ',replace_fa(i.title),"</div>"));
+//          panel.display(2,'ma');
+//          panel.call('msg_a.start');
+//        }
+//      }
+//      item d {title:'Přehled změn za měsíc', par:°{days:30} }
+//      item   {title:'Přehled změn za rok', par:°{days:365} }
+//      item   {title:'Přehled uskutečněných změn', par:°{days:9999} }
+//      proc onclick(i) {
+//        panel.display(2,'mu'); u.den.display(0);
+//        u.fill(conc('Změny aplikace za posledních ',i.par.days,' dní'),
+//          ask('doc_chngs_show','a',i.par.days));
+//      }
+//    }
     menu { title:'GitHub',type:'group',skill:'m'
       item { title:'[fa-question] CMS: git status'  par:°{folder:'cms',op:'cmd',cmd:'status'}}
       item { title:'[fa-gear] CMS: git log'         par:°{folder:'cms',op:'cmd',cmd:'log'}}
@@ -323,7 +313,27 @@ panel ADMIN [0,0,600,465] { title:'Aktivita CMS', type:'popup', css:'dialog_menu
       item { title:'[fa-gears] Ezer: git pull'      par:°{folder:'ezer',op:'cmd',cmd:'pull'}}
       proc onclick (i) {  
         panel.display(2,'mu'); 
-        u.result.set(conc("<div id=''>",ask('git_make',i.par),"</div>"));
+        u.fill(conc(i.owner.title,' - ',replace_fa(i.title)),ask('git_make',i.par));
+      }
+    }
+    menu { title:'Import a záloha databáze',type:'group',skill:'m'
+      item { title:"[fa-question] přehled záloh"                par:°{typ:'download'}}
+      item { title:"[fa-upload] zálohuj teď"                    par:°{typ:'special'}}
+      item { title:"[fa-download] obnova ze zálohy (jen local)" par:°{typ:'restore'}}
+      proc onclick(i) {
+        panel.display(2,'mu'); u.den.display(0);
+        u.fill(conc(i.owner.title,' - ',i.title),' ');
+        { eq(i.par.typ,'download'); 
+          u.append("<i>zobrazené zálohy lze stáhnout kliknutím (nelze 'Stahnout jako ...')</i><br>");
+          u.append(ask('sys_backup_make',i.par)) 
+        | eq(i.par.typ,'special'); u.append(ask('sys_backup_make',i.par)) 
+        | eq(i.par.typ,'restore'); 
+          [ confirm('Opravdu mám lokální databázi přepsat tou, kterou teď vybereš? 
+                  Máš ji uschovanou? Po výběru se již rozběhne proces obnovy ...'); 
+            // načti obnovu
+            u.append(ask('sys_backup_make',i.par));
+          ]
+        }
       }
     }
     menu { title:'Aktivní redaktoři', type:'group', skill:'s'
@@ -344,14 +354,6 @@ panel ADMIN [0,0,600,465] { title:'Aktivita CMS', type:'popup', css:'dialog_menu
       item { title:'čekající BUGs'      par:°{s:'chyby',c:'BUG1'}}
       item { title:'vyřešené BUGs'      par:°{s:'chyby',c:'BUG2'}}
     }
-//    menu p { title:'Přihlášení - redakce', type:'group', skill:'s'
-//      item d { title:'dnes'             par:°{s:'login',c:'dnes'}}
-//      item { title:'včera'              par:°{s:'login',c:'vcera'}}
-//      item { title:'týden'              par:°{s:'login',c:'tyden'}}
-//      item { title:'měsíc'              par:°{s:'login',c:'mesic'}}
-//      item { title:'nastavený den'      par:°{s:'login',c:'den'}}
-//      item { title:'všechna hlášení'    par:°{s:'login',c:'vsechny'}}
-//    }
     menu c { title:'Přihlášení - chlapi',type:'group', skill:'a'
       item c { title:'chybná přihlášení'    par:°{cmd:'me_login',typ:'ko'}}
       item   { title:'správná přihlášení'   par:°{cmd:'me_login',typ:'ok'}}
@@ -359,18 +361,16 @@ panel ADMIN [0,0,600,465] { title:'Aktivita CMS', type:'popup', css:'dialog_menu
       proc onclick (i) {  var y:text
         panel.display(2,'mu'); u.den.display(0);
         y.set(ask('log_report',i.par));
-        u.result.set(conc(
-          "<div class='karta'>",i.owner.title,' - ',replace_fa(i.title),"</div>",
-          y,"</div>"));
+        u.fill(conc(i.owner.title,' - ',replace_fa(i.title)),y);
       }
     }
     proc onclick (i) {  var y:text
       panel.display(2,'mu'); u.den.display(1);
       y.set(ask('sys_activity',i.par,skip.get,u.den.get,sys('options','watch_access_opt')));
-      u.result.set(conc("<div id=''>",y,"</div>"));
+      u.fill(conc(i.owner.title,' - ',replace_fa(i.title)),y);
     }
   }
-  use u: form _touch [0,0,,] { tag:'mu' }
+  use u: form _u [0,0,,] { tag:'mu' }
   use msg_a: form _msg_a [0,0,,] { tag:'ma', format:'n' }
   var skip=0
   proc the_formsave (f,b) {
@@ -379,9 +379,24 @@ panel ADMIN [0,0,600,465] { title:'Aktivita CMS', type:'popup', css:'dialog_menu
   | f.insert; f.load;
     b.raise('onrowclick',b.browse_seek(conc(f.id_key,'=',f.key)))
   }
-  form _touch [,,*,*] { css:'popup-right'
-    field den [-20,4,85,18] { type:'date', style:'z-index:2', format:'Rrt', title:'nastavený&nbsp;den' }
+  # --------------------------------------------- u
+  # formulář pro levostranné menu s textem
+  form _u [,,*,*] { css:'popup-right'
     label result [5,0,*,*] { title:'', style:'overflow:auto' }
+    field den [-20,4,85,18] { type:'date', style:'z-index:2', format:'Rrt', title:'nastavený&nbsp;den' }
+    label head [0,0,*,30]  { title:'' }
+    label note [0,30,*,440] { title:'' style:'overflow:auto' }
+    proc Init() { head.set(''); note.set(''); }
+    proc fill(x,y) {
+      [ x; head.set(conc("<div class='karta'>",replace_fa(x),"</div>")) ];
+      [ y; note.set(y) ]
+    }
+    proc append(x) {
+      note.set(conc(note.get,x)) 
+    }
+    proc shift(x) {
+      note.set(conc(x,note.get)) 
+    }
   }
   # ------------------------------------------------------------------------ _msg_a
   form _msg_a [,,*,500] {
