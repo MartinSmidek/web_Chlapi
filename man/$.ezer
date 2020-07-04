@@ -467,9 +467,9 @@ panel REDAKCE [0,0,840,515] {type:'popup', title:'Redakce', css:'dialog_menu',
   var sel: text,
 
   use uzivatele: form users [0,0,,],
-  use uzivatel: form user [395,0,,]
+  use uzivatel: form user [335,0,,]
   use cmd: form butt [0,sys_users_cmd,,],
-  use dskill: form desc_skills [395,120,,]
+  use dskill: form desc_skills [335,120,,]
 
   proc onfirstfocus() {
     watch_css;
@@ -541,7 +541,7 @@ panel REDAKCE [0,0,840,515] {type:'popup', title:'Redakce', css:'dialog_menu',
     uzivatel.access.selects(opt.sel_access);
   }
   # ----------------------------------------------------------------==> ... menu
-  menu see { type:'left', active:*, format:'f+'
+  menu see { type:'left', active:*, format:'f-'
     menu all { title:'přehled',type:'group'
       item actives { title:'[fa-user-plus] aktivní uživatelé', par:°{on:'h',off:'u',cond:"LEFT(deleted,1)!='H'"}}
       item         { title:'[fa-user-times] skrytí uživatelé', par:°{on:'u',off:'h',cond:"deleted LIKE 'H%'"}}
@@ -560,45 +560,17 @@ panel REDAKCE [0,0,840,515] {type:'popup', title:'Redakce', css:'dialog_menu',
     browse lst [10,37,0,54] { rows:sys_users_list, qry_rows:1, buf_rows:100, group_by:'abbr'
       show user [,,37,] { title:'č.', help:'jednoznačné číslo uživatele',
         data:u.id_user, format:'rsq=' }
-      show zkratka [,,35,] { title:'značka', help:'jednoznačná třípísmenná zkratka',
+      show zkratka [,,25,] { title:'značka', help:'jednoznačná třípísmenná zkratka',
         data:u.abbr, format:'sq*', css_cell:'' }
       show username [,,63,] { title:'uživatel', help:'jednoznačné přihlašovací jméno',
         data:u.username, format:'sq*' }
-      show prijmeni [,,70,] { title:'příjmení', data:u.surname, format:'s+q*' }
-      show jmeno [,,70,] { title:'jméno', data:u.forename, format:'sq*' }
+      show prijmeni [,,60,] { title:'příjmení', data:u.surname, format:'s+q*' }
+      show jmeno [,,50,] { title:'jméno', data:u.forename, format:'sq*' }
       show org [,,0,] { title:'org.', data:u.org, format:'rtsq*' }
       show access [,,0,] { title:'přístup', data:u.access, format:'rtsq*' }
-      show skills [,,70,] { title:'oprávnění', help:'seznam kódů funkčních oprávnění',
+      show skills [,,50,] { title:'oprávnění', help:'seznam kódů funkčních oprávnění',
         data:u.skills, format:'utsq*'
         proc onsubmit() { this.save } }
-      show r0 [,,0,] { title:'letos',   expr:"0", format:'rtsq*' }
-      show r1 [,,0,] { title:'loni',    expr:"0", format:'rtsq*' }
-      show r2 [,,0,] { title:'předloni',expr:"0", format:'rtsq*' }
-      show rn [,,0,] { title:'dřív',    expr:"0", format:'rtsq*' }
-//      proc track(on) { on;
-//        t.set_attrib('join_type','LEFT');
-//        r0.set_attrib('expr',"SUM(IF(YEAR(t.kdy)=YEAR(NOW()),1,0))");
-//        r1.set_attrib('expr',"SUM(IF(YEAR(t.kdy)=YEAR(NOW())-1,1,0))");
-//        r2.set_attrib('expr',"SUM(IF(YEAR(t.kdy)=YEAR(NOW())-2,1,0))");
-//        rn.set_attrib('expr',"SUM(IF(YEAR(t.kdy)<YEAR(NOW())-2,1,0))");
-//        show_track; refresh
-//      | t.set_attrib('join_type','NONE');
-//        r0.set_attrib('expr',"0"); r1.set_attrib('expr',"0");
-//        r2.set_attrib('expr',"0"); rn.set_attrib('expr',"0")
-//      }
-      proc onclick () {
-        r0.width; // po rocích zobraz organizaci
-        r0.width(0); r1.width(0); r2.width(0); rn.width(0);
-        org.width(19); access.width(29); skills.width(230)
-      | org.width; // po organizaci zobraz skill
-        org.width(0); access.width(0); skills.width(280)
-      | // po skill zobraz roky
-        show_track
-      }
-      proc show_track() {
-        r0.width(70); r1.width(69); r2.width(69); rn.width(69);
-        skills.width(0); org.width(0); access.width(0)
-      }
       proc onrowclick () {
         new_skill.set('');
         cmd.get.enable(0,'c');
@@ -620,13 +592,29 @@ panel REDAKCE [0,0,840,515] {type:'popup', title:'Redakce', css:'dialog_menu',
     label [5,6,89,15] { title:'<h1>Uživatel</h1>' }
     field id_user { data:u.id_user }
     field skills [2,46,146,] { data:u.skills, format:'n' }
-    field username [5,48,60,] { data:u.username title:'^username' par:°{obligatory:1}}
-    field password [74,48,42,] { data:u.password title:'^heslo', format:'d' }
-    field znacka [124,48,34,] { data:u.abbr title:'^zkratka' par:°{obligatory:1}}
+    field username [5,48,59,] { data:u.username title:'^username' par:°{obligatory:1}}
+    field password [80,48,42,] { data:u.password title:'^heslo', format:'d' }
+    field znacka [139,48,38,] { data:u.abbr title:'^zkratka' par:°{obligatory:1}}
+    label [197,43,90,47] { title:'ID musí být stejné jako v ezer_db2' format:'c' }
+    button [213,92,,] { type:'html' title:'změnit ID' 
+//      func onclick() { var id:number
+//        id= prompt2("napiš ID z ezer_db2._user");
+//        if ( id ) {
+//          ask('query',conc("UPDATE _user SET id_user=",id," WHERE id_user=",uzivatele.lst.user));
+//          refresh
+//        }
+//      }
+      proc onclick() { var id:number
+        id.set(prompt2("napiš ID z ezer_db2._user"));
+        id;
+        ask('query',conc("UPDATE _user SET id_user=",id," WHERE id_user=",uzivatele.lst.user.get));
+        refresh
+      }
+    }
     select org [168,48,66,] { tag:'ac', data:u.org, format:'w', title:'^organizace' }
     select access [242,48,44,] { tag:'ac', data:u.access, format:'w', title:'^přístup k' }
-    field prijmeni [5,92,152,] { data:u.surname title:'^příjmení' par:°{obligatory:1}}
-    field jmeno [168,92,117,] { data:u.forename title:'^jméno' par:°{obligatory:1}}
+    field prijmeni [5,92,98,] { data:u.surname title:'^příjmení' par:°{obligatory:1}}
+    field jmeno [117,92,64,] { data:u.forename title:'^jméno' par:°{obligatory:1}}
     edit ips [298,47,127,64] { tag:'ip', data:u.ips, title:'^povolené IP adresy' }
     field login { data:u.login }
     field kdo { data:u.zmena_kdo }
@@ -641,7 +629,7 @@ panel REDAKCE [0,0,840,515] {type:'popup', title:'Redakce', css:'dialog_menu',
       show id { data:_skill.id_skill }
       show abb [,,50,] { data:_skill.skill_abbr, title:'kód', format:'utsq*', skill:'a|m'
         proc onsubmit() { this.save } }
-      show dsc [,,345,] { data:_skill.skill_desc, title:'popis oprávnění', format:'uts+q$', skill:'a|m'
+      show dsc [,,200,] { data:_skill.skill_desc, title:'popis oprávnění', format:'uts+q$', skill:'a|m'
         proc onsubmit() { this.save } }
       # ----------------------------------------------==> ... kontext.menu
       menu { type:'context'

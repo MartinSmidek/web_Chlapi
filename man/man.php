@@ -182,7 +182,7 @@ __EOD;
     </div>
   </div>
 <!-- konec -->
-  <form><input id="drag" type="button" /></form>
+  <input id="drag" type="input" />
 </body>
 %html_footer
 __EOD;
