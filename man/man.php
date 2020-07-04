@@ -7,11 +7,12 @@
   // rozlišení lokální a ostré verze
 //  $ezer_local= preg_match('/^\w+\.bean$/',$_SERVER["SERVER_NAME"])?1:0;
   $ezer_server= 
-      $_SERVER["SERVER_NAME"]=='chlapi.bean'   ? 0 : (        // 0:lokální 
-      $_SERVER["SERVER_NAME"]=='chlapi.cz'     ? 2 : (        // x:ostrý server
-      $_SERVER["SERVER_NAME"]=='www.chlapi.cz' ? 2 : (        // x:ostrý server
-      $_SERVER["SERVER_NAME"]=='chlapi.online' ? 1 : (        // x:ostrý server
-      $_SERVER["SERVER_NAME"]=='www.chlapi.online' ? 1 : -1))));
+      $_SERVER["SERVER_NAME"]=='chlapi.bean'       ? 0 : (        // 0:lokální         = oranžové logo
+      $_SERVER["SERVER_NAME"]=='chlapi.online'     ? 1 : (        // Synology - online = modré logo
+      $_SERVER["SERVER_NAME"]=='www.chlapi.online' ? 1 : (
+      $_SERVER["SERVER_NAME"]=='chlapi.cz'         ? 2 : (        // Synology - cz     = šedé logo
+      $_SERVER["SERVER_NAME"]=='www.chlapi.cz'     ? 2 : (
+      $_SERVER["SERVER_NAME"]=='chlapi.doma'       ? 3 : -1))))); // Synology - DOMA
 
   // parametry aplikace MAN
   $app_name=  "chlapi.cz";
@@ -26,12 +27,15 @@
   $abs_roots= array(
       "C:/Ezer/beans/chlapi.online",
       "/var/services/web/www/chlapi",
-//      "/home/users/gandi/chlapi.online/web",  endora.cz ... 4/10/2019 přepnuto na Synology
-      "/var/services/web/www/chlapi");
+      "/var/services/web/www/chlapi",
+      "/var/services/web/www/chlapi"
+    );
   $rel_roots= array(
       "http://chlapi.bean:8080",
       "http://chlapi.online",
-      "http://chlapi.cz");
+      "http://chlapi.cz",
+      "http://chlapi.doma"
+    );
   
   // určení uživatele podle session.web.fe_user
   require_once("../$kernel/server/ae_slib.php");
@@ -66,7 +70,8 @@
   // (re)definice Ezer.options
   $add_pars= array(
     'log_login' => false,   // nezapisovat standardně login do _touch (v ezer2.php)
-    'favicon' => array('chlapi_ico_local.png','chlapi_ico_dsm.png','chlapi_ico.png')[$ezer_server],    
+    'favicon' => array('chlapi_ico_local.png','chlapi_ico_dsm.png',
+                       'chlapi_ico.png','chlapi_ico_doma.png')[$ezer_server],    
     'template' => "user",
     'template_meta' => $template_meta,
     'template_body' => $template,

@@ -7,7 +7,8 @@ $ezer_server=
     $_SERVER["SERVER_NAME"]=='chlapi.online'     ? 1 : (        // Synology - online = modré logo
     $_SERVER["SERVER_NAME"]=='www.chlapi.online' ? 1 : (
     $_SERVER["SERVER_NAME"]=='chlapi.cz'         ? 2 : (        // Synology - cz     = šedé logo
-    $_SERVER["SERVER_NAME"]=='www.chlapi.cz'     ? 2 : -1))));
+    $_SERVER["SERVER_NAME"]=='www.chlapi.cz'     ? 2 : (
+    $_SERVER["SERVER_NAME"]=='chlapi.doma'       ? 3 : -1))))); // Synology - DOMA
 
 # ------------------------------------------ init
 

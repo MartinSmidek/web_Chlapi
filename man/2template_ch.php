@@ -26,7 +26,9 @@ function get_fileadmin() {
   $fileadmin= array(
       "http://setkani.bean:8080/fileadmin",
       "https://www.setkani.org/fileadmin",
-      "https://web.setkani.org/fileadmin")[$ezer_server];
+      "https://web.setkani.org/fileadmin",
+      "http://setkani.doma/fileadmin"
+    )[$ezer_server];
   return $fileadmin;
 }
 # -----------------------------------------------------------------------------------==> get prefix
@@ -36,8 +38,9 @@ function get_prefix() {
   $prefix= array(
       "http://chlapi.bean:8080/",
       "http://chlapi.online/",
-      "http://chlapi.cz/"
-      )[$ezer_server];
+      "http://chlapi.cz/",
+      "http://chlapi.doma/"
+    )[$ezer_server];
   return $prefix;
 }
 # -------------------------------------------------------------------------------------==> page
@@ -965,7 +968,11 @@ __EOJ;
 
   // head
   $icon= array(
-      '/man/img/chlapi_ico_local.png','/man/img/chlapi_ico_dsm.png','/man/img/chlapi_ico.png')[$ezer_server];
+      '/man/img/chlapi_ico_local.png',
+      '/man/img/chlapi_ico_dsm.png',
+      '/man/img/chlapi_ico.png',
+      '/man/img/chlapi_ico_doma.png'
+    )[$ezer_server];
   $head=  <<<__EOD
   <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
   <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en" dir="ltr">
@@ -1256,9 +1263,10 @@ function servant($qry,$context=null) {
   global $y, $servant, $ezer_server;
   $secret= "WEBKEYNHCHEIYSERVANTAFVUOVKEYWEB";
   $servant= array(
-    "http://setkani4m.bean:8080/servant.php?secret=$secret",
-    "https://www.setkani.org/servant.php?secret=$secret",
-    "https://www.setkani.org/servant.php?secret=$secret"
+      "http://setkani4m.bean:8080/servant.php?secret=$secret",
+      "https://www.setkani.org/servant.php?secret=$secret",
+      "https://www.setkani.org/servant.php?secret=$secret",
+      "http://setkani.doma/servant.php?secret=$secret"
     )[$ezer_server];
   $_SESSION['web']['servant_last']= "$servant&$qry";
   $json= url_get_contents("$servant&$qry",false,$context);
@@ -1540,13 +1548,14 @@ function db_connect() {
     array(  // 1 = ostré - Synology + online 
       'setkani'  => array(0,'localhost','ymca','JW4YNPTDf4Axkj9','utf8','chlapi'),
       'ezertask' => array(0,'localhost','ymca','JW4YNPTDf4Axkj9','utf8','myslenky')
-// endora.cz ... 4/10/2019 přepnuto na Synology     
-//      'setkani'  => array(0,'localhost','gandi','radost','utf8','ezerweb'),
-//      'ezertask' => array(0,'localhost','gandi','radost','utf8')
     ),
     array(  // 2 = ostré - Synology + cz
       'setkani'  => array(0,'localhost','ymca','JW4YNPTDf4Axkj9','utf8','chlapi'),
       'ezertask' => array(0,'localhost','ymca','JW4YNPTDf4Axkj9','utf8','myslenky')
+    ),
+    array(  // 3 = ladící - Synology DOMA
+      'setkani'  => array(0,'localhost','gandi','','utf8','chlapi'),
+      'ezertask' => array(0,'localhost','gandi','','utf8','myslenky')
     ),
   );
   $ezer_db= $dbs[$ezer_server];

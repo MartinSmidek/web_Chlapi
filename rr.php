@@ -7,8 +7,9 @@
   // hostující servery
   $ezer_server= 
     $_SERVER["SERVER_NAME"]=='chlapi.bean'      ? 0 : (       // 0:lokální NTB
-    $_SERVER["SERVER_NAME"]=='chlapi.cz'        ? 1 : (       // 1:Synology
-    $_SERVER["SERVER_NAME"]=='ezer.smidek.eu'   ? 2 :  -1));  // 2:endora
+    $_SERVER["SERVER_NAME"]=='chlapi.cz'        ? 1 : (       // 1:Synology - YMCA
+    $_SERVER["SERVER_NAME"]=='ezer.smidek.eu'   ? 2 : (       // 2:endora
+    $_SERVER["SERVER_NAME"]=='chlapi.doma'      ? 3 : -1)));  // Synology - DOMA
 
   $app=      'rr';
   $app_name= 'Myšlenky Richarda Rohra';
@@ -22,11 +23,15 @@
   $abs_roots= array(
       "C:/Ezer/beans/chlapi.online",
       "/var/services/web/www/chlapi",
-      "/home/users/gandi/smidek.eu/web/ezer");
+      "/var/services/web/www/chlapi",
+      "/var/services/web/www/chlapi"
+    );
   $rel_roots= array(
       "http://chlapi.bean:8080",
       "http://chlapi.cz",
-      "http://ezer.smidek.eu");
+      "http://chlapi.cz",
+      "http://chlapi.doma"
+    );
   
   if ( isset($_GET['batch']) && $_GET['batch'] ) {
     // batch - verze
