@@ -27,7 +27,7 @@ function get_fileadmin() {
       "http://setkani.bean:8080/fileadmin",
       "https://www.setkani.org/fileadmin",
       "https://web.setkani.org/fileadmin",
-      "http://setkani.doma/fileadmin"
+      "http://setkani4.doma/fileadmin"
     )[$ezer_server];
   return $fileadmin;
 }
@@ -1266,7 +1266,7 @@ function servant($qry,$context=null) {
       "http://setkani4m.bean:8080/servant.php?secret=$secret",
       "https://www.setkani.org/servant.php?secret=$secret",
       "https://www.setkani.org/servant.php?secret=$secret",
-      "http://setkani.doma/servant.php?secret=$secret"
+      "http://setkani4.doma/servant.php?secret=$secret"
     )[$ezer_server];
   $_SESSION['web']['servant_last']= "$servant&$qry";
   $json= url_get_contents("$servant&$qry",false,$context);
