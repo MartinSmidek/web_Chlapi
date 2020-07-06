@@ -73,11 +73,11 @@ function read_menu() {
   // načtení menu
   $menu= array();
   $amenu= (object)array('top'=>array(),'main'=>array(),'sub'=>array());
-  $mn= mysql_qry("
+  $mn= pdo_qry("
     SELECT nazev,elem,mid,mid_top,mid_sub,ref,typ,level,redakce,klient,
       TO_DAYS(NOW())-IFNULL(TO_DAYS(ch_date),0) AS _zmena
     FROM menu WHERE wid=2 ORDER BY typ,rank");
-  while ($mn && ($m= mysql_fetch_object($mn))) {
+  while ($mn && ($m= pdo_fetch_object($mn))) {
     // má se upozornit na změnu?
     $m->_zmena= $m->_zmena < ZMENA ? 1 : 0;
     // redakční klientům nezobrazovat
@@ -94,7 +94,7 @@ function read_menu() {
       $menu[$m->mid_top]->has_subs= true;
   }
 }
-# -------------------------------------------------------------------------------------==> eval_menu
+# -------------------------------------------------------------------------------------==> eval menu
 # path = [ mid, ...]
 function eval_menu($path) { 
   global $REDAKCE, $currpage, $tm_active, $ezer_server;
@@ -204,7 +204,23 @@ function show_menu($part) {
   }
   return $html;
 }
-# -------------------------------------------------------------------------------------==> eval_elem
+# -------------------------------------------------------------------------------------==> test elem
+# vynechá neexistující článek tj. když $exists=false a v redakčním modu napíše varování do $html
+function test_elem($exists,$elem_id,$elem,&$html) {
+  global $REDAKCE;
+  if ( !$exists ) {
+    if ( $REDAKCE ) {
+      $html.= "
+        <div class='back'>
+          <a class='home' style='outline:3px solid red;text-align:center'>
+            <b>$elem_id</b> neexistuje - ale v menu je <b>$elem</b>
+          </a>
+        </div>";
+    }
+  }
+  return $exists;
+}
+# -------------------------------------------------------------------------------------==> eval elem
 // desc :: key [ = ids ]
 // ids  :: id1 [ / id2 ] , ...    -- id2 je klíč v lokální db pro ladění
 function eval_elem($desc,$book=null) {
@@ -271,10 +287,10 @@ __EOT;
       list($rok,$ida)= explode(',',$top);
       // projdi relevantní roky
       $html.= "<div id='roky'>";
-      $rs= mysql_qry("SELECT YEAR(datum_do),COUNT(*) FROM xakce 
+      $rs= pdo_qry("SELECT YEAR(datum_do),COUNT(*) FROM xakce 
           WHERE datum_od<DATE(NOW()) AND xelems!='' GROUP BY YEAR(datum_od) 
           ORDER BY datum_od DESC");
-      while ($rs && list($r,$pocet)= mysql_fetch_row($rs) ) {
+      while ($rs && list($r,$pocet)= pdo_fetch_row($rs) ) {
         $html.= "<br id='rok$r'>";
         $akce= kolik_1_2_5($pocet,"akce,akcí,akcí");
         $zacatek= "Archiv $akce z roku $r";
@@ -284,10 +300,10 @@ __EOT;
                      <div class='kniha_br'><b>$zacatek ...</b></div>
                      <div id='list'>";
           // seznam akcí
-          $ra= mysql_qry("SELECT id_xakce,xelems FROM xakce 
+          $ra= pdo_qry("SELECT id_xakce,xelems FROM xakce 
               WHERE datum_od<DATE(NOW()) AND YEAR(datum_od)=$r AND xelems!=''
               ORDER BY datum_od DESC");
-          while ($ra && list($a,$elems)= mysql_fetch_row($ra) ) {
+          while ($ra && list($a,$elems)= pdo_fetch_row($ra) ) {
             // abstrakty akcí
             $top= $ida;
             if ( $elems ) {
@@ -318,7 +334,9 @@ __EOT;
     case 'xkniha':  
       global $backref;
       list($idk,$ida)= explode(',',$top);
-      list($nazev,$xelems,$wskill)= select("nazev,xelems,web_skill","xkniha","id_xkniha=$id");
+      list($exists,$nazev,$xelems,$wskill)= 
+          select("id_xkniha,nazev,xelems,web_skill","xkniha","id_xkniha=$id");
+      if ( !test_elem($exists,"Kniha $id",$elem,$html) ) continue;
       $wskill= 0+$wskill;
       $otevrena= $top && $idk==$id && (!$wskill || $KLIENT->level & $wskill);
       $menu= '';
@@ -371,10 +389,6 @@ __EOT;
       $html.= "<div style='background:white;color:black;text-align:center'>POZNAMKA</div>";
       break;
     
-    case 'jirka':    # ----------------------------------------------- . note
-      $html.= "<div style='background:white;color:black;text-align:center'>Jirko ahoj</div>";
-      break;
-    
     case 'myslenka':# ----------------------------------------------- . myšlenka
       global $backref;
       $obsah= rr_myslenka();
@@ -410,9 +424,10 @@ __EOT;
       $links= "fotorama";
       $html.= "<script>jQuery('.fotorama').fotorama();</script>";
       $idn= $id;
-      list($obsah,$wskill,$cskill,$zmena)= 
-          select("web_text,web_skill,cms_skill,TO_DAYS(NOW())-IFNULL(TO_DAYS(ch_date),0)",
+      list($exists,$obsah,$wskill,$cskill,$zmena)= 
+          select("id_xclanek,web_text,web_skill,cms_skill,TO_DAYS(NOW())-IFNULL(TO_DAYS(ch_date),0)",
               "xclanek","id_xclanek=$id");
+      if ( !test_elem($exists,"Článek $id",$elem,$html) ) continue;
       $wskill= 0+$wskill;
       $cskill= 0+$cskill;
       // má se upozornit na změnu?
@@ -516,8 +531,8 @@ __EOT;
             </div>
           </div>";
         // pokud jsou fotky, přidáme
-        $rf= mysql_qry("SELECT id_xfotky,nazev,seznam,path,autor FROM xfotky WHERE id_xclanek=$id");
-        while ($rf && list($fid,$nazev,$seznam,$path,$podpis)=mysql_fetch_row($rf)) {
+        $rf= pdo_qry("SELECT id_xfotky,nazev,seznam,path,autor FROM xfotky WHERE id_xclanek=$id");
+        while ($rf && list($fid,$nazev,$seznam,$path,$podpis)=pdo_fetch_row($rf)) {
           if ( $REDAKCE ) {
             $note= "<span style='float:right;color:red;font-style:italic;font-size:x-small'>
                   ... zjednodušené zobrazení fotogalerie pro editaci</span>";
@@ -576,9 +591,10 @@ __EOT;
       break;
 
     case 'xclanek': # ------------------------------------------------ . xčlánek
-      list($obsah,$wskill,$cskill,$zmena)= 
-          select("web_text,web_skill,cms_skill,TO_DAYS(NOW())-IFNULL(TO_DAYS(ch_date),0)",
+      list($exists,$obsah,$wskill,$cskill,$zmena)= 
+          select("id_xclanek,web_text,web_skill,cms_skill,TO_DAYS(NOW())-IFNULL(TO_DAYS(ch_date),0)",
               "xclanek","id_xclanek=$id");
+      if ( !test_elem($exists,"Článek $id",$elem,$html) ) continue;
       if ( $wskill && !($KLIENT->level & $wskill) ) {
         break;
       }
@@ -626,8 +642,8 @@ __EOT;
         </div>
       ";
 //        // pokud jsou fotky, přidáme
-//        $rf= mysql_qry("SELECT id_xfotky,nazev,seznam,path,autor FROM xfotky WHERE id_xclanek=$id");
-//        while ($rf && list($fid,$nazev,$seznam,$path,$podpis)=mysql_fetch_row($rf)) {
+//        $rf= pdo_qry("SELECT id_xfotky,nazev,seznam,path,autor FROM xfotky WHERE id_xclanek=$id");
+//        while ($rf && list($fid,$nazev,$seznam,$path,$podpis)=pdo_fetch_row($rf)) {
 //          if ( $REDAKCE ) {
 //            $note= "<span style='float:right;color:red;font-style:italic;font-size:x-small'>
 //                  ... zjednodušené zobrazení fotogalerie pro editaci</span>";
@@ -663,8 +679,8 @@ __EOT;
       ezer_connect('setkani');
       $qa= "SELECT id_xakce,datum_od,datum_do,nazev,misto,web_text 
           FROM xakce WHERE datum_od>NOW() ORDER BY datum_od";
-      $ra= mysql_query($qa);
-      while ( $ra && list($id,$od,$do,$nazev,$misto,$text)=mysql_fetch_array($ra)) {
+      $ra= pdo_query($qa);
+      while ( $ra && list($id,$od,$do,$nazev,$misto,$text)=pdo_fetch_array($ra)) {
         $oddo= datum_oddo($od,$do);
         if ( !$edit_id )
           $edit_id= $id;
@@ -1176,7 +1192,7 @@ function zapis_xakce($ida) {
   list($nazev,$od,$do)= select('nazev,datum_od,datum_do','xakce',"id_xakce=$ida");
   $oddo= datum_oddo($od,$do);
   query("INSERT INTO xclanek (cms_skill,web_text) VALUES (4,'<h1>$oddo $nazev</h1><p>...</p>')");
-  $idc= mysql_insert_id();
+  $idc= pdo_insert_id();
   query("UPDATE xakce SET xelems='aclanek=$idc' WHERE id_xakce='$ida'");
   return 1;
 }
@@ -1263,7 +1279,8 @@ function servant($qry,$context=null) {
   global $y, $servant, $ezer_server;
   $secret= "WEBKEYNHCHEIYSERVANTAFVUOVKEYWEB";
   $servant= array(
-      "http://setkani4m.bean:8080/servant.php?secret=$secret",
+      "https://www.setkani.org/servant.php?secret=$secret",
+//      "http://setkani4m.bean:8080/servant.php?secret=$secret",
       "https://www.setkani.org/servant.php?secret=$secret",
       "https://www.setkani.org/servant.php?secret=$secret",
       "http://setkani4.doma/servant.php?secret=$secret"
@@ -1572,7 +1589,7 @@ function log_report($par) { debug($par,'log_report');
   case 'obsah':    // -------------------------------------- obsah
     $dnu= $par->days;
     $html.= "<dl>";
-    $cr= mysql_qry("
+    $cr= pdo_qry("
       SELECT kdo,LEFT(MAX(kdy),16),GROUP_CONCAT(DISTINCT jak ORDER BY jak) AS _jak,tab,id_tab,
         IFNULL(username,kdo),COUNT(*) AS _krat
       FROM log LEFT JOIN _user ON id_user=kdo
@@ -1581,7 +1598,7 @@ function log_report($par) { debug($par,'log_report');
       ORDER BY kdy DESC
     ");
     while ( $cr && (list($kdo,$kdy,$_jak,$tab,$id_tab,$username,$krat)
-        = mysql_fetch_row($cr)) ) {
+        = pdo_fetch_row($cr)) ) {
       $jak= '';
       foreach (explode(',',$_jak) as $j) {
         $jak.= $j=='u' ? ' úprava' : (
@@ -1607,13 +1624,13 @@ function log_report($par) { debug($par,'log_report');
       $par->typ==='ok' ? "msg RLIKE '^ok|^x'" : (
       $par->typ==='ko' ? "msg RLIKE '^ko' AND NOT msg RLIKE 'byl odeslán'" : (
       $par->typ==='r'  ? "msg RLIKE '^ed'" : "/*typ=$par->typ*/" ));
-    $cr= mysql_qry("
+    $cr= pdo_qry("
       SELECT day,time,msg
       FROM _touch
       WHERE module='log' AND menu='login' AND $cond
       ORDER BY day DESC, time desc
     ");
-    while ( $cr && (list($day,$time,$msg)= mysql_fetch_row($cr)) ) {
+    while ( $cr && (list($day,$time,$msg)= pdo_fetch_row($cr)) ) {
       list($ok,$mail,$ip,$os,$brow1,$brow2,$txt)= explode('|',$msg);
 //      if ( $ok=='ko' && $par->typ=='ko' || $ok=='ok' && $par->typ=='ok' )
         $html.= "<dt>$day $time <b>$mail</b></dt><dd>$ok $ip $os $brow1 $brow2 <i>$txt</i></dd>";
@@ -1767,7 +1784,7 @@ function log_obsah($jak,$tab,$id_tab) {
   db_connect();
   $qry= "INSERT INTO log (kdo,kdy,jak,tab,id_tab)
          VALUES ('$kdo','$kdy','$jak','$tab','$id_tab')";
-  mysql_qry($qry);
+  pdo_qry($qry);
   return 1;
 }
 # ---------------------------------------------------------------------------------------- log login
@@ -1822,7 +1839,7 @@ function log_login($ok,$mail='') {
   if ( $ok=='u' || $ok=='x' || !$relog ) {
     $qry= "INSERT INTO _touch (day,time,user,module,menu,msg)
            VALUES ('$day','$time','$abbr','log','$menu','$msg')";
-    mysql_qry($qry);
+    pdo_qry($qry);
   }
   // při opakovaném přihlášení = např. obnově obrazovky obnov platnost PINu
   if ( $relog && $ok=='r') {
@@ -1984,9 +2001,9 @@ function rr_myslenka() {
   //return $html;
   ezer_connect('ezertask');
   $qry= "SELECT * FROM rr WHERE datum=curdate()";
-  $res= mysql_qry($qry);
-                                                $html.= "<br>$res=$qry";
-  while ( $res && ($o= mysql_fetch_object($res)) ) {
+  $res= pdo_qry($qry);
+//                                                $html.= "<br>$res=$qry";
+  while ( $res && ($o= pdo_fetch_object($res)) ) {
 //     $html= $o->text_cz;
     $subject= $o->subject;
     $title_cz= $o->title_cz;

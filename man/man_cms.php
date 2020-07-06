@@ -134,13 +134,13 @@ function corr_fotky($fid) { global $gn;
 # přidání fotek - pokud je definováno x.kapitola pak pod příslušné part - jinak na konec
 function create_fotky($x) {
   $cid= $x->cid;
-  $autor= mysql_real_escape_string($x->autor);
-  $nadpis= mysql_real_escape_string($x->nadpis);
+  $autor= pdo_real_escape_string($x->autor);
+  $nadpis= pdo_real_escape_string($x->nadpis);
   $psano= sql_date1($x->psano,1);
   $editors= $x->editors ? implode(',',(array)$x->editors) : '';
   query("INSERT INTO xfotky (id_xclanek,editors,nazev,kdy,autor,seznam)
          VALUES ($cid,'$editors','$nadpis','$psano','$autor','')");
-  $fid= mysql_insert_id();
+  $fid= pdo_insert_id();
   return $fid;
 }
 # ----------------------------------------------------------------------------------==> . load fotky
@@ -184,8 +184,8 @@ function load_fotky($fid) { trace();
 # ----------------------------------------------------------------------------------==> . save fotky
 function save_fotky($x,$perm=null) {
   $fid= $x->fid;
-  $autor= mysql_real_escape_string($x->autor);
-  $nadpis= mysql_real_escape_string($x->nadpis);
+  $autor= pdo_real_escape_string($x->autor);
+  $nadpis= pdo_real_escape_string($x->nadpis);
   $psano= sql_date1($x->psano,1);
   $editors= $x->editors ? implode(',',(array)$x->editors) : '';
   $set_seznam= '';
@@ -347,7 +347,7 @@ function bez_embeded($idxc,$update,$inline='') {
     if ( $update ) {
       $text= pdo_real_escape_string($text);
   //                                                       display($text);
-      mysql_qry("UPDATE xclanek SET web_text='$text' WHERE id_xclanek=$idxc");
+      pdo_qry("UPDATE xclanek SET web_text='$text' WHERE id_xclanek=$idxc");
       $y->msg.= "z článku $idxc byl odstraněno $y->n embeded obrázek";
     }
     else {
@@ -730,7 +730,7 @@ function menu_copy_elem($co,$pid,$mid,$test=true) {
     }
     else {
       query("INSERT INTO xakce () VALUES ()");
-      $aid= mysql_insert_id();
+      $aid= pdo_insert_id();
     }
   }
   elseif ( count($pids)>1 ) {
@@ -740,7 +740,7 @@ function menu_copy_elem($co,$pid,$mid,$test=true) {
     }
     else {
       query("INSERT INTO xkniha () VALUES ()");
-      $kid= mysql_insert_id();
+      $kid= pdo_insert_id();
     }
     $typ= 'akniha';
   }
@@ -763,7 +763,7 @@ function menu_copy_elem($co,$pid,$mid,$test=true) {
       else {
         query("INSERT INTO xfotky (id_xclanek,autor,nazev,kdy,seznam,path) "
             . "VALUES ($xid,'$a','$n','$p','$lst','$pid')");
-        $fid= mysql_insert_id();
+        $fid= pdo_insert_id();
       }
       break;
       
@@ -799,7 +799,7 @@ function menu_copy_elem($co,$pid,$mid,$test=true) {
         }
         else {
           query("INSERT INTO xclanek (web_text,web_skill) VALUES ('$clanek',$skill)");
-          $xid= mysql_insert_id();
+          $xid= pdo_insert_id();
         }
         $elems= ($elems ? "$elems;" : '')."aclanek=$xid";
       }
@@ -823,7 +823,7 @@ function menu_copy_elem($co,$pid,$mid,$test=true) {
         }
         else {
           query("INSERT INTO xclanek (web_text) VALUES ('$clanek')");
-          $xid= mysql_insert_id();
+          $xid= pdo_insert_id();
         }
         $elems= ($elems ? "$elems;" : '')."aclanek=$xid";
       }
@@ -880,7 +880,7 @@ function menu_add_elem($mid,$table,$first=0,$id_user=0) {
   switch ($table) {
   case 'xakce':        // ---------------------------------- nová akce roku mid
     query("INSERT INTO xclanek (editors,cms_skill) VALUES ('$id_user',4)");
-    $idc= mysql_insert_id();
+    $idc= pdo_insert_id();
     log_obsah('i','c',$idc);
     $ymd= "$mid-01-01";
     query("INSERT INTO xakce (xelems,datum_od,datum_do) VALUES ('aclanek=$idc','$ymd','$ymd')");
@@ -888,10 +888,10 @@ function menu_add_elem($mid,$table,$first=0,$id_user=0) {
   case 'xkniha':       // ---------------------------------- nová kniha s prvním článkem
     $elem= select("elem","menu","wid=2 AND mid=$mid");
     query("INSERT INTO xclanek (editors,cms_skill) VALUES ('$id_user',4)");
-    $cid= mysql_insert_id();
+    $cid= pdo_insert_id();
     log_obsah('i','c',$cid);
     query("INSERT INTO xkniha (xelems) VALUES ('aclanek=$cid')");
-    $kid= mysql_insert_id();
+    $kid= pdo_insert_id();
     if ( $first )
       $elem= "xkniha=$kid" . ($elem ? ";$elem" : '');
     else
@@ -901,7 +901,7 @@ function menu_add_elem($mid,$table,$first=0,$id_user=0) {
   case 'xkniha.elem':  // ---------------------------------- nový článek knihy 
     $elem= select("xelems","xkniha","id_xkniha=$mid");
     query("INSERT INTO xclanek (editors,cms_skill) VALUES ('$id_user',4)");
-    $id= mysql_insert_id();
+    $id= pdo_insert_id();
     log_obsah('i','c',$id);
     if ( $first )
       $elem= "aclanek=$id" . ($elem ? ";$elem" : '');
@@ -914,7 +914,7 @@ function menu_add_elem($mid,$table,$first=0,$id_user=0) {
       . "<p>Po dokončení nezapomeň zrušit omezení</p>";
     $elem= select("elem","menu","wid=2 AND mid=$mid");
     query("INSERT INTO xclanek (editors,cms_skill,web_text) VALUES ('$id_user',4,\"$vzor\")");
-    $id= mysql_insert_id();
+    $id= pdo_insert_id();
     log_obsah('i','c',$id);
     if ( $first )
       $elem= "aclanek=$id" . ($elem ? ";$elem" : '');
@@ -1067,9 +1067,9 @@ function menu_tree($wid) {
         )
       )
     );    
-  $mn= mysql_qry("SELECT * FROM menu WHERE wid=$wid ORDER BY typ,mid_top,rank",
+  $mn= pdo_qry("SELECT * FROM menu WHERE wid=$wid ORDER BY typ,mid_top,rank",
       0,0,0,'setkani');
-  while ( $mn && ($m= mysql_fetch_object($mn)) ) {
+  while ( $mn && ($m= pdo_fetch_object($mn)) ) {
     $mid= $m->mid;
     $mid_top= $m->mid_top;
     $typ= $m->typ;
@@ -1115,7 +1115,7 @@ function datum_akce($from,$until) {
 # seřadí články na stránce podle abecedy
 function seradit($ids,$typ) {
   $sorting= 0;
-  $rc= mysql_qry(
+  $rc= pdo_qry(
     $typ=='knihy' ? "
       SELECT c.uid
       FROM setkani.tx_gncase AS c
@@ -1129,7 +1129,7 @@ function seradit($ids,$typ) {
       WHERE !c.deleted AND !c.hidden AND c.pid IN ($ids)
       ORDER BY p.title DESC" : ''
   ));
-  while ( $rc && (list($uid)= mysql_fetch_row($rc)) ) {
+  while ( $rc && (list($uid)= pdo_fetch_row($rc)) ) {
     $sorting++;
     query("UPDATE setkani.tx_gncase SET sorting=$sorting WHERE uid=$uid");
   }
@@ -1156,7 +1156,7 @@ function ip_watch(&$my_ip,$log=0) {
     $browser= $_SERVER['HTTP_USER_AGENT'];
     $qry= "INSERT _touch (day,time,user,module,menu,msg)
            VALUES ('$day','$time','','error','ip?','|$my_ip||$browser')";
-    mysql_query($qry);
+    pdo_query($qry);
   }
   return $ip_ok;
 }

@@ -10,8 +10,7 @@ function rr_nastav($den,$datum,$pocet) {  trace();
   for ($d= 0; $d<$pocet; $d++) {
     $day_n= $den+$d;
     $ndatum= date('Y-m-d',$ndat0+$d*60*60*24);
-    query("UPDATE rr SET datum='$ndatum',state='prepared' WHERE day_n=$day_n");
-    $nastaveno+= mysql_affected_rows();
+    $nastaveno+= query("UPDATE rr SET datum='$ndatum',state='prepared' WHERE day_n=$day_n");
   }
   $ret->last= date('Y-m-d',$ndat0+($pocet-1)*60*60*24);
   $ret->next= date('Y-m-d',$ndat0+$pocet*60*60*24);
@@ -29,9 +28,9 @@ function rr_send($par) {
   //return $html;
   ezer_connect("ezertask");
   $qry= "SELECT * FROM rr WHERE datum=curdate()$offset ";
-  $res= mysql_qry($qry);
-                                                $html.= "<br>$res=$qry";
-  while ( $res && ($o= mysql_fetch_object($res)) ) {
+  $res= pdo_qry($qry);
+//                                                $html.= "<br>$res=$qry";
+  while ( $res && ($o= pdo_fetch_object($res)) ) {
 //     $html= $o->text_cz;
     $day_n= $o->day_n;
     $day= $o->day;
