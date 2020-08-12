@@ -24,13 +24,15 @@
       "C:/Ezer/beans/chlapi.online",
       "/var/services/web/www/chlapi",
       "/var/services/web/www/chlapi",
-      "/var/services/web/www/chlapi"
+      "/var/services/web/www/chlapi",
+      "C:/Ezer/beans/chlapi.online",
     );
   $rel_roots= array(
       "http://chlapi.bean:8080",
       "http://chlapi.cz",
       "http://chlapi.cz",
-      "http://chlapi.doma"
+      "http://chlapi.doma",
+      "http://chlapi.ben:8080",
     );
   
   if ( isset($_GET['batch']) && $_GET['batch'] ) {

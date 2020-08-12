@@ -7,12 +7,13 @@
   // rozlišení lokální a ostré verze
 //  $ezer_local= preg_match('/^\w+\.bean$/',$_SERVER["SERVER_NAME"])?1:0;
   $ezer_server= 
-      $_SERVER["SERVER_NAME"]=='chlapi.bean'       ? 0 : (        // 0:lokální         = oranžové logo
-      $_SERVER["SERVER_NAME"]=='chlapi.online'     ? 1 : (        // Synology - online = modré logo
-      $_SERVER["SERVER_NAME"]=='www.chlapi.online' ? 1 : (
-      $_SERVER["SERVER_NAME"]=='chlapi.cz'         ? 2 : (        // Synology - cz     = šedé logo
-      $_SERVER["SERVER_NAME"]=='www.chlapi.cz'     ? 2 : (
-      $_SERVER["SERVER_NAME"]=='chlapi.doma'       ? 3 : -1))))); // Synology - DOMA
+    $_SERVER["SERVER_NAME"]=='chlapi.bean'       ? 0 : (         // 0:lokální         = oranžové logo
+    $_SERVER["SERVER_NAME"]=='chlapi.online'     ? 1 : (         // Synology - online = modré logo
+    $_SERVER["SERVER_NAME"]=='www.chlapi.online' ? 1 : (
+    $_SERVER["SERVER_NAME"]=='chlapi.cz'         ? 2 : (         // Synology - cz     = šedé logo
+    $_SERVER["SERVER_NAME"]=='www.chlapi.cz'     ? 2 : (
+    $_SERVER["SERVER_NAME"]=='chlapi.doma'       ? 3 : (         // Synology - DOMA   = modré logo
+    $_SERVER["SERVER_NAME"]=='chlapi.ben'        ? 4 : -1)))))); // 4:lokální - ben   = oranžové logo
 
   // parametry aplikace MAN
   $app_name=  "chlapi.cz";
@@ -28,13 +29,15 @@
       "C:/Ezer/beans/chlapi.online",
       "/var/services/web/www/chlapi",
       "/var/services/web/www/chlapi",
-      "/var/services/web/www/chlapi"
+      "/var/services/web/www/chlapi",
+      "C:/Ezer/beans/chlapi.online",    // ben
     );
   $rel_roots= array(
       "http://chlapi.bean:8080",
       "http://chlapi.online",
       "http://chlapi.cz",
-      "http://chlapi.doma"
+      "http://chlapi.doma",
+      "http://chlapi.ben:8080"        // ben
     );
   
   // určení uživatele podle session.web.fe_user
@@ -70,8 +73,8 @@
   // (re)definice Ezer.options
   $add_pars= array(
     'log_login' => false,   // nezapisovat standardně login do _touch (v ezer2.php)
-    'favicon' => array('chlapi_ico_local.png','chlapi_ico_dsm.png',
-                       'chlapi_ico.png','chlapi_ico_doma.png')[$ezer_server],    
+    'favicon' => array('chlapi_ico_local.png','chlapi_ico_dsm.png','chlapi_ico.png',
+                       'chlapi_ico_doma.png','chlapi_ico_local.png')[$ezer_server],    // ben
     'template' => "user",
     'template_meta' => $template_meta,
     'template_body' => $template,

@@ -27,7 +27,8 @@ function get_fileadmin() {
       "http://setkani.bean:8080/fileadmin",
       "https://www.setkani.org/fileadmin",
       "https://web.setkani.org/fileadmin",
-      "http://setkani4.doma/fileadmin"
+      "http://setkani4.doma/fileadmin",
+      "https://www.setkani.org/fileadmin" // ben
     )[$ezer_server];
   return $fileadmin;
 }
@@ -39,7 +40,8 @@ function get_prefix() {
       "http://chlapi.bean:8080/",
       "http://chlapi.online/",
       "http://chlapi.cz/",
-      "http://chlapi.doma/"
+      "http://chlapi.doma/",
+      "http://chlapi.ben:8080/"   // ben
     )[$ezer_server];
   return $prefix;
 }
@@ -987,7 +989,8 @@ __EOJ;
       '/man/img/chlapi_ico_local.png',
       '/man/img/chlapi_ico_dsm.png',
       '/man/img/chlapi_ico.png',
-      '/man/img/chlapi_ico_doma.png'
+      '/man/img/chlapi_ico_doma.png',
+      '/man/img/chlapi_ico_local.png' // ben
     )[$ezer_server];
   $head=  <<<__EOD
   <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
@@ -1279,11 +1282,12 @@ function servant($qry,$context=null) {
   global $y, $servant, $ezer_server;
   $secret= "WEBKEYNHCHEIYSERVANTAFVUOVKEYWEB";
   $servant= array(
+//      "https://www.setkani.org/servant.php?secret=$secret", 
+      "http://setkani4m.bean:8080/servant.php?secret=$secret",
       "https://www.setkani.org/servant.php?secret=$secret",
-//      "http://setkani4m.bean:8080/servant.php?secret=$secret",
       "https://www.setkani.org/servant.php?secret=$secret",
-      "https://www.setkani.org/servant.php?secret=$secret",
-      "http://setkani4.doma/servant.php?secret=$secret"
+      "http://setkani4.doma/servant.php?secret=$secret",
+      "https://www.setkani.org/servant.php?secret=$secret"  // ben
     )[$ezer_server];
   $_SESSION['web']['servant_last']= "$servant&$qry";
   $json= url_get_contents("$servant&$qry",false,$context);
@@ -1517,30 +1521,30 @@ function datum_oddo($x1,$x2) {
   }
   return $datum;
 }
-# ------------------------------------------------------------------------------------------ session
-# getter a setter pro _SESSION
-function session($is,$value=null) {
-  $i= explode(',',$is);
-  if ( is_null($value) ) {
-    // getter
-    switch (count($i)) {
-    case 1: $value= $_SESSION[$i[0]]; break;
-    case 2: $value= $_SESSION[$i[0]][$i[1]]; break;
-    case 3: $value= $_SESSION[$i[0]][$i[1]][$i[2]]; break;
-    }
-  }
-  else {
-    // setter
-    switch (count($i)) {
-    case 1: $_SESSION[$i[0]]= $value; break;
-    case 2: $_SESSION[$i[0]][$i[1]]= $value; break;
-    case 3: $_SESSION[$i[0]][$i[1]][$i[2]]= $value; break;
-    }
-//    session_commit();
-    $value= 1;
-  }
-  return $value;
-}
+//# ------------------------------------------------------------------------------------------ session
+//# getter a setter pro _SESSION
+//function session($is,$value=null) {
+//  $i= explode(',',$is);
+//  if ( is_null($value) ) {
+//    // getter
+//    switch (count($i)) {
+//    case 1: $value= $_SESSION[$i[0]]; break;
+//    case 2: $value= $_SESSION[$i[0]][$i[1]]; break;
+//    case 3: $value= $_SESSION[$i[0]][$i[1]][$i[2]]; break;
+//    }
+//  }
+//  else {
+//    // setter
+//    switch (count($i)) {
+//    case 1: $_SESSION[$i[0]]= $value; break;
+//    case 2: $_SESSION[$i[0]][$i[1]]= $value; break;
+//    case 3: $_SESSION[$i[0]][$i[1]][$i[2]]= $value; break;
+//    }
+////    session_commit();
+//    $value= 1;
+//  }
+//  return $value;
+//}
 # --------------------------------------------------------------------------------------- db connect
 # připojí databázi
 function db_connect() { 
@@ -1573,6 +1577,10 @@ function db_connect() {
     array(  // 3 = ladící - Synology DOMA
       'setkani'  => array(0,'localhost','gandi','','utf8','chlapi'),
       'ezertask' => array(0,'localhost','gandi','','utf8','myslenky')
+    ),
+    array(  // 4 = ladící - ben
+      'setkani'  => array(0,'localhost','gandi','','utf8','chlapi'),
+      'ezertask' => array(0,'localhost','gandi','','utf8')
     ),
   );
   $ezer_db= $dbs[$ezer_server];

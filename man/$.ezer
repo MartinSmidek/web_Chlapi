@@ -8,107 +8,218 @@ panel p [0,0,*,*] { type:'main', _sys:'$'
   var history: array, top=-1
   use f: form _f [0,0,,]
   use w: form _w [0,30,,]
-  proc onstart() { var gets:object
-    gets.set(function('return Ezer.get;'));
-    last.set(cconc(gets.page,gets.page,'home'));
+//  proc onstart() { var gets:object
+//    gets.set(function('return Ezer.get;'));
+//    last.set(cconc(gets.page,gets.page,'home'));
+//    // zapisuj každý klik hned
+//    function('Ezer.sys.ezer.activity.touch_limit=1; return 1;');
+//    go_menu(last.get);
+//  }
+  func onstart() { var gets:object
+    gets= function('return Ezer.get;');
+    last= cconc(gets.page,gets.page,'home');
     // zapisuj každý klik hned
     function('Ezer.sys.ezer.activity.touch_limit=1; return 1;');
-    go_menu(last.get);
+    go_menu(last);
   }
-  proc opravit(_typ,_id,_idk) { 
-    eq('xclanek',_typ); EDITOR.Clanek(_id); refresh 
-  | eq('xakce',_typ); EDITOR.Akce(_id,_idk); refresh 
-  | eq('xkniha',_typ); EDITOR.Kniha(_id); refresh 
-  | eq('kalendar',_typ); EDITOR.Kalendar(_id); refresh 
-  | eq('xfotky',_typ); FOTKY.oprava(_id); refresh
-  }
-  proc zmenit(_mid,_typ1,_id,_typ2) { 
-    ask('menu_chng_elem',_mid,_typ1,_id,_typ2); refresh
-  }
-  proc pridat(_typ,_mid,_first) { var me:number
-    me.set(sys('user','id_user'));
-    eq('xclanek',_typ); ask('menu_add_elem',_mid,_typ,_first,me); refresh 
-  | eq('xkniha',_typ); ask('menu_add_elem',_mid,_typ,_first,me); refresh 
-  | eq('xkniha.elem',_typ); ask('menu_add_elem',_mid,_typ,_first,me); refresh 
-  | eq('xfotky',_typ); FOTKY.novy(_mid); refresh 
-  | eq('xakce',_typ); ask('menu_add_elem',_mid,_typ,0,me); refresh 
-  }
-  proc zcizit(_typ,_pid,_mid) { 
-    eq(_typ,'fotky'); [ ask('menu_copy_foto',_pid,_mid); refresh ]  // _mid je zde test
-  | eq(substr(_typ,0,1),'?'); ask('menu_copy_elem',substr(_typ,1),_pid,_mid,1) 
-  | not(eq(substr(_typ,0,1),'?')); ask('menu_copy_elem',_typ,_pid,_mid,0); refresh
-  }
-  proc posunout(_typ,_mid,_id,_dolu) { 
-    ask('menu_shift_elem',_typ,_mid,_id,_dolu); refresh
-  }
-  proc cmd_fotky(_fid,_name,_cmd) { var ok:number // cmd=delete|attach
-    ok.set(ask('cmd_fotky',_fid,_name,_cmd)); 
-    ok; FOTKY.refresh
-  | alert("operace ",_cmd," pro ",_name," selhala")
-  }
-  proc namiru(_id,_div_id) { var _list:array, _y:object
-    _list.set(function('div',"return namiru_fotky(div);",_div_id));
-    _y.set(ask('namiru_fotky',_id,_list,0)); 
-    { _y.n; [ 
-      confirm(_y.msg);
-      ask('namiru_fotky',_id,_list,1); refresh ]
-    | alert(_y.msg)
+//  proc opravit(_typ,_id,_idk) { 
+//    eq('xclanek',_typ); EDITOR.Clanek(_id); refresh 
+//  | eq('xakce',_typ); EDITOR.Akce(_id,_idk); refresh 
+//  | eq('xkniha',_typ); EDITOR.Kniha(_id); refresh 
+//  | eq('kalendar',_typ); EDITOR.Kalendar(_id); refresh 
+//  | eq('xfotky',_typ); FOTKY.oprava(_id); refresh
+//  }
+  func opravit(_typ,_id,_idk) { 
+    switch (_typ) {
+      case 'xclanek': EDITOR.Clanek(_id); refresh(); break; 
+      case 'xakce':   EDITOR.Akce(_id,_idk); refresh(); break;
+      case 'xkniha':  EDITOR.Kniha(_id); refresh(); break;
+      case 'kalendar':EDITOR.Kalendar(_id); refresh(); break;
+      case 'xfotky':  FOTKY.oprava(_id); refresh(); break;
     }
   }
-  proc bez_embeded(_id) { var _list:array, _y:object
-    _y.set(ask('bez_embeded',_id,0)); 
-    { _y.n; [ 
-      confirm(_y.msg);
-      ask('bez_embeded',_id,1); refresh ]
-    | alert(_y.msg)
+//  proc zmenit(_mid,_typ1,_id,_typ2) { 
+//    ask('menu_chng_elem',_mid,_typ1,_id,_typ2); refresh
+//  }
+  func zmenit(_mid,_typ1,_id,_typ2) { 
+    php.menu_chng_elem(_mid,_typ1,_id,_typ2); refresh()
+  }
+//  proc pridat(_typ,_mid,_first) { var me:number
+//    me.set(sys('user','id_user'));
+//    eq('xclanek',_typ); ask('menu_add_elem',_mid,_typ,_first,me); refresh 
+//  | eq('xkniha',_typ); ask('menu_add_elem',_mid,_typ,_first,me); refresh 
+//  | eq('xkniha.elem',_typ); ask('menu_add_elem',_mid,_typ,_first,me); refresh 
+//  | eq('xfotky',_typ); FOTKY.novy(_mid); refresh 
+//  | eq('xakce',_typ); ask('menu_add_elem',_mid,_typ,0,me); refresh 
+//  }
+  func pridat(_typ,_mid,_first) { var me:number
+    me= sys('user','id_user');
+    switch (_typ) {
+      case 'xclanek': php.menu_add_elem(_mid,_typ,_first,me); refresh(); break;
+      case 'xkniha': php.menu_add_elem(_mid,_typ,_first,me); refresh(); break; 
+      case 'xkniha.elem': php.menu_add_elem(_mid,_typ,_first,me); refresh(); break;
+      case 'xfotky': FOTKY.novy(_mid); refresh(); break;
+      case 'xakce': php.menu_add_elem(_mid,_typ,0,me); refresh(); break;
+    }
+  }
+//  proc zcizit(_typ,_pid,_mid) { 
+//    eq(_typ,'fotky'); [ ask('menu_copy_foto',_pid,_mid); refresh ]  // _mid je zde test
+//  | eq(substr(_typ,0,1),'?'); ask('menu_copy_elem',substr(_typ,1),_pid,_mid,1) 
+//  | not(eq(substr(_typ,0,1),'?')); ask('menu_copy_elem',_typ,_pid,_mid,0); refresh
+//  }
+  func zcizit(_typ,_pid,_mid) { 
+    if (_typ=='fotky') {
+      php.menu_copy_foto(_pid,_mid); // _mid je zde test
+      refresh() 
+    }
+    elseif ( substr(_typ,0,1)=='?' ) 
+      php.menu_copy_elem(substr(_typ,1),_pid,_mid,1) 
+    else {
+      php.menu_copy_elem(_typ,_pid,_mid,0); 
+      refresh()
+    }
+  }
+//  proc posunout(_typ,_mid,_id,_dolu) { 
+//    ask('menu_shift_elem',_typ,_mid,_id,_dolu); refresh
+//  }
+  func posunout(_typ,_mid,_id,_dolu) { 
+    php.menu_shift_elem(_typ,_mid,_id,_dolu); refresh()
+  }
+//  proc cmd_fotky(_fid,_name,_cmd) { var ok:number // cmd=delete|attach
+//    ok.set(ask('cmd_fotky',_fid,_name,_cmd)); 
+//    ok; FOTKY.refresh
+//  | alert("operace ",_cmd," pro ",_name," selhala")
+//  }
+  func cmd_fotky(_fid,_name,_cmd) { // cmd=delete|attach
+    if ( php.cmd_fotky(_fid,_name,_cmd) ) 
+      FOTKY.refresh();
+    else 
+      alert("operace ",_cmd," pro ",_name," selhala")
+  }
+//  proc namiru(_id,_div_id) { var _list:array, _y:object
+//    _list.set(function('div',"return namiru_fotky(div);",_div_id));
+//    _y.set(ask('namiru_fotky',_id,_list,0)); 
+//    { _y.n; [ 
+//      confirm(_y.msg);
+//      ask('namiru_fotky',_id,_list,1); refresh ]
+//    | alert(_y.msg)
+//    }
+//  }
+  func namiru(_id,_div_id) { var _list:array, _y:object
+    _list= function('div',"return namiru_fotky(div);",_div_id);
+    _y= php.namiru_fotky(_id,_list,0); 
+    if ( _y.n ) { 
+      if ( confirm(_y.msg) ) {
+        php.namiru_fotky(_id,_list,1); 
+        refresh()
+      }
+      else 
+        alert(_y.msg)
+    }
+  }
+//  proc bez_embeded(_id) { var _list:array, _y:object
+//    _y.set(ask('bez_embeded',_id,0)); 
+//    { _y.n; [ 
+//      confirm(_y.msg);
+//      ask('bez_embeded',_id,1); refresh ]
+//    | alert(_y.msg)
+//    }
+//  }
+  func bez_embeded(_id) { var _y:object
+    _y= php.bez_embeded(_id,0); 
+    if ( _y.n ) {
+      if ( confirm(_y.msg) ) {
+        php.bez_embeded(_id,1); 
+        refresh()
+      }
+      else 
+        alert(_y.msg)
     }
   }
 # ----------------------------------------------------------------------------==> emulace událostí
   var page: object // {html,edit,id}
-  proc cms_go(ref) { echo("přepnutí webu na ",ref); do_go.get; go(ref) }
-  proc cms_menu(ref) { clear; echo("přepnutí dle menu ",ref); do_go.get; go_menu(ref) }
-  proc refresh() { cms_go(last.get); }
-  proc ask_page(a,b) {
-    page.set(ask('page',a,b));
-    w.page.set(page.get('html'));
-//    f.editace.Init(page.get('edit'));
+//  proc cms_go(ref) { echo("přepnutí webu na ",ref); do_go.get; go(ref) }
+  func cms_go(ref) { echo("přepnutí webu na ",ref); if ( do_go ) go(ref) }
+//  proc cms_menu(ref) { clear; echo("přepnutí dle menu ",ref); do_go.get; go_menu(ref) }
+  func cms_menu(ref) { clear(); echo("přepnutí dle menu ",ref); if ( do_go ) go_menu(ref) }
+//  proc refresh() { cms_go(last.get); }
+  func refresh() { cms_go(last) }
+//  proc ask_page(a,b) {
+//    page.set(ask('page',a,b));
+//    w.page.set(page.get('html'));
+////    f.editace.Init(page.get('edit'));
+//  }
+  func ask_page(a,b) {
+    page= php.page(a,b);
+    w.page= page.html;
   }
-  proc go(ref) { 
+//  proc go(ref) { 
+//    echo('go ',ref);
+//    history.set(last.get);
+//    last.set(ref);
+//    f.verze.set(sys('ezer','version')); 
+//    ask_page(function("return Ezer.app_root;"),ref);
+//    function("return jump_fokus();");
+//  }
+  func go(ref) { 
     echo('go ',ref);
-    history.set(last.get);
-    last.set(ref);
-    f.verze.set(sys('ezer','version')); 
+    history= last;
+    last= ref;
+    f.verze= sys('ezer','version'); 
     ask_page(function("return Ezer.app_root;"),ref);
     function("return jump_fokus();");
   }
-  proc cms_go_case(pid) { var y:object, ref:text
-    [ has_skill('a'); f.clr.get; clear ];
-    y.set(ask('pid2menu',pid));
-    f.verze.set(sys('ezer','version')); 
+//  proc cms_go_case(pid) { var y:object, ref:text
+//    [ has_skill('a'); f.clr.get; clear ];
+//    y.set(ask('pid2menu',pid));
+//    f.verze.set(sys('ezer','version')); 
+//    ask_page(function('mref',"history_push2(mref);return Ezer.app_root;",y.url),y.page);
+//    function("return jump_fokus();");
+//  }
+  func cms_go_case(pid) { var y:object, ref:text
+    if ( has_skill('a') && f.clr ) clear();
+    y= php.pid2menu(pid);
+    f.verze= sys('ezer','version'); 
     ask_page(function('mref',"history_push2(mref);return Ezer.app_root;",y.url),y.page);
-    function("return jump_fokus();");
+    js.jump_fokus();
   }
-  proc go_menu(ref) { echo('go_menu ',ref);
-    history.set(last.get);
-    last.set(ref);
-    f.verze.set(sys('ezer','version')); 
+//  proc go_menu(ref) { echo('go_menu ',ref);
+//    history.set(last.get);
+//    last.set(ref);
+//    f.verze.set(sys('ezer','version')); 
+//    ask_page(function("return Ezer.app_root;"),ref);
+//  }
+  func go_menu(ref) { echo('go_menu ',ref);
+    history= last;
+    last= ref;
+    f.verze= sys('ezer','version'); 
     ask_page(function("return Ezer.app_root;"),ref);
   }
   # --------------------------------------------------------------------------==> stnd.funkce
   # on=1 => nastaví class=obligatory pro elementy s par.obligatory=1
   # on=0 => zruší ...
   # pokud je f proměnná (use), musí se použít f.get
-  proc form_obligatory(f,on) {
-    on;      foreach(f,form_obligatory_do)
-  | not(on); foreach(f,form_obligatory_od)
-  }
-  proc form_obligatory_do(e) {
-    eq(e.par); eq(e.par.obligatory,1);
-    e.set_css('obligatory');
-  }
-  proc form_obligatory_od(e) {
-    eq(e.par); eq(e.par.obligatory,1);
-    e.set_css('','obligatory');
+//  proc form_obligatory(f,on) {
+//    on;      foreach(f,form_obligatory_do)
+//  | not(on); foreach(f,form_obligatory_od)
+//  }
+//  proc form_obligatory_do(e) {
+//    eq(e.par); eq(e.par.obligatory,1);
+//    e.set_css('obligatory');
+//  }
+//  proc form_obligatory_od(e) {
+//    eq(e.par); eq(e.par.obligatory,1);
+//    e.set_css('','obligatory');
+//  }
+  func form_obligatory(f,on) { var e:object
+    for (e of f) {
+      if ( e.par && (e.par.obligatory==1) ) {
+        if ( on ) 
+          e.set_css('obligatory');
+//        else
+//          e.set_css('','obligatory');
+      }
+    }
   }
   # vrátí počet nevyplněných povinných elementů tj. s par.obligatory=1
   var form_obligatory_n:number
@@ -273,48 +384,35 @@ panel CMS [0,0,610,400] { type:'popup',  title:'CMS - definice menu',
 # ----------------------------------------------------------------------------==> ADMIN
 panel ADMIN [0,0,600,465] { title:'Aktivita CMS', type:'popup', css:'dialog_menu', 
     style:"min-width:590px", _sys:'adm'
-  proc onfirstfocus() { m.o.d.click }
+  proc onfirstfocus() { m.a.d.click }
   menu m { type:'left', format:'f'
-    menu o {title:'Změny obsahu',type:'group'
-      item d {title:'Přehled změn dnes',      par:°{cmd:'obsah',days:1} }
-      item   {title:'Přehled změn za týden',  par:°{cmd:'obsah',days:7} }
-      item   {title:'Přehled změn za měsíc',  par:°{cmd:'obsah',days:30} }
-      item   {title:'Přehled změn za rok',    par:°{cmd:'obsah',days:365} }
-      item   {title:'Přehled uskutečněných změn', par:°{cmd:'obsah',days:99999} }
-      func onclick(i) {
+    menu a { title:'Aktivní redaktoři', type:'group', skill:'s'
+      item d { title:'dnes'             par:°{s:'uzivatele',c:'dnes',short:'1'}}
+      item { title:'včera'              par:°{s:'uzivatele',c:'vcera',short:'1'}}
+      item { title:'týden'              par:°{s:'uzivatele',c:'dny',days:'8',short:'1'}}
+      item { title:'dva týdny'          par:°{s:'uzivatele',c:'dny',days:'15',short:'1'}}
+      item { title:'měsíc'              par:°{s:'uzivatele',c:'dny',days:'30',short:'1'}}
+      item { title:'nastavený den'      par:°{s:'uzivatele',c:'den',short:'1'}}
+    }
+    menu c { title:'Přihlášení - chlapi',type:'group', skill:'a'
+      item c { title:'chybná přihlášení'    par:°{cmd:'me_login',typ:'ko'}}
+      item   { title:'správná přihlášení'   par:°{cmd:'me_login',typ:'ok'}}
+      item   { title:'přihlášení k editaci' par:°{cmd:'me_login',typ:'r'}}
+      proc onclick (i) {  var y:text
         panel.display(2,'mu'); u.den.display(0);
-        u.fill(conc(i.owner.title,' - ',replace_fa(i.title)),ask('log_report',i.par));
+        y.set(ask('log_report',i.par));
+        u.fill(conc(i.owner.title,' - ',replace_fa(i.title)),y);
       }
     }
-//    menu a {title:'Změny aplikace',type:'group'
-//      item   {title:'[fa-exclamation] změna aplikace' 
-//        proc onclick(i) {
-//          u.result.set(conc(
-//            "<div class='karta'>",i.owner.title,' - ',replace_fa(i.title),"</div>"));
-//          panel.display(2,'ma');
-//          panel.call('msg_a.start');
-//        }
-//      }
-//      item d {title:'Přehled změn za měsíc', par:°{days:30} }
-//      item   {title:'Přehled změn za rok', par:°{days:365} }
-//      item   {title:'Přehled uskutečněných změn', par:°{days:9999} }
-//      proc onclick(i) {
-//        panel.display(2,'mu'); u.den.display(0);
-//        u.fill(conc('Změny aplikace za posledních ',i.par.days,' dní'),
-//          ask('doc_chngs_show','a',i.par.days));
-//      }
-//    }
-    menu { title:'GitHub',type:'group',skill:'m'
-      item { title:'[fa-question] CMS: git status'  par:°{folder:'cms',op:'cmd',cmd:'status'}}
-      item { title:'[fa-gear] CMS: git log'         par:°{folder:'cms',op:'cmd',cmd:'log'}}
-      item { title:'[fa-gear] CMS: git pull'        par:°{folder:'cms',op:'cmd',cmd:'pull'}}
-      item { title:'[fa-question] Ezer: git status' par:°{folder:'ezer',op:'cmd',cmd:'status'}}
-      item { title:'[fa-gears] Ezer: git log'       par:°{folder:'ezer',op:'cmd',cmd:'log'}}
-      item { title:'[fa-gears] Ezer: git pull'      par:°{folder:'ezer',op:'cmd',cmd:'pull'}}
-      proc onclick (i) {  
-        panel.display(2,'mu'); 
-        u.fill(conc(i.owner.title,' - ',replace_fa(i.title)),ask('git_make',i.par));
-      }
+    menu err { title:'Chyby', type:'group', skill:'a'
+      item today { title:'dnes'         par:°{s:'chyby',c:'dnes'}}
+      item { title:'včera'              par:°{s:'chyby',c:'vcera'}}
+      item { title:'týden'              par:°{s:'chyby',c:'tyden'}}
+      item { title:'měsíc'              par:°{s:'chyby',c:'mesic'}}
+      item { title:'nastavený den'      par:°{s:'chyby',c:'den'}}
+      item { title:'všechna hlášení'    par:°{s:'chyby',c:'vsechny'}}
+      item { title:'čekající BUGs'      par:°{s:'chyby',c:'BUG1'}}
+      item { title:'vyřešené BUGs'      par:°{s:'chyby',c:'BUG2'}}
     }
     menu { title:'Import a záloha databáze',type:'group',skill:'m'
       item { title:"[fa-question] přehled záloh"                par:°{typ:'download'}}
@@ -336,42 +434,30 @@ panel ADMIN [0,0,600,465] { title:'Aktivita CMS', type:'popup', css:'dialog_menu
         }
       }
     }
-    menu { title:'Aktivní redaktoři', type:'group', skill:'s'
-      item { title:'dnes'               par:°{s:'uzivatele',c:'dnes',short:'1'}}
-      item { title:'včera'              par:°{s:'uzivatele',c:'vcera',short:'1'}}
-      item { title:'týden'              par:°{s:'uzivatele',c:'dny',days:'8',short:'1'}}
-      item { title:'dva týdny'          par:°{s:'uzivatele',c:'dny',days:'15',short:'1'}}
-      item { title:'měsíc'              par:°{s:'uzivatele',c:'dny',days:'30',short:'1'}}
-      item { title:'nastavený den'      par:°{s:'uzivatele',c:'den',short:'1'}}
-    }
-    menu err { title:'Chyby', type:'group', skill:'a'
-      item today { title:'dnes'         par:°{s:'chyby',c:'dnes'}}
-      item { title:'včera'              par:°{s:'chyby',c:'vcera'}}
-      item { title:'týden'              par:°{s:'chyby',c:'tyden'}}
-      item { title:'měsíc'              par:°{s:'chyby',c:'mesic'}}
-      item { title:'nastavený den'      par:°{s:'chyby',c:'den'}}
-      item { title:'všechna hlášení'    par:°{s:'chyby',c:'vsechny'}}
-      item { title:'čekající BUGs'      par:°{s:'chyby',c:'BUG1'}}
-      item { title:'vyřešené BUGs'      par:°{s:'chyby',c:'BUG2'}}
-    }
-    menu c { title:'Přihlášení - chlapi',type:'group', skill:'a'
-      item c { title:'chybná přihlášení'    par:°{cmd:'me_login',typ:'ko'}}
-      item   { title:'správná přihlášení'   par:°{cmd:'me_login',typ:'ok'}}
-      item   { title:'přihlášení k editaci' par:°{cmd:'me_login',typ:'r'}}
-      proc onclick (i) {  var y:text
+    menu { title:'GitHub',type:'group',skill:'m'
+      item { title:'[fa-question] CMS: git status'  par:°{folder:'cms',op:'cmd',cmd:'status'}}
+      item { title:'[fa-gear] CMS: git log'         par:°{folder:'cms',op:'cmd',cmd:'log'}}
+      item { title:'[fa-gear] CMS: git pull'        par:°{folder:'cms',op:'cmd',cmd:'pull'}}
+      item { title:'[fa-gear] CMS: git fetch ...'   help:"po fetch>git reset --hard origin/master"
+                                                    par:°{folder:'cms',op:'cmd',cmd:'fetch'}}
+      item { title:'[fa-question] Ezer: git status' par:°{folder:'ezer',op:'cmd',cmd:'status'}}
+      item { title:'[fa-gears] Ezer: git log'       par:°{folder:'ezer',op:'cmd',cmd:'log'}}
+      item { title:'[fa-gears] Ezer: git pull'      par:°{folder:'ezer',op:'cmd',cmd:'pull'}}
+      item { title:'[fa-gears] Ezer: git fetch ...' help:"po fetch>git reset --hard origin/master"
+                                                    par:°{folder:'ezer',op:'cmd',cmd:'fetch'}}
+      func onclick (i) {  
         panel.display(2,'mu'); u.den.display(0);
-        y.set(ask('log_report',i.par));
-        u.fill(conc(i.owner.title,' - ',replace_fa(i.title)),y);
+        u.fill(`${i.owner.title} - ${replace_fa(i.title)}`,php.git_make(i.par));
       }
     }
-    proc onclick (i) {  var y:text
-      panel.display(2,'mu'); u.den.display(1);
-      y.set(ask('sys_activity',i.par,skip.get,u.den.get,sys('options','watch_access_opt')));
-      u.fill(conc(i.owner.title,' - ',replace_fa(i.title)),y);
+    func onclick (i) {  var y:text
+      panel.display(2,'mu'); 
+      u.den.display(i.par.c=='den');
+      y= php.sys_activity(i.par,skip,u.den,sys('options','watch_access_opt'));
+      u.fill(`${i.owner.title} - ${replace_fa(i.title)}`,y);
     }
   }
   use u: form _u [0,0,,] { tag:'mu' }
-  use msg_a: form _msg_a [0,0,,] { tag:'ma', format:'n' }
   var skip=0
   proc the_formsave (f,b) {
     f.same
@@ -383,7 +469,7 @@ panel ADMIN [0,0,600,465] { title:'Aktivita CMS', type:'popup', css:'dialog_menu
   # formulář pro levostranné menu s textem
   form _u [,,*,*] { css:'popup-right'
     label result [5,0,*,*] { title:'', style:'overflow:auto' }
-    field den [-20,4,85,18] { type:'date', style:'z-index:2', format:'Rrt', title:'nastavený&nbsp;den' }
+    field den [-4,4,85,18] { type:'date', style:'z-index:2', format:'Rrt' }
     label head [0,0,*,30]  { title:'' }
     label note [0,30,*,440] { title:'' style:'overflow:auto' }
     proc Init() { head.set(''); note.set(''); }
@@ -396,60 +482,6 @@ panel ADMIN [0,0,600,465] { title:'Aktivita CMS', type:'popup', css:'dialog_menu
     }
     proc shift(x) {
       note.set(conc(x,note.get)) 
-    }
-  }
-  # ------------------------------------------------------------------------ _msg_a
-  form _msg_a [,,*,500] {
-    var virgin= 1
-    proc start() { virgin.get; refresh; virgin.set(0) }
-    proc refresh() { s.browse_load("kind='v'") }
-    view h: table _help
-
-    // příkazy
-    label  [12,5,145,30] { css:'ae_parm'}
-    button [20,11,,] { title:"[fa-database] Nový", skill:'r|a'
-      proc onclick() { var ver_max:number
-        form.init(2);
-        version.set(max(ask('root_svn',0),ask('root_svn',1),sys('options','curr_version')));
-        // pokud je verze=0, asi není na serveru SVN, nastav verzi o 1 větší, než maximum
-        [ eq(version.get,'NaN'); {
-            s.browse_count;
-            ver_max.set(ask('select','MAX(version)','_help',"kind='v'"));
-            version.set(sum(1,ver_max))
-            //version.set(sum(1,s.ver.get))
-          | version.set(1)
-        }];
-        version.change;
-        kind.change; datum.set(now); datum.change; topic.change; hlp.change; }}
-    button [79,11,,] { title:"[fa-trash-o] Vymazat", skill:'r|a'
-      proc onclick() {
-        confirm("Opravdu vymazat zprávu ",s.topic.get,"?");
-        _help.delete_record(conc("id_help=",s.id_help.get)); refresh }}
-
-    label  [240,5,123,30] { css:'ae_parm'}
-    button [250,11,,] { title:"[fa-save] Ulož", skill:'r|a'
-      proc onclick() { the_formsave(form,s) }}
-    button [306,11,,] { title:"[fa-undo] Zpět", skill:'r|a'
-      proc onclick() { form.key(s.id_help.get); form.load}}
-
-    // nová změna
-    field kind { data:h.kind, value:'v' }
-    field datum [12,45,85,] { type:'date', data:h.datum, format:'r' }
-    field version [98,45,41,] { data:h.version, format:'r' }
-    field name  { data:h.name }
-    field topic [152,45,60,] { data:h.topic, format:'' }
-    field wrk [698,20,32,] { title:'pracnost:', data:h.work, format:'r:e', skill:'m|mw' }
-    field hlp [225,45,505,] { data:h.help, format:'' }
-    // seznam změn
-    browse s [10,75,150,100] { rows:20, qry_rows:1
-      show id_help { data:h.id_help }
-      show [,,72,] { title:'datum', data:h.datum, format:'s-q*rt' }
-      show ver [,,60,] { title:'rev.SVN', data:h.version, format:'s-q*rt' }
-      show topic [,,70,] { title:'topic', data:h.topic, format:'sq*t' }
-      show [,,489,] { title:'help', data:h.help, format:'sq*t' }
-      proc onrowclick() {
-        form.key(id_help.get); form.load;
-      }
     }
   }
 }
@@ -466,21 +498,21 @@ panel REDAKCE [0,0,840,515] {type:'popup', title:'Redakce', css:'dialog_menu',
   var new_skill: text,
   var sel: text,
 
-  use uzivatele: form users [0,0,,],
-  use uzivatel: form user [335,0,,]
-  use cmd: form butt [0,sys_users_cmd,,],
-  use dskill: form desc_skills [335,120,,]
+  use info: form _info [0,0,,]              { tag:'i' }
+  use uzivatele: form users [0,0,,]         { tag:'u' }
+  use uzivatel: form user [335,0,,]         { tag:'u' }
+  use cmd: form _cmd [0,sys_users_cmd,,]    { tag:'u' }
+  use dskill: form desc_skills [335,120,,]  { tag:'u' }
 
   proc onfirstfocus() {
     watch_css;
-#   }
-#   proc onstart () {
     last_par.set(see.all.actives.par);
     sel.set('use');
     refresh;
     uzivatel.get.display(sys('options','watch_access'),'ac');
     uzivatel.get.display(sys('options','watch_ip'),'ip');
     cmd.watch_key.display(sys('options','watch_key'));
+    see.o.d.click;
   }
   # ==> ... uložení uživatele s kontrolou
   proc u_uloz () { var idu:number
@@ -542,14 +574,26 @@ panel REDAKCE [0,0,840,515] {type:'popup', title:'Redakce', css:'dialog_menu',
   }
   # ----------------------------------------------------------------==> ... menu
   menu see { type:'left', active:*, format:'f-'
-    menu all { title:'přehled',type:'group'
+    menu o {title:'Změny obsahu',type:'group'
+      item d {title:'Přehled změn dnes',      par:°{cmd:'obsah',days:1} }
+      item   {title:'Přehled změn za týden',  par:°{cmd:'obsah',days:7} }
+      item   {title:'Přehled změn za měsíc',  par:°{cmd:'obsah',days:30} }
+      item   {title:'Přehled změn za rok',    par:°{cmd:'obsah',days:365} }
+      item   {title:'Přehled uskutečněných změn', par:°{cmd:'obsah',days:99999} }
+      func onclick(i) {
+        panel.display(2,'i'); 
+        info.fill(conc(i.owner.title,' - ',replace_fa(i.title)),ask('log_report',i.par));
+      }
+    }
+    menu all { title:'Členové redakce',type:'group'
       item actives { title:'[fa-user-plus] aktivní uživatelé', par:°{on:'h',off:'u',cond:"LEFT(deleted,1)!='H'"}}
       item         { title:'[fa-user-times] skrytí uživatelé', par:°{on:'u',off:'h',cond:"deleted LIKE 'H%'"}}
       item         { title:'[fa-user] všichni uživatelé',      par:°{on:'h|u',off:'',cond:1}}
-    }
-    proc onclick (i) {
-      last_par.set(i.par);
-      refresh;
+      proc onclick (i) {
+        panel.display(2,'u');
+        last_par.set(i.par);
+        refresh;
+      }
     }
   }
   # ----------------------------------------------------------------==> ... uživatelé
@@ -682,18 +726,18 @@ panel REDAKCE [0,0,840,515] {type:'popup', title:'Redakce', css:'dialog_menu',
     }
   }
   # ----------------------------------------------------------------==> ... cmd
-  form butt [,,852,39] {
+  form _cmd [,,852,39] { 
     # -------------------------------- úpravy uživatelů
     label  [0,6,361,30] { css:'ae_parm' }
-    button zrus_clena [11,12,,] { tag:'h',type:'html', title:'[fa-plug fa-rotate-180 fa-red] Skrýt' skill:'a|m'
+    button [11,12,,] { tag:'h',type:'html', title:'[fa-plug fa-rotate-180 fa-red] Skrýt' skill:'a|m'
       proc onclick() { confirm("Opravdu znemožnit přihlášení uživateli ",uzivatel.username.get,'?');
         alert(ask('sys_user_hide',uzivatele.lst.user.get,1)); refresh
     }}
-    button obnov_clena [71,12,,] { tag:'u', type:'html', title:'[fa-plug] Obnovit'                  skill:'a|m'
+    button [71,12,,] { tag:'u', type:'html', title:'[fa-plug] Obnovit'                   skill:'a|m'
       proc onclick() { confirm("Opravdu obnovit uživatele ",uzivatel.username.get,'?');
         alert(ask('sys_user_hide',uzivatele.lst.user.get,0)); refresh
     }}
-    button watch_key [195,12,,] { title:'Vygenerovat klíč', format:'n'                              skill:'a|m' 
+    button watch_key [195,12,,] { title:'Vygenerovat klíč', format:'n'                   skill:'a|m' 
       proc onclick() {
         confirm("Vygenerování nového klíče znemožní přístup současným uživatelům. Pokračovat?");
         watch_ref.set(ask('sys_watch_key'))
@@ -702,16 +746,16 @@ panel REDAKCE [0,0,840,515] {type:'popup', title:'Redakce', css:'dialog_menu',
     label watch_ref [316,15,250,15]
     # -------------------------------- změny uživatele
     label  [436,6,292,30] { css:'ae_parm' }
-    button uloz_clena [449,12,,] { tag:'c', type:'html', title:'[fa-save] Uložit'                   skill:'a|m'
+    button [449,12,,] { tag:'c', type:'html', title:'[fa-save] Uložit'                   skill:'a|m'
       proc onclick () { u_uloz
     } }
-    button zpet_clena [515,12,,] { tag:'z', type:'html', title:'[fa-undo] Zpět'                     skill:'a|m'
+    button [515,12,,] { tag:'z', type:'html', title:'[fa-undo] Zpět'                     skill:'a|m'
       proc onclick () {
         p.form_obligatory(uzivatel.get,0);
         uzivatele.lst.browse_key; uzivatel.load(uzivatele.lst.browse_key);
         cmd.get.enable(0,'c|z');
     } }
-    button vytvor_clena [651,12,,] { type:'html', title:'[fa-heart] Vytvořit'                       skill:'a|m'
+    button [651,12,,] { type:'html', title:'[fa-heart] Vytvořit'                         skill:'a|m'
       proc onclick () {
         cmd.get.enable(0,'c'); cmd.get.enable(1,'z');
         dskill.seznam.selected('clear');
@@ -720,6 +764,24 @@ panel REDAKCE [0,0,840,515] {type:'popup', title:'Redakce', css:'dialog_menu',
         uzivatel.znacka.enable(1);
         p.form_obligatory(uzivatel.get,1);
     } }
+  }
+  # --------------------------------------------- u
+  # formulář pro levostranné menu s textem
+  form _info [,,*,*] { css:'popup-right'
+    label result [5,0,*,*] { title:'', style:'overflow:auto' }
+    label head [0,0,*,30]  { title:'' }
+    label note [0,30,*,440] { title:'' style:'overflow:auto' }
+    proc Init() { head.set(''); note.set(''); }
+    proc fill(x,y) {
+      [ x; head.set(conc("<div class='karta'>",replace_fa(x),"</div>")) ];
+      [ y; note.set(y) ]
+    }
+    proc append(x) {
+      note.set(conc(note.get,x)) 
+    }
+    proc shift(x) {
+      note.set(conc(x,note.get)) 
+    }
   }
 }
 # ----------------------------------------------------------------------------==> OPTIONS
@@ -769,7 +831,7 @@ panel OPTIONS [0,0,220,220] { title:'Volby zobrazení pro redakci', type:'popup'
   }
 }
 # ==============================================================================> EDITOR
-panel EDITOR [0,0,720,550] { type:'popup', style:"min-width:700px", _sys:'edi'
+panel EDITOR [0,0,720,550] { type:'popup', style:"min-width:700px", par:°{close:'no'}, _sys:'edi'
   var id:number,
       path:text
   use a: form _a [2,0,,] { tag:'a', format:'n' }  // akce
@@ -798,22 +860,41 @@ panel EDITOR [0,0,720,550] { type:'popup', style:"min-width:700px", _sys:'edi'
   | lock.kdo;
     alert("knihu právě upravuje redaktor ",lock.kdo)
   ]}
-  proc Clanek(_key) { var lock:object
-  [ c.load(_key); 
-    id.set(_key);
-    not(or(contains(sys('user','id_user'),c.id_editors.get),has_skill('s')));
-    alert("tento článek může opravovat jen ",cconc(c.editors.get,c.editors.get,'šéfredaktor'))
-  | panel.display(2,'c'); 
-    lock.set(ask('record_lock','xclanek',_key)); // selže, pokud již je editováno
-    not(lock.kdo);
-    path.set(conc('/inc/c/',_key));                  // cesta pro přílohy
-    ask('session','man,inc_path',path.get);
-    join_drop(c.obsah);
-    panel.set_attrib('title','Úprava článku');
-    panel.modal(10,40) 
-  | lock.kdo;
-    alert("článek právě upravuje redaktor ",lock.kdo)
-  ]}
+  func Clanek(_key) { var lock:object
+    c.load(_key); 
+    id= _key;
+    if ( contains(sys('user','id_user'),c.id_editors) || has_skill('s') ) {
+      panel.display(2,'c'); 
+      lock= php.record_lock('xclanek',_key);  // zjistí, zda je editováno
+      if (lock.kdo) 
+        alert("článek právě upravuje redaktor ",lock.kdo)
+      else {
+        path= `/inc/c/${_key}`;               // cesta pro přílohy
+        php.session('man,inc_path',path);
+        join_drop(c.obsah);
+        panel.title= 'Úprava článku';
+        panel.modal(10,40) 
+      }
+    }
+    else 
+      alert(`tento článek může opravovat jen ${c.editors?c.editors:'šéfredaktor'}`)
+  }
+//  proc Clanek(_key) { var lock:object
+//  [ c.load(_key); 
+//    id.set(_key);
+//    not(or(contains(sys('user','id_user'),c.id_editors.get),has_skill('s')));
+//    alert("tento článek může opravovat jen ",cconc(c.editors.get,c.editors.get,'šéfredaktor'))
+//  | panel.display(2,'c'); 
+//    lock.set(ask('record_lock','xclanek',_key)); // selže, pokud již je editováno
+//    not(lock.kdo);
+//    path.set(conc('/inc/c/',_key));                  // cesta pro přílohy
+//    ask('session','man,inc_path',path.get);
+//    join_drop(c.obsah);
+//    panel.set_attrib('title','Úprava článku');
+//    panel.modal(10,40) 
+//  | lock.kdo;
+//    alert("článek právě upravuje redaktor ",lock.kdo)
+//  ]}
   proc Akce(_idc,_ida) { var me:number, lock:object // idc je id_xclanek, idk je id_xakce
   [ a.xa.load(_ida); a.xc.load(_idc);
     me.set(sys('user','id_user'));
@@ -949,18 +1030,35 @@ panel EDITOR [0,0,720,550] { type:'popup', style:"min-width:700px", _sys:'edi'
         ch_date.set(''); ch_date.change
     }}
     button  [-121,5,,] { title:'Uložit', help:'ukončit editor a uložit změny'
-      proc onclick() { var _y:object
-        _y.set(ask('bez_embeded',0,0,obsah.get));
-        _y.n; alert(_y.msg) 
-      | [ ch_date.changed; ask('log_path','xclanek',id.get,1) ]; // zápis ch_date do menu.ch_date
-        form.save; 
-        ask('record_unlock','xclanek',id.get);
-        ask('log_obsah','u','c',id.get); 
-        panel.hide(1); }}
+      func onclick() { var _y:object
+        _y= php.bez_embeded(0,0,obsah);
+        if ( _y.n ) 
+          alert(_y.msg) 
+        else {
+          if ( ch_date.changed() ) {
+            php.log_path('xclanek',id,1); // zápis ch_date do menu.ch_date
+          }
+          form.save(); 
+          php.record_unlock('xclanek',id);
+          php.log_obsah('u','c',id); 
+          panel.hide(1); 
+        }}}
+//      proc onclick() { var _y:object
+//        _y.set(ask('bez_embeded',0,0,obsah.get));
+//        _y.n; alert(_y.msg) 
+//      | [ ch_date.changed; ask('log_path','xclanek',id.get,1) ]; // zápis ch_date do menu.ch_date
+//        form.save; 
+//        ask('record_unlock','xclanek',id.get);
+//        ask('log_obsah','u','c',id.get); 
+//        panel.hide(1); }}
     button  [-75,5,,] { title:'Zpět', help:'ukončit editor bez uložení změn'
-      proc onclick() { 
-        ask('record_unlock','xclanek',id.get);  
-        panel.hide(0); }}
+      func onclick() { 
+        php.record_unlock('xclanek',id);  
+        panel.hide(0); }
+//      proc onclick() { 
+//        ask('record_unlock','xclanek',id.get);  
+//        panel.hide(0); }
+    }
     button app [-3,4,,] { title:'[fa-files-o] Přílohy', help:'seznam souborů sdružených s textem'
       proc onclick() {
         UPLOAD.ckeditor.set(obsah);
@@ -1068,9 +1166,9 @@ panel UPLOAD [0,0,400,130] { title:' Nahrát soubor', type:'popup', style:"min-w
     form _ff {
       field zip [0,0,300,] { format:'t' }
       button [0,30,,] { title:"[fa-save] Přidej přílohu"
-        proc onclick() { panel.close(zip.get) } }
+        proc onclick() { panel.hide(zip.get) } }
       button [100,30,,] { title:"[fa-undo] Zpět"
-        proc onclick() { panel.close(0) } }
+        proc onclick() { panel.hide(0) } }
     }
   }
 }
@@ -1228,9 +1326,9 @@ panel FOTKY [0,0,680,265] { title:' Organizér fotek', type:'popup', css:'dialog
     form _ff {
       field zip [0,0,300,] { format:'t' }
       button [0,30,,] { title:"[fa-camera-retro] Přidej fotky"
-        proc onclick() { panel.close(zip.get) } }
+        proc onclick() { panel.hide(zip.get) } }
       button [100,30,,] { title:"[fa-undo] Zpět"
-        proc onclick() { panel.close(0) } }
+        proc onclick() { panel.hide(0) } }
     }
   }
 }
