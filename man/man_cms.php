@@ -48,6 +48,95 @@ function git_make($par) {
   }
   return $msg;
 }
+/** =========================================================================================> TABLE */
+# funkce pro úpravu tabulky účastí
+# --------------------------------------------------------------------------------------- table load
+# načtení tabulky pro editaci
+function table_load($idc) {
+  $ret= (object)array('ok'=>1,'msg'=>'','rows'=>array());
+  $err= '';
+  // kontrola, zda k pozvánce tabulka existuje
+  $idu= select("id_xucast","xucast","id_xclanek=$idc");
+  if ( !$idu ) { $err= "tabulka pro pozvánku $idc neexistuje"; goto end; }
+  // přečtení tabulky 
+  $tr= mysql_qry("
+    SELECT COUNT(*),skupina,MAX(poradi) FROM xucast WHERE id_xclanek=$idc GROUP BY skupina");
+  while ( $tr && (list($pocet,$nazev,$maxim)= mysql_fetch_row($tr)) ) {
+    $ret->rows[]= (object)array('nazev'=>$nazev,'maxim'=>$maxim,'pocet'=>$pocet-1);
+  }
+end:
+  if ( $err ) { $ret->ok= 0; $ret->msg= $err; }
+                                                        debug($ret,"table_load($idc)");
+  return $ret;
+}
+# ------------------------------------------------------------------------------------- table change
+# vytvoření tabulky
+function table_change($idc,$rows) {
+                                                        debug($rows,"case=$idc");
+  $ret= (object)array('ok'=>1,'msg'=>'');
+  $max= array();
+  $err= '';
+  // kontrola, zda k pozvánce tabulka existuje
+  $idu= select("id_xucast","xucast","id_xclanek=$idc");
+  if ( !$idu ) { $err= "tabulka pro pozvánku $idc neexistuje"; goto end; }
+  // přečtení tabulky 
+  $tr= mysql_qry("
+    SELECT skupina,MAX(poradi) FROM xucast WHERE id_xclanek=$idc GROUP BY skupina");
+  while ( $tr && (list($nazev,$maxim)= mysql_fetch_row($tr)) ) {
+    $max[$nazev]= $maxim;
+  }
+  // úprava změněných maxim a názvů dat tabulky v xucast, přidání či ubrání řádků
+  foreach ($rows as $row) {
+    if ( isset($max[$row->stary]) ) {                                   // skupina existuje
+      if ( $row->maxim<$row->pocet ) {                                  // .. změna maxima = ko
+        $err= "nelze snížit maximum pod počet již přihlášených";
+        goto end;
+      }
+      if ( $row->maxim==0 && $row->pocet==0) {                          // .. zrušení
+        query("DELETE FROM xucast
+               WHERE id_xclanek=$idc AND skupina='{$row->stary}'");
+      }
+      if ( $row->maxim!=$max[$row->stary] ) {                           // .. změna maxima = ok
+        query("UPDATE xucast SET poradi='{$row->maxim}'
+               WHERE id_xclanek=$idc AND skupina='{$row->stary}' AND jmeno='max'");
+      }
+      if ( $row->nazev!=$row->stary ) {                                 // .. změna názvu
+        query("UPDATE xucast SET skupina='{$row->nazev}'
+               WHERE id_xclanek=$idc AND skupina='{$row->stary}'");
+      }
+    }
+    else {                                                              // nová skupina
+      query("INSERT INTO xucast(id_xclanek,skupina,jmeno,poradi)
+             VALUES ($idc,'{$row->nazev}','max',{$row->maxim})");
+    }
+  }
+  $ret->msg= "tabulka byla změněna";
+end:
+  if ( $err ) { $ret->ok= 0; $ret->msg= $err; }
+  return $ret;
+}
+# ------------------------------------------------------------------------------------- table create
+# vytvoření tabulky účasti k pozvánce= článku
+function table_create($idc,$rows) {
+                                                        debug($rows,"case=$idc");
+  $ret= (object)array('ok'=>1,'msg'=>'');
+  $err= '';
+  // kontrola, zda již k pozvánce tabulka neexistuje
+  $idu= select("id_xucast","xucast","id_xclanek=$idc");
+  if ( $idu ) { $err= "tabulka pro pozvánku $idc již existuje"; goto end; }
+  // vytvoření tabulky jako xucast(id_xclanek=idc,skupina=...,jmeno=max,poradi=...)
+  foreach ($rows as $row) {
+    // normalizace názvu
+    $nazev= str_replace(' ','_',$row->nazev);
+    // vytvoření skupiny
+    query("INSERT INTO xucast(id_xclanek,skupina,jmeno,poradi)
+           VALUES ($idc,'$nazev','max',{$row->maxim})");
+  }
+  $ret->msg= "tabulka byla vytvořena";
+end:
+  if ( $err ) { $ret->ok= 0; $ret->msg= $err; }
+  return $ret;
+}
 /** =========================================================================================> FOTKY */
 # --------------------------------------------------------------------------------------- corr fotky
 // 1) fotky a popisy se berou z adresáře a přemístí do textu
@@ -878,6 +967,14 @@ function menu_copy_elem($co,$pid,$mid,$test=true) {
 # přidá do menu další element, resp. pro xakce vytvoří novou akci roku daného $mid
 function menu_add_elem($mid,$table,$first=0,$id_user=0) {
   switch ($table) {
+  case 'pozvanka':     // ---------------------------------- pozvánka na novou akci skupiny mid
+    query("INSERT INTO xclanek (editors,cms_skill) VALUES ('$id_user',4)");
+    $idc= pdo_insert_id();
+    log_obsah('i','c',$idc);
+    $ymd= date('Y-m-d',strtotime('next monday'));
+    query("INSERT INTO xakce (xelems,datum_od,datum_do,skupina) 
+        VALUES ('aclanek=$idc','$ymd','$ymd',$mid)");
+    break;
   case 'xakce':        // ---------------------------------- nová akce roku mid
     query("INSERT INTO xclanek (editors,cms_skill) VALUES ('$id_user',4)");
     $idc= pdo_insert_id();

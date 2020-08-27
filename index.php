@@ -15,10 +15,11 @@ $ezer_server=
 
 $microtime_start= microtime();
 if ( !isset($_SESSION) ) session_start();
-$_SESSION['web']['index']= 'index.php';
+$_SESSION['web']['index']= $index= 'index.php';
 $_SESSION['web']['server']= $ezer_server;
 if ( isset($_GET['err']) && $_GET['err'] ) error_reporting(E_ERROR); else error_reporting(0);
 ini_set('display_errors', 'On');
+require_once("man/man_web.php");
 require_once("man/2template_ch.php");
 
 # ------------------------------------------ ajax

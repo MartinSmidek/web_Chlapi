@@ -55,6 +55,7 @@
   $app_php= array(
     "$ezer_root/2template_ch.php",
     "$ezer_root/man_cms.php",
+    "$ezer_root/man_web.php",
   );
 
   // je to aplikace se startem v rootu

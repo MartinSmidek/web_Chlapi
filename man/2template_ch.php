@@ -48,13 +48,14 @@ function get_prefix() {
 # -------------------------------------------------------------------------------------==> page
 // jen pro CMS mod: vrací objekt se stránkou
 function page($a,$b) { 
-  global $amenu;
+  global $amenu, $cmenu;
   $page= '';
   def_user();
   read_menu();
   $path= explode('!',$b);
   $elem= eval_menu($path);
-                                                  debug($amenu,"amenu");
+//                                                  debug($amenu,"amenu");
+  $cmenu= array(); // kontextové menu definované v elems
   $html= eval_elem($elem);
   $page= show_page($html);
   return (object)array('html'=>$page);
@@ -222,11 +223,78 @@ function test_elem($exists,$elem_id,$elem,&$html) {
   }
   return $exists;
 }
+# ------------------------------------------------------------------------------------==> title menu
+# vygeneruje title=... oncontextmenu=... podle dodaných parametrů, kde
+# title= obsah title
+# items= pole zkratek 0123 kde 0=|- 
+#   1: p|e|x|m|z		=přidat|editovat|eXclude|move|zobraz(abstrakt nebo clanek) 
+#   2: a|c|k|s|o|f|t|i	=akce|článek|kniha|sekce|obrázky|fotky|time-kalendář|invitation-pozvánka
+#   3: n|d				=nahoru|dolů  
+# id,kid,mid jsou id a x je další parametr
+# pokud je definováno pole cmenu (elementem menu) přidá se na začátek
+function title_menu($title,$items,$id=0,$idk=0,$idm=0) {
+  global $cmenu;
+  $cm= array();
+  // přidej na začátek menu definované elementem menu
+  if ( count($cmenu) ) {
+    $items= implode(';',$cmenu).";$items";
+  }
+  $items= explode(';',$items);
+  foreach ($items as $item) {
+    $c= '';
+    if ( '-'==substr($item,0,1) ) { // řádek před item
+      $c= '-';
+      $item= substr($item,1);
+    }
+    // případné parametry itemu budou číslovány od 1
+    $x= explode(',',$item);
+    $item= $x[0];
+    switch ($item) {
+    // e - editace
+    case 'ec':  $cm[]= "['{$c}editovat článek',function(el){ opravit('xclanek',$id); }]"; break;
+    case 'ef':  $cm[]= "['{$c}organizovat fotky',function(el){ opravit('xfotky',$x[1]);}]"; break;
+    case 'ek':  $cm[]= "['{$c}upravit název',function(el){ opravit('xkniha',$idk);}]"; break;
+    case 'eo':  $cm[]= "['{$c}upravit obrázky článku',function(el){ namiru('$id','$x[1]');}]"; break;
+    case 'ea':  $cm[]= "['{$c}editovat akci',function(el){ opravit('xakce',$id,$x[1]);}]"; break;
+    case 'et':  $cm[]= "['{$c}editovat kalendář',function(el){ opravit('kalendar',$x[1]);}]"; break;
+    case 'eu':  $cm[]= "['{$c}editovat tabulku účastí',function(el){ opravit('xucasti',$id);}]"; break;
+    // p - přidání
+    case 'pcn': $cm[]= "['{$c}přidat článek na začátek',function(el){ pridat('xclanek',$idm,1);}]"; break;
+    case 'pcd': $cm[]= "['{$c}přidat článek na konec',function(el){ pridat('xclanek',$idm,0);}]"; break;
+    case 'pkn': $cm[]= "['{$c}přidat knihu na začátek',function(el){ pridat('xkniha',$idm,1);}]"; break;
+    case 'pkd': $cm[]= "['{$c}přidat knihu na konec',function(el){ pridat('xkniha',$idm,0);}]"; break;
+    case 'psn': $cm[]= "['{$c}přidat kapitolu na konec',function(el){ pridat('xkniha.elem',$idk,0);}]"; break;
+    case 'psd': $cm[]= "['{$c}přidat kapitolu na začátek',function(el){ pridat('xkniha.elem',$idk,1);}]"; break;
+    case 'pf':  $cm[]= "['{$c}přidat fotky',function(el){ pridat('xfotky',$id);}]"; break;
+    case 'pa':  $cm[]= "['{$c}přidat novou akci $idk',function(el){ pridat('xakce',$idk,1);}]"; break;
+    case 'pi':  $cm[]= "['{$c}přidat pozvánku',function(el){ pridat('pozvanka',$x[1]);}]"; break;
+    case 'pu':  $cm[]= "['{$c}přidat tabulku účastí',function(el){ pridat('xucasti',$id);}]"; break;
+    // m - posunutí
+    case 'msd': $cm[]= "['{$c}posunout dolů',function(el){ posunout('xkniha.elem',$idk,$id,1);}]"; break;
+    case 'msn': $cm[]= "['{$c}posunout nahoru',function(el){ posunout('xkniha.elem',$idk,$id,0);}]"; break;
+    case 'mkd': $cm[]= "['{$c}posunout knihu dolů',function(el){ posunout('akniha',$idm,$idk,1);}]"; break;
+    case 'mkn': $cm[]= "['{$c}posunout knihu nahoru',function(el){ posunout('akniha',$idm,$idk,0);}]"; break;
+    case 'mcd': $cm[]= "['{$c}posunout článek dolů',function(el){ posunout('aclanek',$idm,$id,1);}]"; break;
+    case 'mcn': $cm[]= "['{$c}posunout článek nahoru',function(el){ posunout('aclanek',$idm,$id,0);}]"; break;
+    // x - rušení
+    case 'xo':  $cm[]= "['{$c}vyjmout embeded obrázky',function(el){ bez_embeded('$id');}]"; break;
+    // z - zobrazit
+    case 'za':  $cm[]= "['{$c}zobrazit jako abstrakt',function(el){ zmenit($idm,'xclanek',$id,'aclanek');}]"; break;
+    case 'zc':  $cm[]= "['{$c}zobrazit jako článek',function(el){ zmenit($idm,'aclanek',$id,'xclanek');}],"; break;
+    default: fce_error("'$item' není menu");
+    }
+  }
+  $on= " title='$title' oncontextmenu=\"Ezer.fce.contextmenu([\n"
+      .implode(",\n",$cm)
+      ."],arguments[0],0,0,'#xclanek$id');return false;\"";
+  return $on;
+}
 # -------------------------------------------------------------------------------------==> eval elem
 // desc :: key [ = ids ]
 // ids  :: id1 [ / id2 ] , ...    -- id2 je klíč v lokální db pro ladění
 function eval_elem($desc,$book=null) {
-  global $REDAKCE, $KLIENT, $ezer_server, $http_server, $index, $load_ezer, $curr_menu, $top, $prefix, $mobile;
+  global $REDAKCE, $KLIENT, $ezer_server, $http_server, $index, $load_ezer, $curr_menu, $top, 
+      $prefix, $mobile, $cmenu, $backref;
   $elems= explode(';',$desc);
   $ipad= '';
   $html= '';
@@ -245,9 +313,14 @@ function eval_elem($desc,$book=null) {
       $id= implode(',',$id);
     }
     $typ= str_replace(' ','',$typ);
-
+                                                      display("$typ $id");
     switch ($typ) {
 
+    case 'menu':    # ----------------------------------------------- . menu
+      // přídavné itemy menu ve formátu item!item!... item=kod,x1,x2,...
+      $cmenu= explode('!',$id);
+      break; 
+    
     case 'fb':      # ----------------------------------------------- . fb
       $fb_site= "fortnahradcany";
       $fb_name= "Fortna";
@@ -284,13 +357,35 @@ __EOT;
       $layout= $id;
       break; 
     
-    case 'archiv':  # ----------------------------------------------- . archiv akcí
-      global $backref;
+    case 'pozvanky':  # --------------------------------------------- . pozvánky skupiny $id
+      // seznam aktuálních pozvánek
+      $ra= pdo_qry("SELECT id_xakce,xelems,datum_od,datum_do,nazev FROM xakce 
+          WHERE datum_od>=DATE(NOW()) AND xelems!='' AND skupina='$id'
+          ORDER BY datum_od ASC");
+      while ($ra && list($a,$elems,$datum_od,$datum_do,$nazev)= pdo_fetch_row($ra) ) {
+        // abstrakty akcí
+        if ( $elems ) {
+          $first= true;
+          $oddo= datum_oddo($datum_od,$datum_do);
+          $tit= "$oddo $nazev";
+          $header= "<h1>$oddo $nazev</h1><hr>";
+          foreach ( explode(';',$elems) as $elem ) {
+            $html.= eval_elem($elem,(object)array('subtyp'=>'pozvanka',
+                'open'=>true,'idk'=>'','ida'=>$a,'tit'=>$tit,'header'=>$header,
+                'first'=>$first));
+            $first= false;
+          }
+        }
+      }
+      break;
+
+    case 'archiv':  # ----------------------------------------------- . archiv akcí skupiny $id
       list($rok,$ida)= explode(',',$top);
       // projdi relevantní roky
       $html.= "<div id='roky'>";
       $rs= pdo_qry("SELECT YEAR(datum_do),COUNT(*) FROM xakce 
-          WHERE datum_od<DATE(NOW()) AND xelems!='' GROUP BY YEAR(datum_od) 
+          WHERE datum_od<DATE(NOW()) AND xelems!='' AND skupina='$id'
+          GROUP BY YEAR(datum_od) 
           ORDER BY datum_od DESC");
       while ($rs && list($r,$pocet)= pdo_fetch_row($rs) ) {
         $html.= "<br id='rok$r'>";
@@ -303,7 +398,7 @@ __EOT;
                      <div id='list'>";
           // seznam akcí
           $ra= pdo_qry("SELECT id_xakce,xelems FROM xakce 
-              WHERE datum_od<DATE(NOW()) AND YEAR(datum_od)=$r AND xelems!=''
+              WHERE datum_od<DATE(NOW()) AND YEAR(datum_od)=$r AND xelems!='' AND skupina='$id'
               ORDER BY datum_od DESC");
           while ($ra && list($a,$elems)= pdo_fetch_row($ra) ) {
             // abstrakty akcí
@@ -311,7 +406,7 @@ __EOT;
             if ( $elems ) {
               $first= true;
               foreach ( explode(';',$elems) as $elem ) {
-                $html.= eval_elem($elem,(object)array(
+                $html.= eval_elem($elem,(object)array('subtyp'=>'akce',
                     'open'=>true,'idk'=>$rok,'ida'=>$a,'first'=>$first));
                 $first= false;
               }
@@ -345,12 +440,13 @@ __EOT;
       if ( $otevrena ) {
         // otevřená kniha
         if ( $REDAKCE ) {
-          $kod= "Ezer.fce.contextmenu([
-                ['upravit název',function(el){ opravit('xkniha',$idk); }],
-                ['-nová kapitola na začátek',function(el){ pridat('xkniha.elem',$idk,1); }],
-                ['nová kapitola na konec',function(el){ pridat('xkniha.elem',$idk,0); }]
-              ],arguments[0],0,0,'#xclanek$id');return false;\"";
-          $menu= " title='kniha $idk' oncontextmenu=\"$kod\"";
+//          $kod= "Ezer.fce.contextmenu([
+//                ['upravit název',function(el){ opravit('xkniha',$idk); }],
+//                ['-nová kapitola na začátek',function(el){ pridat('xkniha.elem',$idk,1); }],
+//                ['nová kapitola na konec',function(el){ pridat('xkniha.elem',$idk,0); }]
+//              ],arguments[0],0,0,'#xclanek$id');return false;\"";
+//          $menu= " title='kniha $idk' oncontextmenu=\"$kod\"";
+          $menu= title_menu("kniha $idk","ek;-psn;psd",0,$idk);
           if ( $mobile ) {
             $ipad= "<span class='ipad_menu' onclick=\"arguments[0].stopPropagation();$kod\">
               <i class='fa fa-bars'></i></span>";
@@ -366,7 +462,7 @@ __EOT;
         // kapitoly
         $top= $ida;
         if ( $elems ) {
-          $html.= eval_elem($xelems,(object)array('open'=>true,'idk'=>$id));
+          $html.= eval_elem($xelems,(object)array('subtyp'=>'kniha','open'=>true,'idk'=>$id));
         }
         // konec 
         $html.= "
@@ -380,7 +476,7 @@ __EOT;
         list($xelem)= explode(';',$xelems);
         if ( $xelem ) {
           $html.= "<div title='kniha $id' $menu>";
-          $html.= eval_elem($xelem,(object)array(
+          $html.= eval_elem($xelem,(object)array('subtyp'=>'kniha',
               'open'=>false,'idk'=>$id/*,'tit'=>$nazev*/,'skill'=>$wskill));
           $html.= "</div>";
         }
@@ -436,7 +532,7 @@ __EOT;
       $zmena= $zmena < ZMENA ? ' zmena' : '';
       // dědění přístupnosti kapitoly knihy
       if ( $book ) {
-        $idn= $book->open ? "$book->idk,$id" : $book->idk;
+        $idn= $book->open ? ($book->idk ? "$book->idk,$id" : $id) : $book->idk;
         $wskill= $book->skill ? $book->skill | $wskill : $wskill; 
       }
       // viditelnost redakčních specialit
@@ -460,22 +556,24 @@ __EOT;
         if ( !$book  ) {
           $div_id= "c$id";
 //          $namiru= $plny ? "['upravit obrázky článku',function(el){ namiru('$id','$div_id'); }],":'';
-          $namiru= $plny ? 
-                "['upravit obrázky článku',function(el){ namiru('$id','$div_id'); }],
-                 ['vyjmout embeded obrázky',function(el){ bez_embeded('$id'); }],":'';
-          $kod= "Ezer.fce.contextmenu([
-                ['editovat článek',function(el){ opravit('xclanek',$id); }],
-                $namiru
-                ['-zobrazit jako článek',function(el){ zmenit($curr_menu->mid,'aclanek',$id,'xclanek'); }],
-                ['-přidat fotky',function(el){ pridat('xfotky',$id); }],
-                ['-posunout článek nahoru',function(el){ posunout('aclanek',$curr_menu->mid,$id,0); }],
-                ['posunout článek dolů',function(el){ posunout('aclanek',$curr_menu->mid,$id,1); }],
-                ['-přidat článek na začátek',function(el){ pridat('xclanek',$curr_menu->mid,1); }],
-                ['přidat článek na konec',function(el){ pridat('xclanek',$curr_menu->mid,0); }],
-                ['-přidat knihu na začátek',function(el){ pridat('xkniha',$curr_menu->mid,1); }],
-                ['přidat knihu na konec',function(el){ pridat('xkniha',$curr_menu->mid,0); }]
-              ],arguments[0],0,0,'#xclanek$id');return false;";
-          $menu= " title='$co $idn' oncontextmenu=\"$kod\"";
+//          $namiru= $plny ? 
+//                "['upravit obrázky článku',function(el){ namiru('$id','$div_id'); }],
+//                 ['vyjmout embeded obrázky',function(el){ bez_embeded('$id'); }],":'';
+//          $kod= "Ezer.fce.contextmenu([
+//                ['editovat článek',function(el){ opravit('xclanek',$id); }],
+//                $namiru
+//                ['-zobrazit jako článek',function(el){ zmenit($curr_menu->mid,'aclanek',$id,'xclanek'); }],
+//                ['-přidat fotky',function(el){ pridat('xfotky',$id); }],
+//                ['-posunout článek nahoru',function(el){ posunout('aclanek',$curr_menu->mid,$id,0); }],
+//                ['posunout článek dolů',function(el){ posunout('aclanek',$curr_menu->mid,$id,1); }],
+//                ['-přidat článek na začátek',function(el){ pridat('xclanek',$curr_menu->mid,1); }],
+//                ['přidat článek na konec',function(el){ pridat('xclanek',$curr_menu->mid,0); }],
+//                ['-přidat knihu na začátek',function(el){ pridat('xkniha',$curr_menu->mid,1); }],
+//                ['přidat knihu na konec',function(el){ pridat('xkniha',$curr_menu->mid,0); }]
+//              ],arguments[0],0,0,'#xclanek$id');return false;";
+//          $menu= " title='$co $idn' oncontextmenu=\"$kod\"";
+          $namiru= $plny ? "eo;xo;" : '';
+          $menu= title_menu("$co $idn","ec;{$namiru}-zc;-pf;-mcn;mcd;-pcn;pcd;-pkn;pkd",$id,0,$curr_menu->mid);
           if ( $mobile ) {
             $ipad= "<span class='ipad_menu' onclick=\"arguments[0].stopPropagation();$kod\">
               <i class='fa fa-bars'></i></span>";
@@ -485,37 +583,47 @@ __EOT;
         elseif ( $book->open && $book->ida ) {
             $div_id= "a{$book->ida}-$id";
 //            $namiru= $plny ? "['upravit obrázky článku',function(el){ namiru('$id','$div_id'); }],":'';
-            $namiru= $plny ? 
-                "['upravit obrázky článku',function(el){ namiru('$id','$div_id'); }],
-                 ['vyjmout embeded obrázky',function(el){ bez_embeded('$id'); }],":'';
-            $kod= "Ezer.fce.contextmenu([
-                ['editovat akci',function(el){ opravit('xakce',$id,$book->ida); }],
-                $namiru
-                ['-přidat fotky',function(el){ pridat('xfotky',$id); }],
-                ['-přidat novou akci $book->idk',function(el){ pridat('xakce',$book->idk,1); }]
-              ],arguments[0],0,0,'#xclanek$id');return false;\"";
-            $menu= " title='".($plny?'':'abstrakt ')."akce $book->idk: $book->ida/$id' 
-              oncontextmenu=\"$kod\" id='$div_id'";
+//            $namiru= $plny ? 
+//                "['upravit obrázky článku',function(el){ namiru('$id','$div_id'); }],
+//                 ['vyjmout embeded obrázky',function(el){ bez_embeded('$id'); }],":'';
+//            $pridat_akci= $book->idk 
+//                ? ",['-přidat novou akci $book->idk',function(el){ pridat('xakce',$book->idk,1); }]" : '';
+//            $kod= "Ezer.fce.contextmenu([
+//                ['editovat akci',function(el){ opravit('xakce',$id,$book->ida); }],
+//                $namiru
+//                ['-přidat fotky',function(el){ pridat('xfotky',$id); }]
+//                $pridat_akci
+//              ],arguments[0],0,0,'#xclanek$id');return false;\"";
+//            $menu= " title='".($plny?'':'abstrakt ')."akce $book->idk: $book->ida/$id' 
+//              oncontextmenu=\"$kod\" id='$div_id'";
+            $namiru= $plny ? "eo;xo;" : '';
+            $pridat_akci= $book->idk ? ";pa" 
+                : (select('COUNT(*)','xucast',"id_xclanek=$id") ? ';eu' : ';pu');
+            $title= ($plny?'':'abstrakt ')."akce $book->idk: $book->ida/$id";
+            $menu= title_menu($title,"ea,{$book->ida};{$namiru}-pf{$pridat_akci}",$id,$book->idk,0).
+                 " id='$div_id'";
             if ( $mobile ) {
               $ipad= "<span class='ipad_menu' onclick=\"arguments[0].stopPropagation();$kod\">
                 <i class='fa fa-bars'></i></span>";
             }
         }
         else {
-            $kod= "Ezer.fce.contextmenu([
-                ['editovat článek',function(el){ opravit('xclanek',$id); }],
-                ['upravit obrázky článku',function(el){ namiru('$id','fokus_part'); }],
-                ['vyjmout embeded obrázky',function(el){ bez_embeded('$id'); }],
-                ['-zobrazit jako článek',function(el){ zmenit($curr_menu->mid,'aclanek',$id,'xclanek'); }],
-                ['-přidat fotky',function(el){ pridat('xfotky',$id); }],
-                ['-posunout nahoru',function(el){ posunout('xkniha.elem',$book->idk,$id,0); }],
-                ['posunout dolů',function(el){ posunout('xkniha.elem',$book->idk,$id,1); }],
-                ['-posunout knihu nahoru',function(el){ posunout('akniha',$curr_menu->mid,$book->idk,0); }],
-                ['posunout knihu dolů',function(el){ posunout('akniha',$curr_menu->mid,$book->idk,1); }],
-                ['-nová kapitola na začátek',function(el){ pridat('xkniha.elem',$book->idk,1); }],
-                ['nová kapitola na konec',function(el){ pridat('xkniha.elem',$book->idk,0); }]
-              ],arguments[0],0,0,'#xclanek$id');return false;\"";
-            $menu= " title='".($plny?'kapitola':'abstrakt kapitoly')." $book->ida/$idn' oncontextmenu=\"$kod\"";
+//            $kod= "Ezer.fce.contextmenu([
+//                ['editovat článek',function(el){ opravit('xclanek',$id); }],
+//                ['upravit obrázky článku',function(el){ namiru('$id','fokus_part'); }],
+//                ['vyjmout embeded obrázky',function(el){ bez_embeded('$id'); }],
+//                ['-zobrazit jako článek',function(el){ zmenit($curr_menu->mid,'aclanek',$id,'xclanek'); }],
+//                ['-přidat fotky',function(el){ pridat('xfotky',$id); }],
+//                ['-posunout nahoru',function(el){ posunout('xkniha.elem',$book->idk,$id,0); }],
+//                ['posunout dolů',function(el){ posunout('xkniha.elem',$book->idk,$id,1); }],
+//                ['-posunout knihu nahoru',function(el){ posunout('akniha',$curr_menu->mid,$book->idk,0); }],
+//                ['posunout knihu dolů',function(el){ posunout('akniha',$curr_menu->mid,$book->idk,1); }],
+//                ['-nová kapitola na začátek',function(el){ pridat('xkniha.elem',$book->idk,1); }],
+//                ['nová kapitola na konec',function(el){ pridat('xkniha.elem',$book->idk,0); }]
+//              ],arguments[0],0,0,'#xclanek$id');return false;\"";
+//            $menu= " title='".($plny?'kapitola':'abstrakt kapitoly')." $book->ida/$idn' oncontextmenu=\"$kod\"";
+            $menu= title_menu(($plny?'kapitola ':'abstrakt kapitoly ').$book->ida/$idn,
+                "ec;eo,fokus_part;xo;clanek;-pf;-msn;msd;-mkn;mkd;-psn;psd",$id,$book->idk,$curr_menu->mid);
             if ( $mobile ) {
               $ipad= "<span class='ipad_menu' onclick=\"arguments[0].stopPropagation();$kod\">
                 <i class='fa fa-bars'></i></span>";
@@ -528,22 +636,36 @@ __EOT;
         $html.= "
           <div class='back' $menu>
             <div id='fokus_part' class='home$redakce_style$zmena'>
+              $book->header
               $ipad
               $obsah
             </div>
           </div>";
+        // pokud je tabulka účasti, přidáme
+        if ( $book->ida ) {
+          $t= table_show($book->ida,$id);
+          if ( $t ) {
+          $html.= "
+            <div class='back' $menu>
+              <div id='fokus_part' class='home$redakce_style$zmena'>
+                $t
+              </div>
+            </div>";
+          }
+        }
         // pokud jsou fotky, přidáme
         $rf= pdo_qry("SELECT id_xfotky,nazev,seznam,path,autor FROM xfotky WHERE id_xclanek=$id");
         while ($rf && list($fid,$nazev,$seznam,$path,$podpis)=pdo_fetch_row($rf)) {
           if ( $REDAKCE ) {
             $note= "<span style='float:right;color:red;font-style:italic;font-size:x-small'>
                   ... zjednodušené zobrazení fotogalerie pro editaci</span>";
-            $kod= "Ezer.fce.contextmenu([
-                  ['organizovat fotky',function(el){ opravit('xfotky',$fid); }],
-                  //['kopírovat ze setkání',function(el){ zcizit('fotky',$fid,0); }],
-                  //['... jen test',function(el){ zcizit('fotky',$fid,1); }]
-                ],arguments[0],0,0,'#xclanek$id');return false;\"";
-            $menu= " title='fotky $fid' oncontextmenu=\"$kod\"";
+//            $kod= "Ezer.fce.contextmenu([
+//                  ['organizovat fotky',function(el){ opravit('xfotky',$fid); }],
+//                  //['kopírovat ze setkání',function(el){ zcizit('fotky',$fid,0); }],
+//                  //['... jen test',function(el){ zcizit('fotky',$fid,1); }]
+//                ],arguments[0],0,0,'#xclanek$id');return false;\"";
+//            $menu= " title='fotky $fid' oncontextmenu=\"$kod\"";
+            $menu= title_menu("fotky $fid","ef,$fid");
             if ( $mobile ) {
               $ipad= "<span class='ipad_menu' onclick=\"arguments[0].stopPropagation();$kod\">
                 <i class='fa fa-bars'></i></span>";
@@ -619,17 +741,18 @@ __EOT;
               "onclick=\"go(arguments[0],'page=$1','$1','',0);\" title='$1'", 
               $obsah);
         $div_id= "c$id";
-        $kod= "Ezer.fce.contextmenu([
-              ['editovat článek',function(el){ opravit('xclanek',$id); }],
-              ['upravit obrázky článku',function(el){ namiru('$id','$div_id'); }],
-              ['vyjmout embeded obrázky',function(el){ bez_embeded('$id'); }],
-              ['-zobrazit jako abstrakt',function(el){ zmenit($curr_menu->mid,'xclanek',$id,'aclanek'); }],
-              ['-přidat článek na začátek',function(el){ pridat('xclanek',$curr_menu->mid,1); }],
-              ['přidat článek na konec',function(el){ pridat('xclanek',$curr_menu->mid,0); }],
-              ['-přidat knihu na začátek',function(el){ pridat('xkniha',$curr_menu->mid,1); }],
-              ['přidat knihu na konec',function(el){ pridat('xkniha',$curr_menu->mid,0); }]
-            ],arguments[0],0,0,'#xclanek$id');return false;\"";
-        $menu= " title='článek $id' oncontextmenu=\"$kod\"";
+//        $kod= "Ezer.fce.contextmenu([$cmenu
+//              ['editovat článek',function(el){ opravit('xclanek',$id); }],
+//              ['upravit obrázky článku',function(el){ namiru('$id','$div_id'); }],
+//              ['vyjmout embeded obrázky',function(el){ bez_embeded('$id'); }],
+//              ['-zobrazit jako abstrakt',function(el){ zmenit($curr_menu->mid,'xclanek',$id,'aclanek'); }],
+//              ['-přidat článek na začátek',function(el){ pridat('xclanek',$curr_menu->mid,1); }],
+//              ['přidat článek na konec',function(el){ pridat('xclanek',$curr_menu->mid,0); }],
+//              ['-přidat knihu na začátek',function(el){ pridat('xkniha',$curr_menu->mid,1); }],
+//              ['přidat knihu na konec',function(el){ pridat('xkniha',$curr_menu->mid,0); }]
+//            ],arguments[0],0,0,'#xclanek$id');return false;\"";
+//        $menu= " title='článek $id' oncontextmenu=\"$kod\"";
+        $menu= title_menu("článek $id","ec;eo,$div_id;xo;-za;-pcn;pcd;-pkn;pkd",$id,0,$curr_menu->mid);
         if ( $mobile ) {
           $ipad= "<span class='ipad_menu' onclick=\"arguments[0].stopPropagation();$kod\">
             <i class='fa fa-bars'></i></span>";
@@ -695,10 +818,11 @@ __EOT;
       });
       $menu= '';
       if ( $REDAKCE ) {
-        $kod= "Ezer.fce.contextmenu([
-              ['editovat kalendář',function(el){ opravit('kalendar',$edit_id); }]
-            ],arguments[0],0,0,'#xclanek$id');return false;\"";
-        $menu= " oncontextmenu=\"$kod\"";
+//        $kod= "Ezer.fce.contextmenu([
+//              ['editovat kalendář',function(el){ opravit('kalendar',$edit_id); }]
+//            ],arguments[0],0,0,'#xclanek$id');return false;\"";
+//        $menu= " oncontextmenu=\"$kod\"";
+        $menu= title_menu('kalendář',"et,$div_id");
         if ( $mobile ) {
           $ipad= "<span class='ipad_menu' onclick=\"arguments[0].stopPropagation();$kod\">
             <i class='fa fa-bars'></i></span>";
@@ -948,6 +1072,7 @@ __EOJ;
 __EOJ;
   
   // pokud není CMS nebude uživatel přihlášen - vstup do Ezer je přes _oninit
+  $web_username= isset($_SESSION['web']['username']) ? ",username:'{$_SESSION['web']['username']}'" : '';
   $script.= $REDAKCE 
       ? <<<__EOJ
 __EOJ
@@ -955,7 +1080,7 @@ __EOJ
     $GoogleAnalytics
     <script type="text/javascript">
       var Ezer= {};
-      Ezer.web= {rok:'$GET_rok',index:'$index'};
+      Ezer.web= {rok:'$GET_rok',index:'$index'$web_username};
       Ezer.get= { dbg:'1',err:'1',gmap:'1' };
       Ezer.fce= {};
       Ezer.str= {};
@@ -1072,6 +1197,19 @@ __EOD;
     $_SESSION['web']['news']= 0;
   }
   $navod= NAVOD;
+  $prompt= <<<__EOD
+      <div id='msg' class='box' style="display:none">
+        <div class='box_title'>title</div>
+        <div class='box_text'>text</div>
+        <div class='box_ok'><button onclick="box_off();">OK</button></div>
+      </div>
+      <div id='prompt' class='box' style="display:none">
+        <div class='box_title'>Doplň příjmení: Richard ...</div>
+        <div class='box_input'>
+          <input type='text' title='místo pro test' onchange="_table_test(this.value);">
+        </div>
+      </div>
+__EOD;
   $body=  <<<__EOD
     $fb_root
     <div id='page'>
@@ -1116,6 +1254,7 @@ __EOD;
       </div>
       $filler
       $html
+      $prompt
     </div>
   <!-- konec -->
 __EOD;
@@ -1198,6 +1337,122 @@ function zapis_xakce($ida) {
   $idc= pdo_insert_id();
   query("UPDATE xakce SET xelems='aclanek=$idc' WHERE id_xakce='$ida'");
   return 1;
+}
+/** =========================================================================================> TABLE */
+# obsluha přihlašovací tabulky bez REDAKCE
+# ----------------------------------------------------------------------------------==> . table make
+# zobraz tabulku - idc určuje pozvánku
+function table_show($ida,$idc) { trace();
+  global $fe_user, $fe_host;
+  $skup= $tab= array();  // tab: [skup][poradi] poradi=0 => max, poradi>0 => jméno
+  $maximum= 0;
+  $h= '';
+  $tr= pdo_qry("SELECT skupina,jmeno,poradi FROM xucast
+    WHERE id_xclanek=$idc ORDER BY skupina,poradi,id_xucast");
+  while ( $tr && (list($skupina,$jmeno,$poradi)= pdo_fetch_row($tr)) ) {
+    if ( $skupina=='maximum' )    { $maximum= max($maximum,$poradi); continue; }
+    if ( !isset($tab[$skupina]) ) { $skup[]= $skupina; $tab[$skupina]= array(0); }
+    if ( $jmeno=='max' )          { $tab[$skupina][0]= $poradi; $maximum= max($maximum,$poradi); continue; }
+    $tab[$skupina][]= "$jmeno";
+  }
+                                                        debug($skup,"maximum=$maximum");
+                                                        debug($tab);
+  if ( !count($tab) ) goto end; // pro $idc není tabulka
+  // zjistíme datum ukončení akce
+  $day= select('datum_do','xakce',"id_xakce=$ida");
+  $dnes= date('Y-m-d');
+  $h.= count($tab)==1
+    ? "<h3>Přihlašovací tabulka</h3>
+       Pokud se chceš zúčastnit tohoto setkání, klikni na <big><b>+</b></big> za názvem místa 
+       (případně vyplň krátký test) a potom přidej svoje jméno a příjmení ukončené Enter. 
+       Pokud bys s tím měl problémy, pošli mi SMS na 603150565 se svým jménem
+       (ale napřed to zkus tady a teď). Pokud potřebuješ svoji účast zrušit, 
+       napiš znovu svoje jméno jako poprvé, bude vyjmuto."
+    : "<h3>Přihlašovací tabulka</h3>
+       Na tomto setkání se sejdeme v jednom čase na níže uvedených místech. Pokud se chceš zúčastnit,
+       klikni na <big><b>+</b></big> za názvem skupiny (případně vyplň krátký test) a potom přidej svoje jméno a příjmení
+       ukončené Enter. Pokud bys s tím měl problémy, pošli SMS na 603150565 se svým jménem a názvem skupiny
+       (ale napřed to zkus tady a teď). Pokud se chceš přeřadit do jiné skupiny, napiš svoje jméno do ní (z té původní se
+       vyjme samo).<br>";
+  $h.= "<br><div class='skupiny_container'><table class='skupiny' cellspacing='0' cellpadding='0'><tr>";
+  $add= $event= '';
+  foreach ($skup as $s) {
+    if ( $day>=$dnes )
+      $event= $_SESSION['web']['tab']
+        ? "onclick=\"table_add1(arguments[0],'$s','$idc');\""
+        : "onclick=\"table_test(arguments[0]);return false;\"";
+    $style= "style='box-shadow:3px 2px 6px gray;float:right'";
+    $class= "class='jump'";
+    if ( $day>=$dnes )
+      $add= "<a $event $class $style>+</a>";
+    $h.= "<th>$s$add</th>";
+  }
+  $h.= "</tr><tr>";
+  foreach ($skup as $s) {
+    if ( $day>=$dnes ) {
+      $event= "onsubmit=\"table_add(arguments[0],'$s','$idc');return false;\"";
+      $h.= "<td><form $event>
+              <input type='text' size='1' maxlength='100' id='table-$s' style='display:none'>
+            </form></td>";
+    }
+  }
+  $h.= "</tr>";
+  for ($i= 1; $i<=$maximum; $i++) {
+    $h.= "<tr>";
+    foreach ($skup as $s) {
+      if ( !$tab[$s][0] ) $tab[$s][0]= $maximum;
+      $jm= isset($tab[$s][$i]) ? $tab[$s][$i] : '';
+      if ( !$_SESSION['web']['tab'] && !$_SESSION['web']['username'] ) {
+        list($jm)= explode(' ',trim($jm));
+      }
+      $cls= $i<=$tab[$s][0] ? 'ucast' : 'nic';
+      $h.= "<td class='$cls'>$jm</td>";
+    }
+    $h.= "</tr>";
+  }
+  $h.= "</table></div><br>";
+end:
+  return $h;
+}
+# -----------------------------------------------------------------------------------==> . table add
+# přidání nového účastníka do tabulky nebo jeho odebrání či přeřazení
+function table_add($idc,$skupina,$jmeno) {
+  global $y;
+  db_connect();
+  // old_* informace o skupině, kde jmeno už je
+  $old_skupina= select('skupina','xucast',"id_xclanek=$idc AND TRIM(jmeno)='$jmeno'");
+  // * - informace o skupině, kam se jméno přidává
+  $pocet= select('COUNT(*)','xucast',"id_xclanek=$idc AND skupina='$skupina' AND jmeno!='max'");
+  $maximum= select('poradi','xucast',"id_xclanek=$idc AND skupina='$skupina' AND jmeno='max'");
+  // už je ve stejné skupině
+  if ( $skupina==$old_skupina) {
+    // bude smazáno
+    query("DELETE FROM xucast WHERE id_xclanek=$idc AND TRIM(jmeno)='$jmeno'");
+    $y->msg= "jsi odhlášen ze skupiny '$skupina'";
+  }
+  // je v jiné skupině
+  elseif ( $old_skupina  ) {
+    if ( $pocet>=$maximum ) {
+      // ale nová skupina je plná
+      $y->msg= "skupina '$skupina' je už plná, není možné se přehlásit ze skupiny '$old_skupina'";
+    }
+    else {
+      // pokud není plná, změníme skupinu
+      query("UPDATE xucast SET skupina='$skupina' WHERE id_xclanek=$idc AND TRIM(jmeno)='$jmeno'");
+      $y->msg= "jsi přehlášen ze skupiny '$old_skupina' do '$skupina'";
+    }
+  }
+  else {
+    // jmeno není v žádné skupině
+    if ( $pocet>=$maximum ) {
+      $y->msg= "skupina '$skupina' je už plná, není možné se přihlásit";
+    }
+    else {
+      // přidáme do skupiny
+      query("INSERT INTO xucast(id_xclanek,skupina,jmeno) VALUES ($idc,'$skupina','$jmeno')");
+      $y->msg= "jsi přihlášen do skupiny '$skupina'";
+    }
+  }
 }
 /** =========================================================================================> FOTKY */
 # --------------------------------------------------------------------------------==> . show fotky 2
@@ -1457,7 +1712,13 @@ function ask_server($x) {
     $y->redakce= 0;
     $y->page= $x->page;
     break;
-
+  // obsluha tabulky účasti
+  case 'table_tst':
+    $y->ok= $_SESSION['web']['tab']= trim(strtolower($y->test))=='rohr' ? 1 : 0;
+    break;
+  case 'table_add': // přidat účast
+    table_add($y->idc,$y->skupina,trim($y->jmeno));
+    break;
   }
   return 1;
 }
@@ -1521,30 +1782,6 @@ function datum_oddo($x1,$x2) {
   }
   return $datum;
 }
-//# ------------------------------------------------------------------------------------------ session
-//# getter a setter pro _SESSION
-//function session($is,$value=null) {
-//  $i= explode(',',$is);
-//  if ( is_null($value) ) {
-//    // getter
-//    switch (count($i)) {
-//    case 1: $value= $_SESSION[$i[0]]; break;
-//    case 2: $value= $_SESSION[$i[0]][$i[1]]; break;
-//    case 3: $value= $_SESSION[$i[0]][$i[1]][$i[2]]; break;
-//    }
-//  }
-//  else {
-//    // setter
-//    switch (count($i)) {
-//    case 1: $_SESSION[$i[0]]= $value; break;
-//    case 2: $_SESSION[$i[0]][$i[1]]= $value; break;
-//    case 3: $_SESSION[$i[0]][$i[1]][$i[2]]= $value; break;
-//    }
-////    session_commit();
-//    $value= 1;
-//  }
-//  return $value;
-//}
 # --------------------------------------------------------------------------------------- db connect
 # připojí databázi
 function db_connect() { 
@@ -1889,151 +2126,5 @@ function record_unlock ($table,$id_table,$unlock_all=false) {
     query("UPDATE $table SET lock_kdo=0,lock_kdy=NOW() WHERE id_$table=$id_table");
   }
   return 1;
-}
-/** ==========================================================================================> TEXT */
-# ---------------------------------------------------------------------------------------- x cenzura
-# úprava textu pro nepřihlášené tj. odklonění odkazů se stylem "neodkaz" na informaci o přihlášení
-function x_cenzura($obsah0) {
-  $obsah= preg_replace_callback (
-      "~<span class=\"neodkaz\"><a (class=\"jump\"|)(.*)>(.*)</a></span>~U",
-      function ($m) {
-        global $KLIENT;
-        if ( $KLIENT->level ) {
-          if ( $m[1] )  // jump
-              return "<span class='odkaz'><a class='jump' $m[2]>$m[3]</a></span>";
-            else        // odkaz
-              return "<span class='neodkaz'><a class='odkaz' $m[2]>$m[3]</a></span>";
-        }
-        else {
-          $neodkaz= "onclick=\"jQuery('div.neodkaz').fadeIn();\" title='jen pro přihlášené'";
-          if ( $m[1] )  // jump
-              return "<span class='neodkaz'><a class='jump' $neodkaz>$m[3]</a></span>";
-            else        // odkaz
-              return "<span class='neodkaz'><a class='odkaz' $neodkaz>$m[3]</a></span>";
-        }
-      },
-      $obsah0);
-  return $obsah;
-}
-# -------------------------------------------------------------------------------------- x first_img
-# vrátí první obrázek s doplněnými atributy, nebo ''
-function x_first_img ($html,$size=1) { //trace();
-  global $FREE;
-  $h= '';
-  $m= null;
-  $is1= preg_match('/<img[^>]+>/i',$html, $m);
-  if ( !$is1 ) goto video;
-//                                                 debug($m,htmlentities($m[0]));
-  $src= null;
-  $is2= preg_match('/src=(["\'][^"\']*["\'])/i',$m[0], $src);
-  if ( !$is2 ) goto video;
-//                                                 debug($src,1);
-  // našli jsme a zjístíme, zda existuje
-  $url= trim(str_replace("'",'"',$src[1])," '\"");
-  // překlad na globální odkazy pro ty lokální (pro servant.php)
-  $http= $FREE && preg_match("/^fileadmin/",$url) ? "https://www.setkani.org/" : '';
-  $h= "<div style='max-height:{$size}em;overflow:hidden;float:left;margin-right:4px'>
-         <img src='$http$url' style='width:{$size}em'>
-       </div>";
-video:
-  // pokusíme se najít youtube default obrázek
-  if ( !$h ) {
-    $is= preg_match("~data-oembed-url=\"(?:http://youtu.be/|https?://www.youtube.com/watch\?v=)(.*)\"~iU",$html, $m);
-//                                                 debug($m,$is);
-    if ( $is ) {
-      $h= "<div style='max-height:{$size}em;overflow:hidden;float:left'>
-             <img src='https://img.youtube.com/vi/$m[1]/hqdefault.jpg' style='width:{$size}em'>
-           </div>";
-    }
-  }
-//   if ( $FREE ) $h= "is1=$is1, is2=$is2, http=$http ".$h;
-  return $h;
-}
-# --------------------------------------------------------------------------------------- x shorting
-# EPRIN
-# zkrátí text na $n znaků s ohledem na html-entity jako je &nbsp;
-function x_shorting ($text,$n=500) { //trace();
-  $img= '';
-  $stext= xi_shorting ($text,$img,$n);
-  if ( $img ) {
-    $stext= $img ? "<div>$img$stext ...</div>" : "$stext ...";
-  }
-  return $stext;
-}
-function xi_shorting ($text,&$img,$n=300) { //trace();
-  // náhrada <h.> za <i>
-  $text= str_replace('<',' <', $text);
-  $text= preg_replace("/\<(\/|)h1>/si",' <$1b> ', $text);
-  $text= preg_replace("/\<(\/|)h2>/si",' <$1i> ', $text);
-  // hrubé zkrácení textu
-  $stext= mb_substr(strip_tags($text,'<b><i>'),0,$n);
-  // odstranění poslední (případně přeříznuté) html-entity
-  $in= mb_strlen($stext);
-  $ia= mb_strrpos($stext,'&');
-  if ( $ia!==false )
-    $stext= mb_substr($stext,0,$in-$ia<10 ? $ia : $in);
-  $im= mb_strrpos($stext,' ');
-  if ( $im!==false )
-    $stext= mb_substr($stext,0,$im);
-  $stext= closetags($stext);
-  $stext= preg_replace("/\s+/iu",' ', $stext);
-  $img= x_first_img($text,8);
-  $stext.= " &hellip;";
-  return $stext;
-}
-function closetags($html) {
-  $result= null;
-  preg_match_all('#<(?!meta|img|br|hr|input\b)\b([a-z]+)(?: .*)?(?<![/|/ ])>#iU', $html, $result);
-  $openedtags = $result[1];
-  preg_match_all('#</([a-z]+)>#iU', $html, $result);
-  $closedtags = $result[1];
-  $len_opened = count($openedtags);
-  if (count($closedtags) == $len_opened) {
-    return $html;
-  }
-  $openedtags = array_reverse($openedtags);
-  for ($i=0; $i < $len_opened; $i++) {
-    if (!in_array($openedtags[$i], $closedtags)) {
-      $html .= '</'.$openedtags[$i].'>';
-    } else {
-      unset($closedtags[array_search($openedtags[$i], $closedtags)]);
-    }
-  }
-  return $html;
-}
-# ------------------------------------------------------------------------------------------ rr send
-# $par = {den:ode dneška dnes=0,poslat: 0/1}
-function rr_myslenka() {
-  $dnes= date('j/n/Y',mktime(0,0,0,date('n'),date('j'),date('Y')));
-  $html= "neni pro $dnes nastaveno!";
-  //return $html;
-  ezer_connect('ezertask');
-  $qry= "SELECT * FROM rr WHERE datum=curdate()";
-  $res= pdo_qry($qry);
-//                                                $html.= "<br>$res=$qry";
-  while ( $res && ($o= pdo_fetch_object($res)) ) {
-//     $html= $o->text_cz;
-    $subject= $o->subject;
-    $title_cz= $o->title_cz;
-    $text_cz= $o->text_cz;
-    $text_cz= strtr($text_cz,array('š'=>'&scaron;','ž'=>'&#382;'));
-    $title_en= $o->title_en;
-    $text_en= $o->text_en;
-    $from_en= $o->from_en;
-    // formátování
-    $subject= strtr($subject,array(
-        'Neděle'=>'neděli', 'Pondělí'=>'pondělí', 'Úterý'=>'úterý', 'Středa'=>'středu'
-      , 'Čtvrtek'=>'čtvrtek', 'Pátek'=>'pátek', 'Sobota'=>'sobotu'
-      , 'První'=>'první', 'Druhá'=>'druhou', 'Čtvrtá'=>'čtvrtou', 'Pátá'=>'pátou'
-      , 'Šestá'=>'šestou', 'Sedmá' => 'sedmou'
-      ));
-    $subj= "Myšlenka na $subject - ";
-    $body= "<table cellpadding='10'><tr>";
-    $body.= "<td valign='top' width='50%'><b>$title_cz</b><br>$text_cz</td>";
-    $body.= "<td valign='top' width='50%'><b>$title_en</b><br>$text_en<div align='right'>$from_en</div></td>";
-    $body.= "</tr></table>";
-    $html= "<h1>$subj</h1>$body";
-  }
-  return $html;
 }
 ?>

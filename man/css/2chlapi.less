@@ -5,7 +5,7 @@
 @text_b:  #FFFFFF;   @text_c:  #000000;
 @obal_b:  #CFDDE6;   @obal_c:  #000000;
 @abstr_b: #E6E1CF;   @abstr_c: #000000;
-                     @odkaz_c: #0000ee; 
+@b_table: #E6E1CF;   @odkaz_c: #0000ee; 
 
 .shadow-img { 
   filter: drop-shadow(5px 5px 10px #567); }
@@ -158,7 +158,19 @@ div.filler { height: 2em; }
       background-color: @abstr_b !important; }
   }
 }
-
+// ----------------------------------------------------------------------------------- box na dotazy
+div.box {
+  position:fixed; left:50%; top:50%;  transform: translate(-50%, -50%);  line-height: 2em;
+  color:black; border-radius:.4em; padding: 1em 1em 0em 1em; box-shadow: black 4px 6px 20px;
+  background: white;
+  div.box_title { position:absolute; top:0em; left:0em; width:100%; text-align:center; height: 2em;
+    background:black; border-radius:.4em .4em 0 0; color:white; font-weight:bold; }
+  div.box_text { margin-top:2em; line-height:1.2em; }
+  div.box_ok { text-align:center; padding:.5em; 
+    button { position:relative; border: 1px solid;padding: 3px 14px;color: black; }
+  }
+  div.box_input { padding:2em 0 1em; }
+}
 // ---------------------------------------------------------------------------------------- elementy
 // sloupce
 div.sloupce {
@@ -236,6 +248,17 @@ div.home, a.home, #user_mail, #skup0, #skup1, #skup2 {
     textarea { 
       display:block; max-width:24.5em; font-family:sans-serif; min-height: 5em; width:100%;
       border:1px solid grey; padding:2px; font-size: 10pt; }
+  }
+  // skupiny 
+  div.skupiny_container {max-width: 100%; overflow-x: auto; }
+  table.skupiny { margin: 0 auto; padding: 0.2em; border: 1px solid; border-spacing: 2px;
+    tr { height: 3px; }
+    th { border-bottom: 3px solid; min-width:8em; }
+    td { 
+      &.ucast { background-color: @b_table; }
+      &.nic   { background-color: transparent; }
+    }
+    input { width:100%; }
   }
 }
 // upozornění pro nepřihlášené
@@ -396,7 +419,7 @@ div.pdf {
     zoom: 72%; -moz-transform: scale(0.72); -moz-transform-origin: left top;
   }
   div.Popup3 {
-    zoom:80%;  }
+    zoom:90%;  }
 }
 
 // ---------------------------------------------------------------------------------------- 

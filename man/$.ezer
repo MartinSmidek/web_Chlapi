@@ -36,6 +36,7 @@ panel p [0,0,*,*] { type:'main', _sys:'$'
       case 'xkniha':  EDITOR.Kniha(_id); refresh(); break;
       case 'kalendar':EDITOR.Kalendar(_id); refresh(); break;
       case 'xfotky':  FOTKY.oprava(_id); refresh(); break;
+      case 'xucasti': TABLE.oprava(_id); refresh(); break;
     }
   }
 //  proc zmenit(_mid,_typ1,_id,_typ2) { 
@@ -60,6 +61,8 @@ panel p [0,0,*,*] { type:'main', _sys:'$'
       case 'xkniha.elem': php.menu_add_elem(_mid,_typ,_first,me); refresh(); break;
       case 'xfotky': FOTKY.novy(_mid); refresh(); break;
       case 'xakce': php.menu_add_elem(_mid,_typ,0,me); refresh(); break;
+      case 'pozvanka': php.menu_add_elem(_mid,_typ,0,me); refresh(); break;
+      case 'xucasti': TABLE.novy(_mid); refresh(); break;
     }
   }
 //  proc zcizit(_typ,_pid,_mid) { 
@@ -1002,7 +1005,9 @@ panel EDITOR [0,0,720,550] { type:'popup', style:"min-width:700px", par:°{close
     field [0,40,85,] { type:'date', title:'^ode dne', data:xa.datum_od }
     field [95,40,85,] { type:'date', title:'^do dne', data:xa.datum_do }
     field [190,40,268,] { title:'^název', data:xa.nazev }
-    field [470,40,240,] { title:'^místo', data:xa.misto }
+    field [470,40,140,] { title:'^místo', data:xa.misto }
+    select [620,40,80,] { type:'map', title:'^pouze pro', help:'pro všechny nebo jen pro místní skupinu'
+        options:cis_skupiny.zkratka, value:'0', data:xa.skupina }
     // autoři a oprávnění
     select editors [46,5,150,] { type:'map+', title:'napsal', help:'+ kdo může text měnit'
         options:users.username, value:'0', data:xc.editors }
@@ -1332,6 +1337,67 @@ panel FOTKY [0,0,680,265] { title:' Organizér fotek', type:'popup', css:'dialog
     }
   }
 }
+# ----------------------------------------------------------------------------==> TABLE
+# organizer tabulky účastníků akce
+panel TABLE [0,0,500,240] { title:' Organizér tabulky účastníků akce', type:'popup', css:'dialog'
+  use f: form _tab [0,0,,]
+  var nova:number       // 1 = nová tabulka
+  # ==> . nový
+  proc novy(_cid) { var ret:object
+    nova.set(1); f.init; f.skupina.init; f.display(2,'n'); f.cid.set(_cid); 
+    f.pridej.onclick;
+    panel.modal
+  }
+  # ==> . oprava
+  proc oprava(_cid) { var ret:object
+    nova.set(0); f.init; f.skupina.init; f.display(2,'n'); f.cid.set(_cid);
+    ret.set(ask('table_load',_cid));
+    [ ret.ok; foreach(ret.rows,read_row); panel.modal ];
+    [ not(ret.ok); alert(ret.msg) ];
+  }
+  proc read_row(row) { var i:number
+    i.set(f.skupina.add);
+    f.skupina.part(i).part('nazev').set(row.nazev);
+    f.skupina.part(i).part('stary').set(row.nazev);
+    f.skupina.part(i).part('maxim').set(row.maxim);
+    f.skupina.part(i).part('pocet').set(row.pocet);
+  }
+  # ==> . form
+  # tag: n=vytvoření, o=oprava názvů a maxim
+  form _tab {
+    field cid
+    # ==> .. přidání skupin
+    button pridej [10,9,,] { tag:'n', title:'přidat skupinu ...', proc onclick() { var last:number
+      last.set(skupina.add);
+      skupina.part(last.get).part('nazev').init(1);
+      skupina.part(last.get).part('maxim').init(1);
+      skupina.part(last.get).part('pocet').init(1);
+    } }
+    label [160,20,100,] { title:'název skupiny' }
+    label [270,20,50,] { title:'maximum' }
+    label [330,20,50,] { title:'přihlášeno' }
+    list skupina [150,30,255,220] { tag:'n', rows:22
+      field nazev [10,4,100,] { tag:'n', format:'t', value:'' }
+      field maxim [120,4,50,] { tag:'n', format:'tr', value:'10' }
+      field pocet [180,4,50,] { tag:'n', format:'tdr' }
+      field stary // starý název
+    }
+    label [10,30,140,220] { title:'odebrat skupinu lze zapsáním maximum=0' }
+    # ==> .. tlačítka
+    button sav [-78,0,,] { title:'[fa-save] Uložit', help:'vytvořit tabulku'
+      proc onclick() { var ret:object, values:object
+        values.set(object()); copy_by_name(skupina,values);
+        { nova.get; ret.set(ask('table_create',cid.get,values))
+        | ret.set(ask('table_change',cid.get,values))
+        };
+        p.refresh;
+        alert(ret.msg);
+        panel.hide(0);
+    }}
+    button [-20,0,,] { title:'[fa-undo] Zpět', help:'ukončit bez vytvoření tabulky'
+      proc onclick() { panel.hide(0); } }
+  }
+}
 # ----------------------------------------------------------------------------==> tabulky
 table menu { key_id:'mid', db:'setkani'
   number mid { key:'primary' }
@@ -1350,6 +1416,7 @@ table xakce { key_id:'id_xakce', db:'setkani'
   number id_xakce { key:'primary' }
   text nazev
   text misto
+  number skupina
   date datum_od { sql_pipe:'sql_date1' }
   date datum_do { sql_pipe:'sql_date1' }
   number web_stav
@@ -1431,6 +1498,7 @@ table _cis { key_id:'id_cis'
 map skill_level: table _skill { where:"id_skill IN (0,8,16)", order:'id_skill', key_id:'id_skill' }
 map cis_web: table _cis { where:"druh='web'", order:'poradi', key_id:'data' }
 map cis_cms: table _cis { where:"druh='cms'", order:'poradi', key_id:'data' }
+map cis_skupiny: table _cis { where:"druh='skupiny'", order:'poradi', key_id:'data' }
 map users: table _user { where:"1", order:'surname', key_id:'id_user' }
 
 

@@ -39,7 +39,12 @@ function jump_fokus() {
 // ----------------------------------------------------------------------------------------- refresh
 // obnoví stránku
 function refresh() {
-  location.reload(true);
+  if ( Ezer.run!==undefined ) {
+    Ezer.run.$.part.p._call(0,'refresh');
+  }
+  else {
+    location.reload(true);
+  }
 }
 // -----------------------------------------------------------------------------------==> . bar menu
 function bar_menu(e,x) {
@@ -149,9 +154,9 @@ function me_noedit(no) {
 }
 function me_noedit_(no) {
   ask({cmd:'me_noedit',noedit:no},me_noedit__);
-  if ( !no ) {
-    refresh();
-  }
+//  if ( !no ) {
+//    refresh();
+//  }
 }
 function me_noedit__(y) {
   refresh();
@@ -192,6 +197,69 @@ function kont_show() {
   var kont= jQuery('#kont');
   if ( kont ) 
     kont.css({display:'block'});
+}
+// ============================================================================================> MSG
+var continuation= null;
+// ------------------------------------------------------------------------------------------ msg on
+// zobrazí zprávu - alert
+function msg_on(text,title,_continuation) {
+  if ( !title ) title= 'Upozornění';
+  continuation= _continuation ? _continuation : null;
+  jQuery('#msg div.box_title').html(title);
+  jQuery('#msg div.box_text').html(text);
+  jQuery('#msg').css({display:'block'});
+}
+// ----------------------------------------------------------------------------------------- box off
+// zhasne všechny typy boxů
+function box_off() {
+  jQuery('div.box').css({display:'none'});
+  if ( continuation ) {
+    continuation();
+    continuation= null;
+  }
+}
+// ==========================================================================================> TABLE
+var table_x= {};
+// -------------------------------------------------------------------------------------- table test
+// vyhodnotí odpověď na testovací otázky a případně přihlásí jako fe_host
+function table_test(e) {
+  if ( e ) { e.stopPropagation(); e.preventDefault(); }
+  var prompt= jQuery('#prompt');
+  prompt.find('input').val('');
+  prompt.css({display:'block'});
+}
+function _table_test(test) {
+  ask({cmd:'table_tst',test:test},_table_test_);
+}
+function _table_test_(y) {
+  if ( y.ok )
+    refresh();
+  else {
+    jQuery('#prompt').css({display:'none'});
+    msg_on("Richard "+(y.test?y.test:'---')+"? <br><br>to nebylo dobře :-(");
+  }
+}
+// -------------------------------------------------------------------------------------- table add1
+// zobrazí jméno přihlášeného účastníka jako vzor
+function table_add1(e,skup,cid) {
+  if ( e ) { e.stopPropagation(); e.preventDefault(); }
+  jQuery('#skupiny input').css({display:'none'});
+  var input= jQuery('#table-'+skup);
+  input.val(Ezer.web.username ? Ezer.web.username : '');
+  input.css({display:'block'});
+}
+// --------------------------------------------------------------------------------------- table add
+// přidá účastníka do skupiny
+function table_add(e,skup,idc) {
+  if ( e ) { e.stopPropagation(); e.preventDefault(); }
+  var input= jQuery('#table-'+skup);
+  table_x= {cmd:'table_add',skupina:skup,jmeno:input.val(),idc:idc};
+  ask(table_x,_table_add);
+}
+function _table_add(y) {
+  if ( y.msg ) {
+    msg_on(y.msg,'',refresh);
+  }
 }
 // ===========================================================================================> SKUP
 // -------------------------------------------------------------------------------------- ondomready

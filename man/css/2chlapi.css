@@ -254,6 +254,47 @@ div.filler {
 #bar_items span:hover {
   background-color: #E6E1CF !important;
 }
+div.box {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  line-height: 2em;
+  color: black;
+  border-radius: .4em;
+  padding: 1em 1em 0em 1em;
+  box-shadow: black 4px 6px 20px;
+  background: white;
+}
+div.box div.box_title {
+  position: absolute;
+  top: 0em;
+  left: 0em;
+  width: 100%;
+  text-align: center;
+  height: 2em;
+  background: black;
+  border-radius: .4em .4em 0 0;
+  color: white;
+  font-weight: bold;
+}
+div.box div.box_text {
+  margin-top: 2em;
+  line-height: 1.2em;
+}
+div.box div.box_ok {
+  text-align: center;
+  padding: .5em;
+}
+div.box div.box_ok button {
+  position: relative;
+  border: 1px solid;
+  padding: 3px 14px;
+  color: black;
+}
+div.box div.box_input {
+  padding: 2em 0 1em;
+}
 div.sloupce {
   /*outline: 1px dotted yellow;*/
   float: right;
@@ -464,6 +505,67 @@ a.home#skup2 textarea,
   border: 1px solid grey;
   padding: 2px;
   font-size: 10pt;
+}
+div.home div.skupiny_container,
+a.home div.skupiny_container,
+#user_mail div.skupiny_container,
+#skup0 div.skupiny_container,
+#skup1 div.skupiny_container,
+#skup2 div.skupiny_container {
+  max-width: 100%;
+  overflow-x: auto;
+}
+div.home table.skupiny,
+a.home table.skupiny,
+#user_mail table.skupiny,
+#skup0 table.skupiny,
+#skup1 table.skupiny,
+#skup2 table.skupiny {
+  margin: 0 auto;
+  padding: 0.2em;
+  border: 1px solid;
+  border-spacing: 2px;
+}
+div.home table.skupiny tr,
+a.home table.skupiny tr,
+#user_mail table.skupiny tr,
+#skup0 table.skupiny tr,
+#skup1 table.skupiny tr,
+#skup2 table.skupiny tr {
+  height: 3px;
+}
+div.home table.skupiny th,
+a.home table.skupiny th,
+#user_mail table.skupiny th,
+#skup0 table.skupiny th,
+#skup1 table.skupiny th,
+#skup2 table.skupiny th {
+  border-bottom: 3px solid;
+  min-width: 8em;
+}
+div.home table.skupiny td.ucast,
+a.home table.skupiny td.ucast,
+#user_mail table.skupiny td.ucast,
+#skup0 table.skupiny td.ucast,
+#skup1 table.skupiny td.ucast,
+#skup2 table.skupiny td.ucast {
+  background-color: #E6E1CF;
+}
+div.home table.skupiny td.nic,
+a.home table.skupiny td.nic,
+#user_mail table.skupiny td.nic,
+#skup0 table.skupiny td.nic,
+#skup1 table.skupiny td.nic,
+#skup2 table.skupiny td.nic {
+  background-color: transparent;
+}
+div.home table.skupiny input,
+a.home table.skupiny input,
+#user_mail table.skupiny input,
+#skup0 table.skupiny input,
+#skup1 table.skupiny input,
+#skup2 table.skupiny input {
+  width: 100%;
 }
 div.neodkaz {
   position: fixed;
@@ -716,7 +818,7 @@ div.pdf span.sorry {
     -moz-transform-origin: left top;
   }
   div.Popup3 {
-    zoom: 80%;
+    zoom: 90%;
   }
 }
 @media all and (min-width: 40em) and (max-width: 55em) {
