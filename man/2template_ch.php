@@ -397,17 +397,22 @@ __EOT;
                      <div class='kniha_br'><b>$zacatek ...</b></div>
                      <div id='list'>";
           // seznam akcí
-          $ra= pdo_qry("SELECT id_xakce,xelems FROM xakce 
+          $ra= pdo_qry("SELECT id_xakce,xelems,skupina,datum_od,datum_do,nazev FROM xakce 
               WHERE datum_od<DATE(NOW()) AND YEAR(datum_od)=$r AND xelems!='' AND skupina='$id'
               ORDER BY datum_od DESC");
-          while ($ra && list($a,$elems)= pdo_fetch_row($ra) ) {
+          while ($ra && list($a,$elems,$skupina,$od,$do,$nazev)= pdo_fetch_row($ra) ) {
             // abstrakty akcí
             $top= $ida;
             if ( $elems ) {
               $first= true;
               foreach ( explode(';',$elems) as $elem ) {
-                $html.= eval_elem($elem,(object)array('subtyp'=>'akce',
-                    'open'=>true,'idk'=>$rok,'ida'=>$a,'first'=>$first));
+                $par= (object)array('subtyp'=>'akce','open'=>true,'idk'=>$rok,'ida'=>$a,'first'=>$first);
+                if ( $skupina ) {
+                  $oddo= datum_oddo($od,$do);
+                  $par->tit= "$oddo $nazev";
+                  $par->header= "<h1>$oddo $nazev</h1><hr>";
+                }
+                $html.= eval_elem($elem,$par);
                 $first= false;
               }
             }
