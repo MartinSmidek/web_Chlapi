@@ -1366,19 +1366,22 @@ function table_show($ida,$idc) { trace();
   // zjistíme datum ukončení akce
   $day= select('datum_do','xakce',"id_xakce=$ida");
   $dnes= date('Y-m-d');
-  $h.= count($tab)==1
-    ? "<h3>Přihlašovací tabulka</h3>
-       Pokud se chceš zúčastnit tohoto setkání, klikni na <big><b>+</b></big> za názvem místa 
-       (případně vyplň krátký test) a potom přidej svoje jméno a příjmení ukončené Enter. 
-       Pokud bys s tím měl problémy, pošli mi SMS na 603150565 se svým jménem
-       (ale napřed to zkus tady a teď). Pokud potřebuješ svoji účast zrušit, 
-       napiš znovu svoje jméno jako poprvé, bude vyjmuto."
-    : "<h3>Přihlašovací tabulka</h3>
-       Na tomto setkání se sejdeme v jednom čase na níže uvedených místech. Pokud se chceš zúčastnit,
-       klikni na <big><b>+</b></big> za názvem skupiny (případně vyplň krátký test) a potom přidej svoje jméno a příjmení
-       ukončené Enter. Pokud bys s tím měl problémy, pošli SMS na 603150565 se svým jménem a názvem skupiny
-       (ale napřed to zkus tady a teď). Pokud se chceš přeřadit do jiné skupiny, napiš svoje jméno do ní (z té původní se
-       vyjme samo).<br>";
+  $h.=$day>=$dnes  
+    ? ( count($tab)==1
+      ? "<h3>Přihlašovací tabulka</h3>
+         Pokud se chceš zúčastnit tohoto setkání, klikni na <big><b>+</b></big> za názvem místa 
+         (případně vyplň krátký test) a potom přidej svoje jméno a příjmení ukončené Enter. 
+         Pokud bys s tím měl problémy, pošli mi SMS na 603150565 se svým jménem
+         (ale napřed to zkus tady a teď). Pokud potřebuješ svoji účast zrušit, 
+         napiš znovu svoje jméno jako poprvé, bude vyjmuto."
+      : "<h3>Přihlašovací tabulka</h3>
+         Na tomto setkání se sejdeme v jednom čase na níže uvedených místech. Pokud se chceš zúčastnit,
+         klikni na <big><b>+</b></big> za názvem skupiny (případně vyplň krátký test) a potom přidej svoje jméno a příjmení
+         ukončené Enter. Pokud bys s tím měl problémy, pošli SMS na 603150565 se svým jménem a názvem skupiny
+         (ale napřed to zkus tady a teď). Pokud se chceš přeřadit do jiné skupiny, napiš svoje jméno do ní (z té původní se
+         vyjme samo).<br>"
+      )
+    : "<h3>Tabulka přihlášených</h3>";
   $h.= "<br><div class='skupiny_container'><table class='skupiny' cellspacing='0' cellpadding='0'><tr>";
   $add= $event= '';
   foreach ($skup as $s) {
