@@ -33,14 +33,16 @@ $ezer_server=
   $_SERVER["SERVER_NAME"]=='chlapi.doma'       ? 3 : (         // Synology - DOMA   = modré logo
   $_SERVER["SERVER_NAME"]=='chlapi.ben'        ? 4 : -1)))))); // 4:lokální - ben   = oranžové logo
 
-$chlapi_url= array(
+// přístup k serveru se servant_ch.php pro import článků brněnské skupiny z chlapi.cz
+$chlapi_cz= array(
   'http://chlapi.bean:8080',
   'http://chlapi.cz',
   'http://chlapi.cz',
-  'http://chlapi.cz',
-  'http://chlapi.cz'
+  'http://chlapi.doma',
+  'http://chlapi.ben'
 );
-$chlapi_url= $chlapi_url[$ezer_server];
+
+$chlapi_url= $chlapi_cz[$ezer_server];
 
 // databáze
 $deep_root= "../files/chlapi";
