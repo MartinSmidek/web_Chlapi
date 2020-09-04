@@ -628,7 +628,7 @@ __EOT;
 //              ],arguments[0],0,0,'#xclanek$id');return false;\"";
 //            $menu= " title='".($plny?'kapitola':'abstrakt kapitoly')." $book->ida/$idn' oncontextmenu=\"$kod\"";
             $menu= title_menu(($plny?'kapitola ':'abstrakt kapitoly ').$book->ida/$idn,
-                "ec;eo,fokus_part;xo;clanek;-pf;-msn;msd;-mkn;mkd;-psn;psd",$id,$book->idk,$curr_menu->mid);
+                "ec;eo,fokus_part;xo;zc;-pf;-msn;msd;-mkn;mkd;-psn;psd",$id,$book->idk,$curr_menu->mid);
             if ( $mobile ) {
               $ipad= "<span class='ipad_menu' onclick=\"arguments[0].stopPropagation();$kod\">
                 <i class='fa fa-bars'></i></span>";
@@ -1386,7 +1386,7 @@ function table_show($ida,$idc) { trace();
   $add= $event= '';
   foreach ($skup as $s) {
     if ( $day>=$dnes )
-      $event= $_SESSION['web']['tab']
+      $event= $_SESSION['web']['tab'] || $_SESSION['web']['username']
         ? "onclick=\"table_add1(arguments[0],'$s','$idc');\""
         : "onclick=\"table_test(arguments[0]);return false;\"";
     $style= "style='box-shadow:3px 2px 6px gray;float:right'";

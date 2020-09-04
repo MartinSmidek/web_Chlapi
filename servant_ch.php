@@ -67,14 +67,15 @@ $AND= '';
 $AND= $typ==1 ? "AND datum_od>=NOW()" : "AND YEAR(datum_od)=$rok AND datum_od<NOW()"; 
 $rc= pdo_query("
   SELECT id_xakce,datum_od,datum_do,nazev,xelems FROM xakce 
-  WHERE skupina!=0 $AND ");
+  WHERE skupina!=0 AND web_stav=0 $AND ");
 while ( $rc && (list($ida,$od,$do,$nadpis,$elems)=pdo_fetch_row($rc))) {
   $m= null;
   $ok= preg_match("/^aclanek=(\d+)/",$elems,$m);
   $dbg= "$ok/$m[0]"; 
   $idc= $m[1];
   if ( $ok ) {
-    list($obsah)= select('web_text,ch_date','xclanek',"id_xclanek='$idc'");
+    list($obsah)= select('web_text,ch_date','xclanek',"id_xclanek='$idc' AND cms_skill=0 AND web_skill=0");
+    if ( !$obsah ) continue;
     $href= $rok ? "$chlapi_url/skupiny!brno!$rok,$idc" : "$chlapi_url/skupiny!brno!$idc";
     $abstrakt= x_shorting($obsah,500,$chlapi_url);
     $flags= '';
