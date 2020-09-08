@@ -827,7 +827,7 @@ __EOT;
 //              ['editovat kalendář',function(el){ opravit('kalendar',$edit_id); }]
 //            ],arguments[0],0,0,'#xclanek$id');return false;\"";
 //        $menu= " oncontextmenu=\"$kod\"";
-        $menu= title_menu('kalendář',"et,$div_id");
+        $menu= title_menu('kalendář',"et,$edit_id");
         if ( $mobile ) {
           $ipad= "<span class='ipad_menu' onclick=\"arguments[0].stopPropagation();$kod\">
             <i class='fa fa-bars'></i></span>";

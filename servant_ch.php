@@ -64,7 +64,7 @@ ezer_connect('setkani');
 $dbg= '';
 $clanky= array();
 $AND= '';
-$AND= $typ==1 ? "AND datum_od>=NOW()" : "AND YEAR(datum_od)=$rok AND datum_od<NOW()"; 
+$AND= $typ==1 ? "AND datum_od>=CURDATE()" : "AND YEAR(datum_od)=$rok AND datum_od<CURDATE()"; 
 $rc= pdo_query("
   SELECT id_xakce,datum_od,datum_do,nazev,xelems FROM xakce 
   WHERE skupina!=0 AND web_stav=0 $AND ");
