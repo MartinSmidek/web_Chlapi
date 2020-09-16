@@ -648,14 +648,26 @@ __EOT;
           </div>";
         // pokud je tabulka účasti, přidáme
         if ( $book->ida ) {
+          // pokud je to stará tabulka, zobrazí se jako abstrakt, pokud $currpage!=...,1
+          // první znak $t je A pro abstrakt C pro článek
           $t= table_show($book->ida,$id);
           if ( $t ) {
-          $html.= "
-            <div class='back' $menu>
-              <div id='fokus_part' class='home$redakce_style$zmena'>
-                $t
-              </div>
-            </div>";
+            $a_c= $t[0];
+            $t= substr($t,1);
+            $jmp_t= $jmp= str_replace('*',"$idn,1",$backref);;
+            $html.= $a_c=='A' 
+            ? "
+              <div class='back'>
+                <a class='aclanek home$redakce_style' $jmp_t>
+                  $t
+                </a>
+              </div>"
+            : "
+              <div class='back' $menu>
+                <div id='fokus_part' class='home$redakce_style$zmena'>
+                  $t
+                </div>
+              </div>";
           }
         }
         // pokud jsou fotky, přidáme
@@ -1348,9 +1360,91 @@ function zapis_xakce($ida) {
 }
 /** =========================================================================================> TABLE */
 # obsluha přihlašovací tabulky bez REDAKCE
-# ----------------------------------------------------------------------------------==> . table make
+# ----------------------------------------------------------------------------------==> . table show
 # zobraz tabulku - idc určuje pozvánku
+# pokud je akce v archivu, vynuť zobrazení tabulky jako abstraktu, pokud na ni uživatel neklikne
 function table_show($ida,$idc) { trace();
+  global $fe_user, $fe_host, $currpage;
+  $skup= $tab= array();  // tab: [skup][poradi] poradi=0 => max, poradi>0 => jméno
+  list($skupiny,$skupina,$ids)= explode('!',$currpage);
+  $ids= explode(',',$ids);
+  $A= count($ids)==3 ? 'C' : 'A';
+  $maximum= 0;
+  $h= '';
+  $tr= pdo_qry("SELECT skupina,jmeno,poradi FROM xucast
+    WHERE id_xclanek=$idc ORDER BY skupina,poradi,id_xucast");
+  while ( $tr && (list($skupina,$jmeno,$poradi)= pdo_fetch_row($tr)) ) {
+    if ( $skupina=='maximum' )    { $maximum= max($maximum,$poradi); continue; }
+    if ( !isset($tab[$skupina]) ) { $skup[]= $skupina; $tab[$skupina]= array(0); }
+    if ( $jmeno=='max' )          { $tab[$skupina][0]= $poradi; $maximum= max($maximum,$poradi); continue; }
+    $tab[$skupina][]= "$jmeno";
+  }
+                                                        debug($skup,"maximum=$maximum");
+                                                        debug($tab);
+  if ( !count($tab) ) goto end; // pro $idc není tabulka
+  // zjistíme datum ukončení akce
+  $day= select('datum_do','xakce',"id_xakce=$ida");
+  $dnes= date('Y-m-d');
+  $h.=$day>=$dnes  
+    ? ( count($tab)==1
+      ? "<h3>Přihlašovací tabulka</h3>
+         Pokud se chceš zúčastnit tohoto setkání, klikni na <big><b>+</b></big> za názvem místa 
+         (případně vyplň krátký test) a potom přidej svoje jméno a příjmení ukončené Enter. 
+         Pokud bys s tím měl problémy, pošli mi SMS na 603150565 se svým jménem
+         (ale napřed to zkus tady a teď). Pokud potřebuješ svoji účast zrušit, 
+         napiš znovu svoje jméno jako poprvé, bude vyjmuto."
+      : "<h3>Přihlašovací tabulka</h3>
+         Na tomto setkání se sejdeme v jednom čase na níže uvedených místech. Pokud se chceš zúčastnit,
+         klikni na <big><b>+</b></big> za názvem skupiny (případně vyplň krátký test) a potom přidej svoje jméno a příjmení
+         ukončené Enter. Pokud bys s tím měl problémy, pošli SMS na 603150565 se svým jménem a názvem skupiny
+         (ale napřed to zkus tady a teď). Pokud se chceš přeřadit do jiné skupiny, napiš svoje jméno do ní (z té původní se
+         vyjme samo).<br>"
+      )
+    : "<h3>Tabulka přihlášených</h3>";
+  $h.= "<br><div class='skupiny_container'><table class='skupiny' cellspacing='0' cellpadding='0'><tr>";
+  $add= $event= '';
+  foreach ($skup as $s) {
+    if ( $day>=$dnes )
+      $event= $_SESSION['web']['tab'] || $_SESSION['web']['username']
+        ? "onclick=\"table_add1(arguments[0],'$s','$idc');\""
+        : "onclick=\"table_test(arguments[0]);return false;\"";
+    $style= "style='box-shadow:3px 2px 6px gray;float:right'";
+    $class= "class='jump'";
+    if ( $day>=$dnes )
+      $add= "<a $event $class $style>+</a>";
+    $h.= "<th>$s$add</th>";
+  }
+  $h.= "</tr><tr>";
+  foreach ($skup as $s) {
+    if ( $day>=$dnes ) {
+      $event= "onsubmit=\"table_add(arguments[0],'$s','$idc');return false;\"";
+      $h.= "<td><form $event>
+              <input type='text' size='1' maxlength='100' id='table-$s' style='display:none'>
+            </form></td>";
+    }
+  }
+  $h.= "</tr>";
+  for ($i= 1; $i<=$maximum; $i++) {
+    $h.= "<tr>";
+    foreach ($skup as $s) {
+      if ( !$tab[$s][0] ) $tab[$s][0]= $maximum;
+      $jm= isset($tab[$s][$i]) ? $tab[$s][$i] : '';
+      if ( !$_SESSION['web']['tab'] && !$_SESSION['web']['username'] ) {
+        list($jm)= explode(' ',trim($jm));
+      }
+      $cls= $i<=$tab[$s][0] ? 'ucast' : 'nic';
+      $h.= "<td class='$cls'>$jm</td>";
+    }
+    $h.= "</tr>";
+  }
+  $h.= "</table></div><br>";
+  $h= ($day>=$dnes ? 'C' : $A).$h;
+end:
+  return $h;
+}
+# ----------------------------------------------------------------------------------==> . table show
+# zobraz tabulku - idc určuje pozvánku
+function table_show0($ida,$idc) { trace();
   global $fe_user, $fe_host;
   $skup= $tab= array();  // tab: [skup][poradi] poradi=0 => max, poradi>0 => jméno
   $maximum= 0;
