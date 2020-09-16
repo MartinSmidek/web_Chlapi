@@ -31,6 +31,8 @@ div.Popup3 div.pop_body.dialog_full {
   overflow: hidden; 
   width: 100% !important;
 }
+div.chng { font-weight: bold; line-height: 150%; }
+span.chng_hlp { font-weight: normal; }
 
 /* malá obrazovka */
 /*@media all and (max-width: 1024px) {

@@ -504,6 +504,7 @@ panel REDAKCE [0,0,840,515] {type:'popup', title:'Redakce', css:'dialog_menu',
 
   use info: form _info [0,0,,]              { tag:'i' }
   use glob: form _glob [0,0,,]              { tag:'g' }
+  use chng: form _chng [0,0,,]              { tag:'z' }
   use uzivatele: form users [0,0,,]         { tag:'u' }
   use uzivatel: form user [335,0,,]         { tag:'u' }
   use cmd: form _cmd [0,sys_users_cmd,,]    { tag:'u' }
@@ -517,6 +518,7 @@ panel REDAKCE [0,0,840,515] {type:'popup', title:'Redakce', css:'dialog_menu',
     uzivatel.get.display(sys('options','watch_access'),'ac');
     uzivatel.get.display(sys('options','watch_ip'),'ip');
     cmd.watch_key.display(sys('options','watch_key'));
+    chng.start;
     see.o.d.click;
   }
   # ==> ... uložení uživatele s kontrolou
@@ -579,15 +581,16 @@ panel REDAKCE [0,0,840,515] {type:'popup', title:'Redakce', css:'dialog_menu',
   }
   # ----------------------------------------------------------------==> ... menu
   menu see { type:'left', active:*, format:'f-'
-    menu n {title:'Úpravy vzhledu webu',type:'group'
-      item z {title:'Zobrazené části ',      par:°{cmd:'obsah',days:1} }
-      proc onclick(i) { var cs:number
-        panel.display(2,'g'); 
-        cs.set(ask('select',"cms_skill","xclanek",conc("id_xclanek=",news.get)));
-        [ cs; glob.novinky.set(0) | glob.novinky.set(1) ];
+    menu n {title:'Úpravy webu',type:'group'
+      item z {title:'Volby aktuálního zobrazení' 
+        proc onclick(i) { var cs:number
+          panel.display(2,'g'); 
+          cs.set(ask('select',"cms_skill","xclanek",conc("id_xclanek=",news.get)));
+          [ cs; glob.novinky.set(0) | glob.novinky.set(1) ];
+        }
       }
     }
-    menu o {title:'Přehled změn na webu',type:'group'
+    menu o {title:'Historie redakční práce',type:'group'
       item d {title:'Přehled změn dnes',      par:°{cmd:'obsah',days:1} }
       item   {title:'Přehled změn za týden',  par:°{cmd:'obsah',days:7} }
       item   {title:'Přehled změn za měsíc',  par:°{cmd:'obsah',days:30} }
@@ -598,6 +601,22 @@ panel REDAKCE [0,0,840,515] {type:'popup', title:'Redakce', css:'dialog_menu',
         info.fill(conc(i.owner.title,' - ',replace_fa(i.title)),ask('log_report',i.par));
       }
     }
+    menu p {title:'Programové změny',type:'group'
+      item d {title:'Přehled změn za týden',  par:°{days:7} }
+      item   {title:'Přehled změn za měsíc',  par:°{days:30} }
+      item   {title:'Přehled změn za rok',    par:°{days:365} }
+      func onclick(i) {
+        panel.display(2,'i'); 
+        info.fill(conc(i.owner.title,' - ',replace_fa(i.title)),
+            php.doc_chngs_show('ak',i.par.days));
+      }
+      item   {title:'Zápis změny'
+        func onclick(i) {
+          panel.display(2,'z'); 
+          info.fill(conc(i.owner.title,' - ',replace_fa(i.title)),' ');
+        }
+      }
+    }
     menu all { title:'Členové redakce',type:'group'
       item actives { title:'[fa-user-plus] aktivní uživatelé', par:°{on:'h',off:'u',cond:"LEFT(deleted,1)!='H'"}}
       item         { title:'[fa-user-times] skrytí uživatelé', par:°{on:'u',off:'h',cond:"deleted LIKE 'H%'"}}
@@ -606,6 +625,52 @@ panel REDAKCE [0,0,840,515] {type:'popup', title:'Redakce', css:'dialog_menu',
         panel.display(2,'u');
         last_par.set(i.par);
         refresh;
+      }
+    }
+  }
+  # ----------------------------------------------------------------==> ... zápis prog. změn
+  form _chng [,,*,500] {
+    var virgin= 1, a_version= 0
+    proc start() { virgin.get; refresh; virgin.set(0) }
+    proc refresh() { s.browse_load("kind='v'") }
+    view h: table _help
+
+    // příkazy
+    label  [12,5,145,30] { css:'ae_parm'}
+    button [20,11,,] { title:"[fa-database] Nový", proc onclick() { var ver_max:number
+        form.init(2); 
+        [ a_version.get; version.set(sum(a_version.get,1)); version.change ];
+        kind.change; datum.set(now); datum.change; /*topic.change;*/ hlp.change; }}
+    button [79,11,,] { title:"[fa-trash-o] Vymazat", proc onclick() {
+      confirm("Opravdu vymazat zprávu ",s.topic.get,"?");
+      _help.delete_record(conc("id_help=",s.id_help.get)); refresh }}
+
+    label  [240,5,123,30] { css:'ae_parm'}
+    button [250,11,,] { title:"[fa-save] Ulož",  proc onclick() { ADMIN.the_formsave(form,s) }}
+    button [306,11,,] { title:"[fa-undo] Zpět", proc onclick() { form.key(s.id_help.get); form.load}}
+
+    // nová změna
+    field kind { data:h.kind, value:'v' }
+    field datum [12,45,79,] { type:'date', data:h.datum, format:'r' }
+    field version [98,45,41,] { data:h.version, format:'r' }
+    field name  { data:h.name }
+    field topic { data:h.topic }
+    select topic_s [152,45,60,] { type:'map', options:cis_help_druh.hodnota format:'' 
+      proc onchanged() { name.set(this.get); name.change; topic.set(this.get); topic.change;  }
+    }
+    field wrk [698,20,32,] { title:'pracnost:', data:h.work, format:'r:e', skill:'m|mw' }
+    field hlp [218,45,431,] { data:h.help, format:'' }
+    // seznam změn
+    browse s [0,75,150,100] { rows:20, qry_rows:1
+      show id_help { data:h.id_help }
+      show [,,72,] { title:'datum', data:h.datum, format:'s-q*rt' }
+      show ver [,,60,] { title:'rev', data:h.version, format:'sq*rt' }
+      show topic [,,50,] { title:'topic', data:h.topic, format:'sq*t' }
+      show [,,390,] { title:'help', data:h.help, format:'sq*t' }
+      proc onrowclick() {
+        form.key(id_help.get); form.load;
+        topic_s.set(topic.get);
+        a_version.set(ver.get);
       }
     }
   }
@@ -1518,6 +1583,7 @@ table _cis { key_id:'id_cis'
 map skill_level: table _skill { where:"id_skill IN (0,8,16)", order:'id_skill', key_id:'id_skill' }
 map cis_web: table _cis { where:"druh='web'", order:'poradi', key_id:'data' }
 map cis_cms: table _cis { where:"druh='cms'", order:'poradi', key_id:'data' }
+map cis_help_druh: table _cis { where:"druh='help_druh'", order:'poradi', key_id:'data' }
 map cis_skupiny: table _cis { where:"druh='skupiny'", order:'poradi', key_id:'data' }
 map users: table _user { where:"1", order:'surname', key_id:'id_user' }
 
