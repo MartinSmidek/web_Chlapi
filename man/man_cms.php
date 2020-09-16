@@ -13,6 +13,7 @@ function escape_string($inp) {
       array('\\\\', '\\0', '\\n', '\\r', "\\'", '\\"', '\\Z'), $inp); 
 }
 /** ===========================================================================================> GIT */
+/*
 # ----------------------------------------------------------------------------------------- git make
 # provede git par.cmd>.git.log a zobrazí jej
 function git_make($par) {
@@ -46,6 +47,54 @@ function git_make($par) {
     $msg= nl2br(htmlentities($msg));
     break;
   }
+  return $msg;
+}
+*/
+# ----------------------------------------------------------------------------------------- git make
+# provede git par.cmd>.git.log a zobrazí jej
+# fetch pro lokální tj. vývojový server nepovolujeme
+function git_make($par) {
+  global $abs_root;
+  $bean= preg_match('/bean/',$_SERVER['SERVER_NAME'])?1:0;
+                                                    display("bean=$bean");
+  $cmd= $par->cmd;
+  $folder= $par->folder;
+  $lines= '';
+  $msg= "";
+  // proveď operaci
+  switch ($par->op) {
+  case 'cmd':
+    if ( $cmd=='fetch' && $bean) {
+      $msg= "na vývojových serverech (*.bean) příkaz fetch není povolen ";
+      break;
+    }
+    $state= 0;
+    // zruš starý obsah .git.log
+    $f= @fopen("$abs_root/docs/.git.log", "r+");
+    if ($f !== false) {
+        ftruncate($f, 0);
+        fclose($f);
+    }
+    if ( $folder=='ezer') chdir("../_ezer3.1");
+    $exec= "git $cmd>$abs_root/docs/.git.log";
+    exec($exec,$lines,$state);
+                            display("$state::$exec");
+    // po fetch ještě nastav shodu s github
+    if ( $cmd=='fetch') {
+      $msg.= "$state:$exec\n";
+      $cmd= "reset --hard origin/master";
+      $exec= "git $cmd>$abs_root/docs/.git.log";
+      exec($exec,$lines,$state);
+                            display("$state::$exec");
+    }
+    if ( $folder=='ezer') chdir($abs_root);
+    $msg.= "$state:$exec\n";
+  case 'show':
+    $msg.= file_get_contents("$abs_root/docs/.git.log");
+    break;
+  }
+  $msg= nl2br(htmlentities($msg));
+  $msg= "<i>Synology: musí být spuštěný Git Server (po aktualizaci se vypíná)</i><hr>$msg";
   return $msg;
 }
 /** =========================================================================================> TABLE */

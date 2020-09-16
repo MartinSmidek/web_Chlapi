@@ -495,6 +495,7 @@ panel REDAKCE [0,0,840,515] {type:'popup', title:'Redakce', css:'dialog_menu',
   const sys_users_list = 22
   const sys_users_skills = 16
   const sys_users_cmd = 476
+  const news = 264
 
   var last_par: object,
   var novy: number,
@@ -502,6 +503,7 @@ panel REDAKCE [0,0,840,515] {type:'popup', title:'Redakce', css:'dialog_menu',
   var sel: text,
 
   use info: form _info [0,0,,]              { tag:'i' }
+  use glob: form _glob [0,0,,]              { tag:'g' }
   use uzivatele: form users [0,0,,]         { tag:'u' }
   use uzivatel: form user [335,0,,]         { tag:'u' }
   use cmd: form _cmd [0,sys_users_cmd,,]    { tag:'u' }
@@ -577,7 +579,15 @@ panel REDAKCE [0,0,840,515] {type:'popup', title:'Redakce', css:'dialog_menu',
   }
   # ----------------------------------------------------------------==> ... menu
   menu see { type:'left', active:*, format:'f-'
-    menu o {title:'Změny obsahu',type:'group'
+    menu n {title:'Úpravy vzhledu webu',type:'group'
+      item z {title:'Zobrazené části ',      par:°{cmd:'obsah',days:1} }
+      proc onclick(i) { var cs:number
+        panel.display(2,'g'); 
+        cs.set(ask('select',"cms_skill","xclanek",conc("id_xclanek=",news.get)));
+        [ cs; glob.novinky.set(0) | glob.novinky.set(1) ];
+      }
+    }
+    menu o {title:'Přehled změn na webu',type:'group'
       item d {title:'Přehled změn dnes',      par:°{cmd:'obsah',days:1} }
       item   {title:'Přehled změn za týden',  par:°{cmd:'obsah',days:7} }
       item   {title:'Přehled změn za měsíc',  par:°{cmd:'obsah',days:30} }
@@ -598,6 +608,16 @@ panel REDAKCE [0,0,840,515] {type:'popup', title:'Redakce', css:'dialog_menu',
         refresh;
       }
     }
+  }
+  # ----------------------------------------------------------------==> ... globální nastavení
+  form _glob [,,835,473] { 
+    label [6,3,300,15] { title:'<h1>Globální nastavení</h1>' }
+    check novinky [10,37,300,20] { title:"zobrazit 'Novinky na tomto webu'" format:'t'
+      proc onchange() { 
+        this.get; 
+        ask('query',conc("UPDATE xclanek SET cms_skill=0 WHERE id_xclanek=",news.get))
+      | ask('query',conc("UPDATE xclanek SET cms_skill=4 WHERE id_xclanek=",news.get))
+    }}
   }
   # ----------------------------------------------------------------==> ... uživatelé
   form users [,,835,473] { css:'ae_work'

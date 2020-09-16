@@ -1187,18 +1187,21 @@ __EOD;
     list($obsah,$wskill,$cskill,$zmena)= 
         select("web_text,web_skill,cms_skill,TO_DAYS(NOW())-IFNULL(TO_DAYS(ch_date),0)",
             "xclanek","id_xclanek=".NEWS);
-    $wskill= 0+$wskill;
-    // zneplatnění a přebarvení nekompetentních odkazů
-    $obsah= x_cenzura($obsah);
-    // po kliknutí na validní odkaz zneviditelní div
-    $obsah= str_replace('href=',"onclick=\"jQuery('clanek2').fadeOut();\" href=",$obsah);
-    $news= <<<__EOD
-      <div class='neodkaz' style="display:block">
-        <div id='clanek2' class='home' style="background:#cfdde6d6">
-          $obsah
+    // zobrazí se jen, když není v redakčním modu
+    if ( !$cskill ) {
+      $wskill= 0+$wskill;
+      // zneplatnění a přebarvení nekompetentních odkazů
+      $obsah= x_cenzura($obsah);
+      // po kliknutí na validní odkaz zneviditelní div
+      $obsah= str_replace('href=',"onclick=\"jQuery('clanek2').fadeOut();\" href=",$obsah);
+      $news= <<<__EOD
+        <div class='neodkaz' style="display:block">
+          <div id='clanek2' class='home' style="background:#cfdde6d6">
+            $obsah
+          </div>
         </div>
-      </div>
 __EOD;
+    }
     $_SESSION['web']['news']= 0;
   }
   $navod= NAVOD;
