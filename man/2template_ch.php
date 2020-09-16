@@ -2155,7 +2155,7 @@ function log_login($ok,$mail='') {
   $_SESSION['web']['cms_relog']= $relog+1;
   db_connect();
   if ( $id_user ) {
-    list($abbr)= select("abbr","_user","id_user='$id_user'");
+    $abbr= select1("abbr","_user","id_user='$id_user'");
     // uvolni všechny uzamčené záznamy, které jsi zamkl
     record_unlock('xclanek',0,true);
     record_unlock('xkniha',0,true);
