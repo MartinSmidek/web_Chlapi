@@ -605,6 +605,7 @@ panel REDAKCE [0,0,840,515] {type:'popup', title:'Redakce', css:'dialog_menu',
       item d {title:'Přehled změn za týden',  par:°{days:7} }
       item   {title:'Přehled změn za měsíc',  par:°{days:30} }
       item   {title:'Přehled změn za rok',    par:°{days:365} }
+      item   {title:'Přehled uskutečněných změn', par:°{days:99999} }
       func onclick(i) {
         panel.display(2,'i'); 
         info.fill(conc(i.owner.title,' - ',replace_fa(i.title)),
