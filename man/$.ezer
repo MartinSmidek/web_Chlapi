@@ -2,6 +2,7 @@
 # Aplikace bez menu - pouze s hlavním panelem
 # (c) 2016-2018 Martin Šmídek <martin@smidek.eu>
 
+# -----------------------------------------------------------------------==> propojení na template
 panel p [0,0,*,*] { type:'main', _sys:'$'
   var do_go=1
   var last='home'  //'home'
@@ -180,7 +181,7 @@ panel p [0,0,*,*] { type:'main', _sys:'$'
 //    function("return jump_fokus();");
 //  }
   func cms_go_case(pid) { var y:object, ref:text
-    if ( has_skill('a') && f.clr ) clear();
+    if ( has_skill('a') /*&& f.clr*/ ) clear();
     y= php.pid2menu(pid);
     f.verze= sys('ezer','version'); 
     ask_page(function('mref',"history_push2(mref);return Ezer.app_root;",y.url),y.page);
@@ -214,7 +215,7 @@ panel p [0,0,*,*] { type:'main', _sys:'$'
 //    eq(e.par); eq(e.par.obligatory,1);
 //    e.set_css('','obligatory');
 //  }
-  func form_obligatory(f,on) { var e:object
+  func form_obligatory(f,on) { var e:ezer
     for (e of f) {
       if ( e.par && (e.par.obligatory==1) ) {
         if ( on ) 
@@ -234,6 +235,12 @@ panel p [0,0,*,*] { type:'main', _sys:'$'
   proc form_obligatory_test_do(e) {
     eq(e.par); eq(e.par.obligatory,1);
     [ e.get | form_obligatory_n.set(sum(form_obligatory_n.get,1)) ]
+  }
+
+  func item_title (i:ezer) { var ow: ezer
+    ow= i.owner();
+    return(`${ow.title} - ${replace_fa(i.title)}`);
+    return('x')
   }
 # ----------------------------------------------------------------------------==> control bar
   form _f [,,*,30] { css:'grey admin', style:'z-index:9999;position:fixed'
@@ -401,10 +408,13 @@ panel ADMIN [0,0,600,465] { title:'Aktivita CMS', type:'popup', css:'dialog_menu
       item c { title:'chybná přihlášení'    par:°{cmd:'me_login',typ:'ko'}}
       item   { title:'správná přihlášení'   par:°{cmd:'me_login',typ:'ok'}}
       item   { title:'přihlášení k editaci' par:°{cmd:'me_login',typ:'r'}}
-      proc onclick (i) {  var y:text
+      proc onclick (i:ezer) {  var y:text
+        xonclick(i)
+      }
+      proc xonclick (i:ezer) {  var y:text
         panel.display(2,'mu'); u.den.display(0);
         y.set(ask('log_report',i.par));
-        u.fill(conc(i.owner.title,' - ',replace_fa(i.title)),y);
+        u.fill(p.item_title(i),y);
       }
     }
     menu err { title:'Chyby', type:'group', skill:'a'
@@ -421,9 +431,9 @@ panel ADMIN [0,0,600,465] { title:'Aktivita CMS', type:'popup', css:'dialog_menu
       item { title:"[fa-question] přehled záloh"                par:°{typ:'download'}}
       item { title:"[fa-upload] zálohuj teď"                    par:°{typ:'special'}}
       item { title:"[fa-download] obnova ze zálohy (jen local)" par:°{typ:'restore'}}
-      proc onclick(i) {
+      proc onclick(i:ezer) {
         panel.display(2,'mu'); u.den.display(0);
-        u.fill(conc(i.owner.title,' - ',i.title),' ');
+        u.fill(p.item_title(i),' ');
         { eq(i.par.typ,'download'); 
           u.append("<i>zobrazené zálohy lze stáhnout kliknutím (nelze 'Stahnout jako ...')</i><br>");
           u.append(ask('sys_backup_make',i.par)) 
@@ -448,16 +458,16 @@ panel ADMIN [0,0,600,465] { title:'Aktivita CMS', type:'popup', css:'dialog_menu
       item { title:'[fa-gears] Ezer: git pull'      par:°{folder:'ezer',op:'cmd',cmd:'pull'}}
       item { title:'[fa-gears] Ezer: git fetch ...' help:"po fetch>git reset --hard origin/master"
                                                     par:°{folder:'ezer',op:'cmd',cmd:'fetch'}}
-      func onclick (i) {  
-        panel.display(2,'mu'); u.den.display(0);
-        u.fill(`${i.owner.title} - ${replace_fa(i.title)}`,php.git_make(i.par));
+      func onclick (i:ezer) {  
+        panel.display(2,'mu'); u.den.display(0); 
+        u.fill(p.item_title(i),php.git_make(i.par));
       }
     }
-    func onclick (i) {  var y:text
+    func onclick (i:ezer) {  var y:text
       panel.display(2,'mu'); 
       u.den.display(i.par.c=='den');
       y= php.sys_activity(i.par,skip,u.den,sys('options','watch_access_opt'));
-      u.fill(`${i.owner.title} - ${replace_fa(i.title)}`,y);
+      u.fill(p.item_title(i),y);
     }
   }
   use u: form _u [0,0,,] { tag:'mu' }
@@ -596,25 +606,24 @@ panel REDAKCE [0,0,840,515] {type:'popup', title:'Redakce', css:'dialog_menu',
       item   {title:'Přehled změn za měsíc',  par:°{cmd:'obsah',days:30} }
       item   {title:'Přehled změn za rok',    par:°{cmd:'obsah',days:365} }
       item   {title:'Přehled uskutečněných změn', par:°{cmd:'obsah',days:99999} }
-      func onclick(i) {
+      func onclick(i:ezer) {
         panel.display(2,'i'); 
-        info.fill(conc(i.owner.title,' - ',replace_fa(i.title)),ask('log_report',i.par));
+        info.fill(p.item_title(i),php.log_report(i.par));
       }
     }
-    menu p {title:'Programové změny',type:'group'
+    menu g {title:'Programové změny',type:'group'
       item d {title:'Přehled změn za týden',  par:°{days:7} }
       item   {title:'Přehled změn za měsíc',  par:°{days:30} }
       item   {title:'Přehled změn za rok',    par:°{days:365} }
       item   {title:'Přehled uskutečněných změn', par:°{days:99999} }
-      func onclick(i) {
+      func onclick(i:ezer) {
         panel.display(2,'i'); 
-        info.fill(conc(i.owner.title,' - ',replace_fa(i.title)),
-            php.doc_chngs_show('ak',i.par.days));
+        info.fill(p.item_title(i),php.doc_chngs_show('ak',i.par.days));
       }
       item   {title:'Zápis změny'
-        func onclick(i) {
+        func onclick(i:ezer) {
           panel.display(2,'z'); 
-          info.fill(conc(i.owner.title,' - ',replace_fa(i.title)),' ');
+          info.fill(p.item_title(i),' ');
         }
       }
     }
