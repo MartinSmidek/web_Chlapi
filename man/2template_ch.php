@@ -907,7 +907,7 @@ __EOT;
         <div id="skup2"></div>
 __EOT;
       break;
-
+/*
 //    // clanky=vzor získání abstraktů akcí podle roků a vzoru  {tx_gncase.chlapi RLIKE vzor}
 //    case 'akce':      # ------------------------------------------------ . akce
 //      global $y, $backref, $top, $links;
@@ -998,7 +998,7 @@ __EOT;
       }
       $html.= $ys_html;
       break;
-
+*/
     // clanek=pid -- samostatně zobrazený rozvinutý part
     case 'clanek':  # ------------------------------------------------ . clanek
       global $y;
