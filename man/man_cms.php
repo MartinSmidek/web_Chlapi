@@ -213,19 +213,19 @@ function ERRATA_2020($cond) {
         $html.= count($files)." unlink ";
         foreach ($files as $file) {
 //          $html.= "<br> unlink($dst/$file)";
-//          unlink("$dst/$file");
+          unlink("$dst/$file");
         }
       }
       else {
         $html.= "<br> mkdir($dst)";
-//        mkdir($dst);
+        mkdir($dst);
       }
       // a zkopírujeme 
       $files= files($src);
       $html.= count($files)." copy ";
       foreach ($files as $file) {
 //        $html.= "<br> copy($src/$file,$dst/$file)";
-//        copy("$src/$file","$dst/$file");
+        copy("$src/$file","$dst/$file");
       }
     }
     else {
