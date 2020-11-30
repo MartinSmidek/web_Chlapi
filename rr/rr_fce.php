@@ -26,7 +26,7 @@ function rr_send($par) {
   $dnes= date('j/n/Y',mktime(0,0,0,date('n'),date('j')+$plus,date('Y')));
   $html= "neni pro $dnes nastaveno! ($offset)";
   //return $html;
-  ezer_connect("ezertask");
+//  ezer_connect("myslenky");
   $qry= "SELECT * FROM rr WHERE datum=curdate()$offset ";
   $res= pdo_qry($qry);
 //                                                $html.= "<br>$res=$qry";
@@ -61,7 +61,8 @@ function rr_send($par) {
         // odeslání a ochrana proti zdvojení
         $email= $_GET['email'] ? $_GET['email'] : 'chlapi-myslenky@googlegroups.com';
         $html.= "<hr/>zaslání na <i>$email</i> skončilo se stavem ";
-        $ok= send_simple_mail($subj,$body,'smidek@proglas.cz',$email,'Richard Rohr');
+        $ok= send_mail($subj,$body,'smidek@proglas.cz',$email,'Richard Rohr');
+//        $ok= send_mail($subj,$body,'smidek@proglas.cz','martin@smidek.eu','Richard Rohr');
         $html.= $ok;
         //$html.= $mail->sendHtmlMail('smidek@proglas.cz',$email,'','',$subj,$body,'Richard Rohr');
         if ( $ok && !isset($_GET['email']) ) {
@@ -73,39 +74,3 @@ function rr_send($par) {
   }
   return $html;
 }
-# --------------------------------------------------------------------------------------- send gmail
-# pošle mail přes GMAIL
-# $to může být seznam adres oddělený čárkou
-function send_simple_mail($subject,$html,$from='',$to='',$fromname='') { trace();
-  global $ezer_path_serv, $ezer_root, $EZER;
-  $from= $from ? $from : ($EZER->smtp->from ? $EZER->smtp->from : $EZER->options->mail);
-  $fromname= $fromname ? $fromname : $ezer_root;
-  $to= $to ? $to : $EZER->options->mail;
-  // poslání mailu
-  $phpmailer_path= "$ezer_path_serv/licensed/phpmailer";
-  require_once("$phpmailer_path/class.phpmailer.php");
-  // napojení na mailer
-  $mail= new PHPMailer;
-  $mail->Mailer= 'mail';
-  // kompozice mailu
-  $mail->SetLanguage('cz',"$phpmailer_path/language/");
-  $mail->CharSet = "utf-8";
-  $mail->From= $from;
-  $mail->FromName= $fromname;
-  foreach (explode(',',$to) as $to1) {
-    $mail->AddAddress($to1);
-  }
-  $mail->Subject= $subject;
-  $mail->Body= $html;
-  $mail->IsHTML(true);
-  // pošli
-  $ok= $mail->Send();
-//                                                 display("send_mail=$ok,".$mail->ErrorInfo);
-  if ( !$ok )
-    fce_warning("Selhalo odeslání mailu: $mail->ErrorInfo");
-  else {
-//                                                 $mail->Subject= $mail->Body= $mail->language= "---";
-//                                                 debug($mail,"send_mail(..,..,$from,$to)=$ok");
-  }
-  return $ok;
-}?>
