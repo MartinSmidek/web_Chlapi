@@ -26,10 +26,10 @@ function rr_send($par) {
   $dnes= date('j/n/Y',mktime(0,0,0,date('n'),date('j')+$plus,date('Y')));
   $html= "neni pro $dnes nastaveno! ($offset)";
   //return $html;
-//  ezer_connect("myslenky");
+  ezer_connect("ezertask");
   $qry= "SELECT * FROM rr WHERE datum=curdate()$offset ";
   $res= pdo_qry($qry);
-//                                                $html.= "<br>$res=$qry";
+                                                $html.= "<br>$res=$qry";
   while ( $res && ($o= pdo_fetch_object($res)) ) {
 //     $html= $o->text_cz;
     $day_n= $o->day_n;

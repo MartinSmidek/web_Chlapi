@@ -8,8 +8,9 @@
   $ezer_server= 
     $_SERVER["SERVER_NAME"]=='chlapi.bean'      ? 0 : (       // 0:lokální NTB
     $_SERVER["SERVER_NAME"]=='chlapi.cz'        ? 1 : (       // 1:Synology - YMCA
+    $_SERVER["SERVER_NAME"]=='192.168.1.213'    ? 1 : (       // 1:Synology - YMCA (lokálně)
     $_SERVER["SERVER_NAME"]=='ezer.smidek.eu'   ? 2 : (       // 2:endora
-    $_SERVER["SERVER_NAME"]=='chlapi.doma'      ? 3 : -1)));  // Synology - DOMA
+    $_SERVER["SERVER_NAME"]=='chlapi.doma'      ? 3 : -1)))); // Synology - DOMA
 
   $app=      'rr';
   $app_name= 'Myšlenky Richarda Rohra';
@@ -37,6 +38,7 @@
   
   if ( isset($_GET['batch']) && $_GET['batch'] ) {
     // batch - verze
+    echo($_SERVER["SERVER_NAME"].'<br>');
 //    require_once("$kernel/pdo.inc.php");
 //    require_once("$kernel/server/ezer_pdo.php");
 //    require_once("$kernel/server/ae_slib.php");
