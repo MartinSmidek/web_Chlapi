@@ -54,8 +54,9 @@ else {
 //  $ezer_local= preg_match('/^\w+\.bean/',$_SERVER["SERVER_NAME"]);
 
   // pamatování GET
-  global $GET_rok;
+  global $GET_rok, $counts;
   $GET_rok= isset($_GET['rok']) ? $_GET['rok'] : '';
+  $counts= array(); // typ -> počet
   read_menu();
   $path= isset($_GET['page']) ? explode('!',$_GET['page']) : array('home');
   $elem= eval_menu($path);

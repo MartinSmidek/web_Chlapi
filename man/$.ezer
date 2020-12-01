@@ -1154,40 +1154,60 @@ panel EDITOR [0,0,720,550] { type:'popup', style:"min-width:700px", par:°{close
   # úprava kalendáře
   form _k [10,10,710,460] {
     button [0,5,,]  { title:"[fa-chevron-left]", help:'starší akce'
-      proc onclick() { next_xakce(1); }}
+      func onclick() { next_xakce(1); }}
     button [21,5,,] { title:"[fa-repeat]"          
-      proc onclick() { form.load(id.get); next_xakce(0) } }
+      func onclick() { form.load(id); next_xakce(0) } }
     button [43,5,,] { title:"[fa-chevron-right]", help:'novější akce'
-      proc onclick() { next_xakce(-1); }}
+      func onclick() { next_xakce(-1); }}
     field [68,5,50,] { data:xakce.id_xakce, format:'o' }
     label [120,7,400,] { title:"<== nalezni akci, kterou chceš upravit nebo založ novou ==>", 
         format:'c', style:"font-weight:bold;color:darkgreen;background-color:#c0e2c2" }
     button  [-99,5,,] { title:'Nová akce', help:'vytvořit novou akci'
-      proc onclick() { form.init; }}
+      func onclick() { form.init(); od.change(); nazev.change(); misto.change(); }}
     button  [-46,5,,] { title:'Uložit', help:'ukončit editor a uložit změny'
-      proc onclick() { 
-        form.same
-      | form.key; form.save; form.load; 
-        ask('log_obsah','u','a',id.get); 
-        panel.hide(1); 
-      | id.set(form.insert); form.load; 
-        ask('log_obsah','i','a',id.get); 
-        panel.hide(1); 
-      }}
+      func onclick() { 
+        if (!form.same()) {
+          if (form.key()) {
+            form.save(); 
+            php.log_obsah('u','a',id); 
+          }
+          else {
+            id= form.insert(); 
+            php.log_obsah('i','a',id); 
+          }
+          form.load(); 
+          panel.hide(1); 
+        }
+      }
+//      proc onclick() { 
+//        form.same
+//      | form.key; form.save; form.load; 
+//        ask('log_obsah','u','a',id.get); 
+//        panel.hide(1); 
+//      | id.set(form.insert); form.load; 
+//        ask('log_obsah','i','a',id.get); 
+//        panel.hide(1); 
+//      }
+    }
     button  [-1,5,,] { title:'Zpět', help:'ukončit editor bez uložení změn'
-      proc onclick() { panel.hide(0); }}
+      func onclick() { panel.hide(0); }}
     button [-1,40,,] { title:'[fa-files-o] Přílohy', help:'seznam souborů sdružených s textem'
-      proc onclick() {
-        UPLOAD.ckeditor.set(obsah);
-        UPLOAD.path.set(path.get);
-        UPLOAD.modal //(50,100)
+      func onclick() {
+        UPLOAD.ckeditor= obsah;
+        UPLOAD.path= path;
+        UPLOAD.modal() //(50,100)
       }
     }
     // položky akce
-    field [0,40,85,] { type:'date', title:'^ode dne', data:xakce.datum_od }
-    field [95,40,85,] { type:'date', title:'^do dne', data:xakce.datum_do }
-    field [190,40,248,] { title:'^název', data:xakce.nazev }
-    field [450,40,183,] { title:'^místo', data:xakce.misto }
+    field od [0,40,85,] { type:'date', title:'^ode dne', data:xakce.datum_od 
+      func onchanged() {
+        if (js.date2unix(od)>js.date2unix(do)) {
+          do= od; do.change();
+        }
+    }}
+    field do [95,40,85,] { type:'date', title:'^do dne', data:xakce.datum_do }
+    field nazev [190,40,248,] { title:'^název', data:xakce.nazev }
+    field misto [450,40,183,] { title:'^místo', data:xakce.misto }
     // anotace
     label [0,70,300,20] { title:'anotace s odkazem na pozvánku' }
     edit obsah [0,90,710,150] { type:'html', data:xakce.web_text, par:°{toolbar:'WEB'} }
@@ -1196,14 +1216,16 @@ panel EDITOR [0,0,720,550] { type:'popup', style:"min-width:700px", par:°{close
     // zápis
     label text [0,287,710,263] { style:"background:white;overflow-y:scroll" }
     // funkce
-    proc next_xakce(smer) { var y:object
-      info.set(''); text.set('');
-      y.set(ask('next_xakce',id.get,smer)); 
-      [ y.info; info.set(y.info) ]; 
-      [ y.text; text.set(y.text) ]; 
-      [ y.msg; warning(y.msg) ];
-      id.set(y.id); form.load(y.id);
-      [ y.dotaz; confirm(y.dotaz); ask('zapis_xakce',id.get) ];
+    func next_xakce(smer) { var y:object
+      info= ''; text= '';
+      y= php.next_xakce(id,smer); 
+      if (y.info) info= y.info; 
+      if (y.text) text= y.text; 
+      if (y.msg) warning(y.msg);
+      id= y.id; form.load(id);
+      if (y.dotaz && confirm(y.dotaz)) { 
+        text= php.zapis_xakce(id);
+      }
     }
   }
   # -----------------------------------------------------------------------------==> edit akce

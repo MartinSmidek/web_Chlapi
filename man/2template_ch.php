@@ -48,8 +48,9 @@ function get_prefix() {
 # -------------------------------------------------------------------------------------==> page
 // jen pro CMS mod: vrací objekt se stránkou
 function page($a,$b) { 
-  global $amenu, $cmenu;
+  global $amenu, $cmenu, $counts;
   $page= '';
+  $counts= array(); // typ -> počet
   def_user();
   read_menu();
   $path= explode('!',$b);
@@ -292,9 +293,10 @@ function title_menu($title,$items,$id=0,$idk=0,$idm=0) {
 # -------------------------------------------------------------------------------------==> eval elem
 // desc :: key [ = ids ]
 // ids  :: id1 [ / id2 ] , ...    -- id2 je klíč v lokální db pro ladění
+// $counts je pole sčítající skutečně renderované (viditelné) elementy
 function eval_elem($desc,$book=null) {
   global $REDAKCE, $KLIENT, $ezer_server, $http_server, $index, $load_ezer, $curr_menu, $top, 
-      $prefix, $mobile, $cmenu, $backref;
+      $prefix, $mobile, $cmenu, $backref, $counts; 
   $elems= explode(';',$desc);
   $ipad= '';
   $html= '';
@@ -389,14 +391,12 @@ __EOT;
           ORDER BY datum_od DESC");
       while ($rs && list($r,$pocet)= pdo_fetch_row($rs) ) {
         $html.= "<br id='rok$r'>";
-        $akce= kolik_1_2_5($pocet,"akce,akcí,akcí");
-        $zacatek= "Archiv $akce z roku $r";
         if ( $rok==$r ) {
           // otevřený rok
-          $html.= "<div id='fokus_page' class='kniha_bg'>
-                     <div class='kniha_br'><b>$zacatek ...</b></div>
-                     <div id='list'>";
+          $html_r= '';
+          $pocet= 0;
           // seznam akcí
+          $counts['aclanek']= 0;
           $ra= pdo_qry("SELECT id_xakce,xelems,skupina,datum_od,datum_do,nazev FROM xakce 
               WHERE datum_od<DATE(NOW()) AND YEAR(datum_od)=$r AND xelems!='' AND skupina='$id'
               ORDER BY datum_od DESC");
@@ -412,19 +412,29 @@ __EOT;
                   $par->tit= "$oddo $nazev";
                   $par->header= "<h1>$oddo $nazev</h1><hr>";
                 }
-                $html.= eval_elem($elem,$par);
+                $html_r.= eval_elem($elem,$par);
                 $first= false;
               }
             }
           }
           // konec roku
-          $konec= "... konec archivu roku $r";
-          $html.=   "</div>
-                     <div class='kniha_br'><b>$konec</b></div>
-                   </div>";
+          $pocet= $counts['aclanek'];
+          if ($pocet) {
+            $akce= kolik_1_2_5($pocet,"akce,akcí,akcí");
+            $html.= "
+             <div id='fokus_page' class='kniha_bg'>
+               <div class='kniha_br'><b>Archiv $akce z roku $r ...</b></div>
+               <div id='list'>
+                 $html_r
+               </div>
+               <div class='kniha_br'><b>... konec archivu roku $r</b></div>
+             </div>";
+          }
         }
         else {
           // zavřený rok
+          $akce= kolik_1_2_5($pocet,"akce,akcí,akcí");
+          $zacatek= "Archiv $akce z roku $r";
           $jmp= str_replace('*',$r,$backref);
           $html.= "<div class='kniha_bg'><a class='jump' $jmp>$zacatek</a></div>";
         }
@@ -729,6 +739,8 @@ __EOT;
             </a>
           </div>";
       }
+      // poznamenej článek
+      $counts['aclanek']++;
       break;
 
     case 'xclanek': # ------------------------------------------------ . xčlánek
@@ -817,11 +829,16 @@ __EOT;
       $edit_id= 0;
       // zjistíme YS + FA
       ask_server((object)array('cmd'=>'kalendar'));
-      // přidáme lokálně zapsané akce
+      // přidáme lokálně zapsané akce - ale jen ty pro všechny chlapy
       ezer_connect('setkani');
       $qa= "SELECT id_xakce,datum_od,datum_do,nazev,misto,web_text 
-          FROM xakce WHERE datum_od>NOW() ORDER BY datum_od";
+          FROM xakce WHERE datum_od>NOW() AND skupina=0 ORDER BY datum_od";
       $ra= pdo_query($qa);
+//      if ( pdo_num_rows($ra)==0 ) {
+//        $qa= "SELECT id_xakce,datum_od,datum_do,nazev,misto,web_text 
+//            FROM xakce WHERE datum_od<=NOW() AND skupina=0 ORDER BY datum_od DESC LIMIT 1";
+//        $ra= pdo_query($qa);
+//      }
       while ( $ra && list($id,$od,$do,$nazev,$misto,$text)=pdo_fetch_array($ra)) {
         $oddo= datum_oddo($od,$do);
         if ( !$edit_id )
@@ -1311,41 +1328,39 @@ __EOD;
 // dá další nebo předchozí akci - pro smer=0 vrátí informace pro nastavenou 
 function next_xakce($curr_id,$smer=1) {
   $y= (object)array('id'=>$curr_id,'msg'=>'','info'=>'','text'=>'','dotaz'=>'');
-  if ( $curr_id ) {
-    $curr_datum= select('datum_od','xakce',"id_xakce=$curr_id");
-    if ( $smer ) {
-      $rel= $smer==1 ? '<' : '>';
-      $mmm= $smer==1 ? 'MAX' : 'MIN';
-      $y->id= select1("SUBSTR($mmm(CONCAT(datum_od,id_xakce)),11)",'xakce',
-          "datum_od $rel '$curr_datum'");
-    }
-    list($nazev,$elems,$byla)= select("nazev,xelems,IF(datum_od<=NOW(),1,0)",
-        'xakce',"id_xakce='$y->id'");
+  $curr_datum= $curr_id ? select('datum_od','xakce',"id_xakce=$curr_id") : date('Y-m-d');
+  if ( $smer ) {
+    $rel= $smer==1 ? '<' : '>';
+    $mmm= $smer==1 ? 'MAX' : 'MIN';
+    $y->id= select1("SUBSTR($mmm(CONCAT(datum_od,id_xakce)),11)",'xakce',
+        "datum_od $rel '$curr_datum' AND skupina=0");
+  }
+  list($nazev,$elems,$byla)= select("nazev,xelems,IF(datum_od<=NOW(),1,0)",
+      'xakce',"id_xakce='$y->id'");
 //        "datum_od>NOW() AND datum_od $rel '$curr_datum'");
-    if ( $elems ) {
-      list($elem)= explode(';',$elems);
-      list($typ,$id)= explode('=',$elem);
-      $y->text= "-- ($typ,$id)";
-      if ( $typ=='aclanek' ) {
-        $y->info= "náhled na již existující zápis";
-        $y->text= select("web_text","xclanek","id_xclanek='$id'");
-      }
+  if ( $elems ) {
+    list($elem)= explode(';',$elems);
+    list($typ,$id)= explode('=',$elem);
+    $y->text= "-- ($typ,$id)";
+    if ( $typ=='aclanek' ) {
+      $y->info= "náhled na již existující zápis";
+      $y->text= select("web_text","xclanek","id_xclanek='$id'");
     }
-    elseif ($byla) {
-      $y->info= "k akci nikdo nenapsal zápis";
-      $y->dotaz= "mám založit článek pro zápis $nazev? "
-          . "<br>Bude zařazen mezi akce a zatím viditelný jen pro redaktory";
-    }
-    else {
-      $y->info= "akce ještě neproběhla";
-    }
-    if ( !$y->id ) {
-      $y->id= $curr_id;
-      $y->msg= "To je informace o ".($smer==1 ? 'první' : 'poslední').
-          " připravovaná akci - ostatní informace jsou do kalendáře importovány přímo z "
-          . "databáze akcí YMCA Setkání a YMCA Familia";
-      
-    }
+  }
+  elseif ($byla) {
+    $y->info= "k akci nikdo nenapsal zápis";
+    $y->dotaz= "mám založit článek pro zápis $nazev? "
+        . "<br>Bude zařazen mezi akce a zatím viditelný jen pro redaktory";
+  }
+  else {
+    $y->info= "akce ještě neproběhla";
+  }
+  if ( !$y->id ) {
+    $y->id= $curr_id;
+    $y->msg= "To je informace o ".($smer==1 ? 'první' : 'poslední').
+        " připravovaná akci - ostatní informace jsou do kalendáře importovány přímo z "
+        . "databáze akcí YMCA Setkání a YMCA Familia";
+
   }
   return $y;
 }
@@ -1353,10 +1368,11 @@ function next_xakce($curr_id,$smer=1) {
 function zapis_xakce($ida) {
   list($nazev,$od,$do)= select('nazev,datum_od,datum_do','xakce',"id_xakce=$ida");
   $oddo= datum_oddo($od,$do);
-  query("INSERT INTO xclanek (cms_skill,web_text) VALUES (4,'<h1>$oddo $nazev</h1><p>...</p>')");
+  $templ= "<h1>$oddo $nazev</h1><p>...</p>";
+  query("INSERT INTO xclanek (cms_skill,web_text) VALUES (4,'$templ')");
   $idc= pdo_insert_id();
   query("UPDATE xakce SET xelems='aclanek=$idc' WHERE id_xakce='$ida'");
-  return 1;
+  return $templ;
 }
 /** =========================================================================================> TABLE */
 # obsluha přihlašovací tabulky bez REDAKCE
@@ -2156,4 +2172,4 @@ function record_unlock ($table,$id_table,$unlock_all=false) {
   }
   return 1;
 }
-?>
+

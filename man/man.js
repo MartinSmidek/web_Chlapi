@@ -62,7 +62,7 @@ function bez_embeded(_id) {
 // --------------------------------------------------------------------------------------- date2unix
 // převede datum na timestamp
 function date2unix(datum) {
-  return Math.floor(Date.parse(datum) / 1000);
+  return datum ? Math.floor(Date.parse(datum) / 1000) : 0;
 }
 // ----------------------------------------------------------------------------------------------- $
 function $() {
