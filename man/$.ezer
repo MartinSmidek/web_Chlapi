@@ -1232,8 +1232,13 @@ panel EDITOR [0,0,720,550] { type:'popup', style:"min-width:700px", par:°{close
       }
     }
     // položky akce
-    field [0,40,85,] { type:'date', title:'^ode dne', data:xa.datum_od }
-    field [95,40,85,] { type:'date', title:'^do dne', data:xa.datum_do }
+    field od [0,40,85,] { type:'date', title:'^ode dne', data:xa.datum_od 
+      func onchanged() {
+        if (js.date2unix(od)>js.date2unix(do)) {
+          do= od; do.change();
+        }
+    }}
+    field do [95,40,85,] { type:'date', title:'^do dne', data:xa.datum_do }
     field [190,40,268,] { title:'^název', data:xa.nazev }
     field [470,40,140,] { title:'^místo', data:xa.misto }
     select [620,40,80,] { type:'map', title:'^pouze pro', help:'pro všechny nebo jen pro místní skupinu'
