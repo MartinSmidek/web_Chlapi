@@ -382,21 +382,24 @@ __EOT;
       break;
 
     case 'archiv':  # ----------------------------------------------- . archiv akcí skupiny $id
+      list($ids,$rozbalit)= explode(',',$ids); // pro archiv=x,1 rozbalit první letošní článek
       list($rok,$ida)= explode(',',$top);
+      $letos= date('Y');
       // projdi relevantní roky
       $html.= "<div id='roky'>";
-      $rs= pdo_qry("SELECT YEAR(datum_do),COUNT(*) FROM xakce 
+      $rs= pdo_qry("SELECT YEAR(datum_do),COUNT(*),GROUP_CONCAT(xelems SEPARATOR'|') FROM xakce 
           WHERE datum_od<DATE(NOW()) AND xelems!='' AND skupina='$id'
           GROUP BY YEAR(datum_od) 
           ORDER BY datum_od DESC");
-      while ($rs && list($r,$pocet)= pdo_fetch_row($rs) ) {
+      while ($rs && list($r,$pocet,$xelems)= pdo_fetch_row($rs) ) {
         $html.= "<br id='rok$r'>";
-        if ( $rok==$r ) {
+        if ( $rok==$r || $r==$letos && $rozbalit ) {
           // otevřený rok
           $html_r= '';
           $pocet= 0;
           // seznam akcí
           $counts['aclanek']= 0;
+          $first_open= $rozbalit;
           $ra= pdo_qry("SELECT id_xakce,xelems,skupina,datum_od,datum_do,nazev FROM xakce 
               WHERE datum_od<DATE(NOW()) AND YEAR(datum_od)=$r AND xelems!='' AND skupina='$id'
               ORDER BY datum_od DESC");
@@ -406,14 +409,15 @@ __EOT;
             if ( $elems ) {
               $first= true;
               foreach ( explode(';',$elems) as $elem ) {
-                $par= (object)array('subtyp'=>'akce','open'=>true,'idk'=>$rok,'ida'=>$a,'first'=>$first);
+                $par= (object)array('subtyp'=>'akce','open'=>true,'idk'=>$rok,'ida'=>$a,
+                    'first'=>$first,'first_open'=>$first_open && !$ida);
                 if ( $skupina ) {
                   $oddo= datum_oddo($od,$do);
                   $par->tit= "$oddo $nazev";
                   $par->header= "<h1>$oddo $nazev</h1><hr>";
                 }
                 $html_r.= eval_elem($elem,$par);
-                $first= false;
+                $first= $first_open= false;
               }
             }
           }
@@ -432,11 +436,29 @@ __EOT;
           }
         }
         else {
-          // zavřený rok
-          $akce= kolik_1_2_5($pocet,"akce,akcí,akcí");
-          $zacatek= "Archiv $akce z roku $r";
-          $jmp= str_replace('*',$r,$backref);
-          $html.= "<div class='kniha_bg'><a class='jump' $jmp>$zacatek</a></div>";
+          // zavřený rok - v letošním a loňském roce zjistíme počet publikovaných akcí
+          if ( 1 || $r==$letos || $r==$letos-1 ) {
+            $pocet= 0;
+            $edited= 0;
+            foreach (explode('|',$xelems) as $xelem) {
+              $m= null;
+              $ok= preg_match("/aclanek=(\d+)/",$xelem,$m);
+              if ($ok) {
+                $idc= $m[1];
+                $cms_skill= select('cms_skill','xclanek',"id_xclanek=$idc");
+                $pocet+= $cms_skill ? 0 : 1; 
+                $edited+= $cms_skill ? 1 : 0; 
+              }
+            }
+          }
+          if ($pocet || $REDAKCE) {
+            $akce= kolik_1_2_5($pocet,"akce,akcí,akcí");
+            $akce_r= kolik_1_2_5($edited,"akce,akce,akcí");
+            $zacatek= "Archiv $akce z roku $r";
+            $zacatek.= $REDAKCE && $edited ? " + $akce_r nepublikované" : '';
+            $jmp= str_replace('*',$r,$backref);
+            $html.= "<div class='kniha_bg'><a class='jump' $jmp>$zacatek</a></div>";
+          }
         }
       }
       $html.= "</div>";
@@ -546,9 +568,11 @@ __EOT;
       // má se upozornit na změnu?
       $zmena= $zmena < ZMENA ? ' zmena' : '';
       // dědění přístupnosti kapitoly knihy
+      $first_open= 0; // první kapitolu otevřít
       if ( $book ) {
         $idn= $book->open ? ($book->idk ? "$book->idk,$id" : $id) : $book->idk;
         $wskill= $book->skill ? $book->skill | $wskill : $wskill; 
+        $first_open= $book->first_open ? 1 : 0;
       }
       // viditelnost redakčních specialit
       $redakce_style= '';
@@ -558,7 +582,7 @@ __EOT;
         else 
           break;
       }
-      $plny= $top==$id && (!$wskill || $KLIENT->level & $wskill);
+      $plny= ($top==$id || $first_open) && (!$wskill || $KLIENT->level & $wskill);
       $co= $plny ? 'článek' : 'abstrakt';
       // generování obsahu
       $obsah= str_replace('$index',$index,$obsah);
@@ -570,23 +594,6 @@ __EOT;
               $obsah);
         if ( !$book  ) {
           $div_id= "c$id";
-//          $namiru= $plny ? "['upravit obrázky článku',function(el){ namiru('$id','$div_id'); }],":'';
-//          $namiru= $plny ? 
-//                "['upravit obrázky článku',function(el){ namiru('$id','$div_id'); }],
-//                 ['vyjmout embeded obrázky',function(el){ bez_embeded('$id'); }],":'';
-//          $kod= "Ezer.fce.contextmenu([
-//                ['editovat článek',function(el){ opravit('xclanek',$id); }],
-//                $namiru
-//                ['-zobrazit jako článek',function(el){ zmenit($curr_menu->mid,'aclanek',$id,'xclanek'); }],
-//                ['-přidat fotky',function(el){ pridat('xfotky',$id); }],
-//                ['-posunout článek nahoru',function(el){ posunout('aclanek',$curr_menu->mid,$id,0); }],
-//                ['posunout článek dolů',function(el){ posunout('aclanek',$curr_menu->mid,$id,1); }],
-//                ['-přidat článek na začátek',function(el){ pridat('xclanek',$curr_menu->mid,1); }],
-//                ['přidat článek na konec',function(el){ pridat('xclanek',$curr_menu->mid,0); }],
-//                ['-přidat knihu na začátek',function(el){ pridat('xkniha',$curr_menu->mid,1); }],
-//                ['přidat knihu na konec',function(el){ pridat('xkniha',$curr_menu->mid,0); }]
-//              ],arguments[0],0,0,'#xclanek$id');return false;";
-//          $menu= " title='$co $idn' oncontextmenu=\"$kod\"";
           $namiru= $plny ? "eo;xo;" : '';
           $menu= title_menu("$co $idn","ec;{$namiru}-zc;-pf;-mcn;mcd;-pcn;pcd;-pkn;pkd",$id,0,$curr_menu->mid);
           if ( $mobile ) {
@@ -597,20 +604,6 @@ __EOT;
         }
         elseif ( $book->open && $book->ida ) {
             $div_id= "a{$book->ida}-$id";
-//            $namiru= $plny ? "['upravit obrázky článku',function(el){ namiru('$id','$div_id'); }],":'';
-//            $namiru= $plny ? 
-//                "['upravit obrázky článku',function(el){ namiru('$id','$div_id'); }],
-//                 ['vyjmout embeded obrázky',function(el){ bez_embeded('$id'); }],":'';
-//            $pridat_akci= $book->idk 
-//                ? ",['-přidat novou akci $book->idk',function(el){ pridat('xakce',$book->idk,1); }]" : '';
-//            $kod= "Ezer.fce.contextmenu([
-//                ['editovat akci',function(el){ opravit('xakce',$id,$book->ida); }],
-//                $namiru
-//                ['-přidat fotky',function(el){ pridat('xfotky',$id); }]
-//                $pridat_akci
-//              ],arguments[0],0,0,'#xclanek$id');return false;\"";
-//            $menu= " title='".($plny?'':'abstrakt ')."akce $book->idk: $book->ida/$id' 
-//              oncontextmenu=\"$kod\" id='$div_id'";
             $namiru= $plny ? "eo;xo;" : '';
             $pridat_akci= $book->idk ? ";pa" 
                 : (select('COUNT(*)','xucast',"id_xclanek=$id") ? ';eu' : ';pu');
@@ -623,20 +616,6 @@ __EOT;
             }
         }
         else {
-//            $kod= "Ezer.fce.contextmenu([
-//                ['editovat článek',function(el){ opravit('xclanek',$id); }],
-//                ['upravit obrázky článku',function(el){ namiru('$id','fokus_part'); }],
-//                ['vyjmout embeded obrázky',function(el){ bez_embeded('$id'); }],
-//                ['-zobrazit jako článek',function(el){ zmenit($curr_menu->mid,'aclanek',$id,'xclanek'); }],
-//                ['-přidat fotky',function(el){ pridat('xfotky',$id); }],
-//                ['-posunout nahoru',function(el){ posunout('xkniha.elem',$book->idk,$id,0); }],
-//                ['posunout dolů',function(el){ posunout('xkniha.elem',$book->idk,$id,1); }],
-//                ['-posunout knihu nahoru',function(el){ posunout('akniha',$curr_menu->mid,$book->idk,0); }],
-//                ['posunout knihu dolů',function(el){ posunout('akniha',$curr_menu->mid,$book->idk,1); }],
-//                ['-nová kapitola na začátek',function(el){ pridat('xkniha.elem',$book->idk,1); }],
-//                ['nová kapitola na konec',function(el){ pridat('xkniha.elem',$book->idk,0); }]
-//              ],arguments[0],0,0,'#xclanek$id');return false;\"";
-//            $menu= " title='".($plny?'kapitola':'abstrakt kapitoly')." $book->ida/$idn' oncontextmenu=\"$kod\"";
             $menu= title_menu(($plny?'kapitola ':'abstrakt kapitoly ').$book->ida/$idn,
                 "ec;eo,fokus_part;xo;zc;-pf;-msn;msd;-mkn;mkd;-psn;psd",$id,$book->idk,$curr_menu->mid);
             if ( $mobile ) {
@@ -686,12 +665,6 @@ __EOT;
           if ( $REDAKCE ) {
             $note= "<span style='float:right;color:red;font-style:italic;font-size:x-small'>
                   ... zjednodušené zobrazení fotogalerie pro editaci</span>";
-//            $kod= "Ezer.fce.contextmenu([
-//                  ['organizovat fotky',function(el){ opravit('xfotky',$fid); }],
-//                  //['kopírovat ze setkání',function(el){ zcizit('fotky',$fid,0); }],
-//                  //['... jen test',function(el){ zcizit('fotky',$fid,1); }]
-//                ],arguments[0],0,0,'#xclanek$id');return false;\"";
-//            $menu= " title='fotky $fid' oncontextmenu=\"$kod\"";
             $menu= title_menu("fotky $fid","ef,$fid");
             if ( $mobile ) {
               $ipad= "<span class='ipad_menu' onclick=\"arguments[0].stopPropagation();$kod\">
@@ -1379,7 +1352,7 @@ function zapis_xakce($ida) {
 # ----------------------------------------------------------------------------------==> . table show
 # zobraz tabulku - idc určuje pozvánku
 # pokud je akce v archivu, vynuť zobrazení tabulky jako abstraktu, pokud na ni uživatel neklikne
-function table_show($ida,$idc) { trace();
+function table_show($ida,$idc) { 
   global $fe_user, $fe_host, $currpage;
   $skup= $tab= array();  // tab: [skup][poradi] poradi=0 => max, poradi>0 => jméno
   list($skupiny,$skupina,$ids)= explode('!',$currpage);
@@ -1395,8 +1368,8 @@ function table_show($ida,$idc) { trace();
     if ( $jmeno=='max' )          { $tab[$skupina][0]= $poradi; $maximum= max($maximum,$poradi); continue; }
     $tab[$skupina][]= "$jmeno";
   }
-                                                        debug($skup,"maximum=$maximum");
-                                                        debug($tab);
+//                                                        debug($skup,"maximum=$maximum");
+//                                                        debug($tab);
   if ( !count($tab) ) goto end; // pro $idc není tabulka
   // zjistíme datum ukončení akce
   $day= select('datum_do','xakce',"id_xakce=$ida");
