@@ -94,8 +94,12 @@ panel p [0,0,*,*] { type:'main', _sys:'$'
 //    ok; FOTKY.refresh
 //  | alert("operace ",_cmd," pro ",_name," selhala")
 //  }
-  func cmd_fotky(_fid,_name,_cmd) { // cmd=delete|attach
-    if ( php.cmd_fotky(_fid,_name,_cmd) ) 
+  # cmd=delete|attach|rotate*|popis
+  func cmd_fotky(_fid,_name,_cmd,_desc) { 
+    if (_cmd=='popis') {
+      _desc= prompt2('uprav popis fotky',_desc);
+    }
+    if ( php.cmd_fotky(_fid,_name,_cmd,_desc) ) 
       FOTKY.refresh();
     else 
       alert("operace ",_cmd," pro ",_name," selhala")
@@ -1590,7 +1594,7 @@ panel FOTKY [0,0,680,265] { title:' Organizér fotek', type:'popup', css:'dialog
     button [-20,15,,] { tag:'o,n', title:'[fa-undo] Zpět', help:'ukončit editor bez vytvoření článku'
       func onclick() { UPLOAD.hide(0); panel.hide(0); }
     }
-    button [410,40,,] { tag:'o', title:"[fa-file-archive-o] ZIP", format:'d'
+    button [440,40,,] { tag:'o', title:"[fa-file-archive-o] ZIP", format:'d'
       func onclick() { var zip:text, ret:object
         zip= ZIP_URL.modal;
         ret= php.upload_zip(zip,fid);
@@ -1608,11 +1612,28 @@ panel FOTKY [0,0,680,265] { title:' Organizér fotek', type:'popup', css:'dialog
 //        ask('move_fotky',uid.get,pid,order);
 //        refresh
 //    } }
-    button [380,40,,] { tag:'o', title:"[fa-sort-alpha-asc]", format:'d'
-      func onclick() { php.sort_fotky(fid); refresh() }
-    }
-    button [460,40,,] { title:'[fa-camera-retro] Oprav fotky',
-      func onclick() { clear(); echo(php.corr_fotky(fid)); refresh() }}
+    button [380,40,,] { tag:'o', title:"[fa-sort-numeric-asc]", help:'Seřaď podle data pořízení' 
+      func onclick() { 
+        clear(); 
+        if (confirm('Mám seřadit fotky podle času fotografie (EXIF)?')) {
+          php.sort_fotky(fid,'time'); 
+          refresh()       
+        }
+    }}
+    button [410,40,,] { tag:'o', title:"[fa-sort-alpha-asc]", help:'Seřaď podle názvu souboru fotografie' 
+      func onclick() { 
+        clear(); 
+        if (confirm('Mám seřadit fotky podle jména fotografie?')) {
+          php.sort_fotky(fid,'name'); 
+          refresh()       
+        }
+    }}
+    button [492,40,,] { title:'[fa-camera-retro] Oprav fotky',
+      func onclick() { 
+        clear(); 
+        php.corr_fotky(fid); 
+        refresh() 
+    }}
 //    # ==> .. drag & drop
 //    proc ondrop(fileinfo) { var name: text
 //      [ not(fid.get); create ];--

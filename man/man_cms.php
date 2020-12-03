@@ -249,6 +249,68 @@ function files($dirname) {
   }
   return $return;
 }
+# -------------------------------------------------------------------------------------- fotky2array
+// přečte fotky ze složky inc/f/fid do pole time=fname->time
+// pokud složka neexistuje, založí ji
+// obnov popisky: pokud neexistuje soubor fotka.txt vytvoř jej z zfotky.seznam
+function fotky2array($fid) { 
+  global $ezer_path_root, $abs_root, $ezer_server;
+  $path= "$abs_root/inc/f/$fid";
+  $time= array(); // fname->time
+  // pokud složka neexistuje vytvoříme ji a návrat
+  if ( !is_dir($path) ) {
+    $ok= mkdir($path,0777);
+                                                  display("mkdir($path)=$ok");
+    return $time;
+  }
+  // pokud složka existuje projdeme ji
+  $fotky= simple_glob("$path/*");
+  $n= 0;
+  foreach ($fotky as $fotka) {
+    $n++;
+    $orig= mb_substr($fotka,mb_strlen($path)+1);
+    // vyloučení podsložek, zmenšenin a miniatur
+    if (substr($orig,0,1)=='.') continue;
+    // případná transformace jména do ASCII
+    $file= $ezer_server 
+        ? $orig 
+        : iconv( "windows-1250", "utf-8", $orig );
+    $ascii= utf2ascii($file,'.');
+    // případné přejmenování
+    if ($ascii!=$file && rename("$path/$orig","$path/$ascii")) {
+      $file= $ascii;
+    }
+    // získání Exif
+    $datetime= '';
+    $exif= @exif_read_data("$path/$file",'FILE,EXIF',true,false);
+    // pokračujeme jen v případě úspěchu
+    if ($exif) {
+      $datetime= $exif['EXIF']['DateTimeOriginal'];
+      if ($datetime) {
+        $datetime[4]= '-'; $datetime[7]= '-';
+        $time[$file]= $datetime;
+      }
+    }
+    // fotografie bez Exif vložíme nakonec se zachováním původního pořadí ve složce
+    if (!$datetime) {
+      $ext= substr($file,-3,3);
+      if (in_array($ext,array('jpg','png','gif'))) {
+        $time[$file]= "9999-".str_pad($n,3,'0',STR_PAD_LEFT);
+      }
+    }
+  }
+  // vytvoř chybějící fotka.txt
+  $seznam= select('seznam','xfotky',"id_xfotky=$fid");
+  $seznam= explode(',',$seznam);
+  for ($i= 0; $i<count($seznam); $i+=2) {
+    $file= $seznam[$i];
+    $desc= trim($seznam[$i+1]);
+    if ($desc && !file_exists("$path/$file.txt")) {
+      file_put_contents("$path/$file.txt",$desc);
+    }
+  }
+  return $time;
+}
 # --------------------------------------------------------------------------------------- corr fotky
 // 1) fotky a popisy se berou z adresáře a přemístí do textu
 // POZDEJI: ma žádost provést kontrolu úplnosti fotek 
@@ -256,47 +318,19 @@ function files($dirname) {
 //     pokud není shoda, uložit chybějící do text na konec včetně případných popisů)
 // 2) převést soubory na mini+thumbs
 // 4) dát zprávu $gn->gn_msg("$n fotografií bylo přidáno do pásu $uid");
-function corr_fotky($fid) { global $gn;
-  $path= "inc/f/$fid";
-//  $x= simple_glob("$path/..*.*");
-
-  $th= 80;
-  if ( !is_dir($path) ) {
-    $ok= mkdir($path,0777);
-                                    display("mkdir($path)=$ok");
-  }
-  $handle= @opendir($path); #$gn->gn_echo("gn_reloadFoto: handle=$handle<br>");
-                                    display("opendir($path)=$handle");
-  $max= 9999; // ochrana proti zacyklení
-  $text= '';
-  $pocet= 0;
-  while ($handle && $max && false !== ($file= readdir($handle))) {
-    $max--;
-    $fnp= explode('.', $file);  #$gn->gn_echo($file);
-    if ( $fnp[0] && in_array(strtolower($fnp[1]), array("jpg","gif","png")) ) {
-      $pocet++;
-      $files[]= $file;
-      $filens[]= $fnp[0];
-    }
-  }
-  if ( $handle ) {
-    closedir($handle);
-  }
-  else {
-    $foto.= "Složka '$path' s fotografiemi není dostupná";
-  }
-//            display("$path ... $pocet"); return 0;
-  #$gn->gn_debug($files); $gn->gn_debug($filens);
-  // utřiď podle jména
-  sort($files); sort($filens);
-  // projdi fotky
-  for ($i= 0; $i<$pocet; $i++) {
-    // udělej miniaturu, pokud neexistuje
-    $file= $files[$i];
-    $filen= $filens[$i];
+function corr_fotky($fid) {
+  global $abs_root;
+  $path= "$abs_root/inc/f/$fid";
+  $time= fotky2array($fid);
+  // seřazení podle data pořízení
+  uasort($time,function ($a, $b) { return strncmp($a,$b,19);});
+  // ------------ $time obsahuje fotografie seřazené podle data pořízení
+  $th= 80; // šířka thumbnail
+  foreach ($time as $file=>$tm) {
+                                                  display($file);
     $src= "$path/$file";
     $thumb= "$path/..$file";
-    if ( ! file_exists($thumb) ) {
+    if (!file_exists($thumb)) {
       #$cmd= "convert -geometry {$th}x$th +contrast -sharpen 10 $src $thumb";
       #       //$cmd = ereg_replace('/','\\',$cmd);  #echo "$cmd<br>";  snad má být ve Windows potřeba - není
       #system(IMAGE_TRANSFORM_LIB_PATH.$cmd);
@@ -305,30 +339,41 @@ function corr_fotky($fid) { global $gn;
     }
     // udělej variantu pro web, pokud neexistuje
     $small= "$path/.$file";
-    if ( ! file_exists($small) ) {
+    if (!file_exists($small)) {
       #$cmd= "convert -geometry 512x512 $src $small";
       #system(IMAGE_TRANSFORM_LIB_PATH.$cmd);
       $width= $height= 512;
       x_resample($src,$small,$width,$height);
     }
-    // připoj popisek
-    $txt= "$path/$filen.txt";
-    $popisek= '';
-    if ( file_exists($txt) ) {
-      $txt_desc= fopen($txt,'r');
-      $popisek= fread($txt_desc,64000);
-      fclose($txt_desc);
-    }
+    // zjisti popisek (existuje jako soubor fotka.txt)
+    $txt= "$path/$file.txt";
+    $popisek= file_exists($txt) ? file_get_contents($txt) : '';
     $popisek= strtr($popisek,'"','\"');
-    $texty.= "$del\"$popisek\"";
-    list($width, $height, $type, $attr) = getimagesize("$path/$file");
-    $popisy.= "$del'$file ({$width}x$height)'";
-    $fotky.= "$del'$filen'";
-    $text.= $file . ',' . str_replace( ',','##44;',$popisek) . ',';
-    $del= ', ';
+    // vytvoř xfotky.seznam (nahraď čárky)
+    $text.= $file . ',' . str_replace(',','##44;',$popisek) . ',';
   }
   query("UPDATE xfotky SET seznam=\"$text\" WHERE id_xfotky='$fid'");
-  return $pocet;
+  return count($time);
+}
+# ----------------------------------------------------------------------------------==> . sort fotky
+# seřadí fotky pro mode='time' podle času pořízení, pro mode='name' podle názvu
+function sort_fotky($fid,$mode='time') { 
+  global $abs_root;
+  $path= "$abs_root/inc/f/$fid";
+  $time= fotky2array($fid);
+  // seřazení
+  if ($mode=='time')
+    uasort($time,function ($a, $b) { return strncmp($a,$b,19);});
+  elseif ($mode=='name')
+    ksort($time);
+  $text= '';
+  foreach ($time as $file=>$tm) {
+    $desc= file_exists("$path/$file.txt") ? file_get_contents("$path/$file.txt") : '';
+    $text.= "$file,$desc,";
+  }
+  // zápis
+  query("UPDATE xfotky SET seznam=\"$text\" WHERE id_xfotky='$fid'");
+  return count($time);
 }
 # --------------------------------------------------------------------------------==> . create fotky
 # přidání fotek - pokud je definováno x.kapitola pak pod příslušné part - jinak na konec
@@ -345,7 +390,8 @@ function create_fotky($x) {
 }
 # ----------------------------------------------------------------------------------==> . load fotky
 function load_fotky($fid) { trace();
-  global $REDAKCE, $href0, $clear;
+  global $abs_root;
+  $path= "$abs_root/inc/f/$fid";
   $x= (object)array();
   $time= time();
   list($id_xclanek,$x->editors,$x->autor,$x->nadpis,$lst,$psano)=
@@ -356,21 +402,38 @@ function load_fotky($fid) { trace();
   $last= count($fs)-1;
   for ($i= 0; $i<$last; $i+=2) {
     $fsi= $fs[$i];
+    $datetime= '';
     $mini= "inc/f/$fid/..$fsi";
     $midi= "inc/f/$fid/.$fsi";
+    $foto= "$path/$fsi";
+    if ( file_exists($foto) ) {
+      // získání Exif
+      $exif= @exif_read_data($foto,'FILE,EXIF',true,false);
+      // pokračujeme jen v případě úspěchu
+      if ($exif) {
+        $datetime= $exif['EXIF']['DateTimeOriginal'];
+        if ($datetime) {
+          $datetime[4]= '-'; $datetime[7]= '-';
+        }
+      }
+    }
     if ( file_exists($mini) ) {
-      $title= $fsi ? "title='$fsi'" : '';
-      $tit= $fs[$i+1] ? "<div>{$fs[$i+1]}</div>" : '';
+      $title= $fsi ? "title='$fsi $datetime'" : '';
+      $desc= $fs[$i+1];
+      $tit= $desc 
+          ? "<div title='$desc'>".(mb_strlen($desc)>10?mb_substr($desc,0,10).'...':$desc)."</div>" 
+          : '';
       $chk= '';
 //      $chk= "<input type='checkbox' onchange=\"this.parentNode.dataset.checked=this.checked;\" />";
 //          ['upravit popis',foto_note]
       $menu= "oncontextmenu=\"Ezer.fce.contextmenu([
           ['url fotky do schránky',function(){Ezer.fce.clipboard('$midi');}],
           ['url miniatury do schránky',function(){Ezer.fce.clipboard('$mini');}],
-          ['-otočit doleva',function(){cmd_fotky($fid,'$fsi','rotate_l')}],
-          ['otočit doprava',function(){cmd_fotky($fid,'$fsi','rotate_r')}],
-          ['zkopírovat do příloh',function(){cmd_fotky($fid,'$fsi','attach')}],
-          ['-smazat fotku',function(){cmd_fotky($fid,'$fsi','delete')}]
+          ['-otočit doleva',function(){cmd_fotky($fid,'$fsi','rotate_l','')}],
+          ['otočit doprava',function(){cmd_fotky($fid,'$fsi','rotate_r','')}],
+          ['zkopírovat do příloh',function(){cmd_fotky($fid,'$fsi','attach','')}],
+          ['-upravit popis',function(){cmd_fotky($fid,'$fsi','popis','$desc')}],
+          ['-smazat fotku',function(){cmd_fotky($fid,'$fsi','delete','')}]
         ],arguments[0]);return false;\"";
       $n= $i/2;
       $x->fotky.=
@@ -412,7 +475,7 @@ function save_fotky($x,$perm=null) {
 }
 # ---------------------------------------------------------------------------------------- cmd fotky 
 # různé operace nad jednou fotkou
-function cmd_fotky($fid,$foto,$cmd) {
+function cmd_fotky($fid,$foto,$cmd,$desc='') {
   $ok= 0;
   $deg= 90;
   $path= "inc/f/$fid";
@@ -424,6 +487,11 @@ function cmd_fotky($fid,$foto,$cmd) {
   if ( $n===false ) goto end;   // $foto nebyla nalezena
   // operace
   switch ($cmd) {
+  case 'popis':   // ---------------------------------------- popsání fotky
+    $fotky[$n+1]= $desc;
+    $ok= 1;
+    $chng= 1;
+    break;
   case 'delete':  // ---------------------------------------- smazání fotky
     $ok= unlink("$path/$foto"); 
     unlink("$path/.$foto"); unlink("$path/..$foto");
@@ -603,30 +671,6 @@ end:
 //    $text.= "$foto,$desc,";
 //  }
 //  query("UPDATE xfotky SET text='$text' WHERE uid='$uid'");
-//  return 1;
-//}
-//# ----------------------------------------------------------------------------------==> . sort fotky
-//# seřadí fotky podle jména souboru
-//function sort_fotky($uid) { trace();
-//  $text= select('text',"setkani.tx_gncase_part","uid='$uid'");
-//  $f= array();
-//  $t= explode(',',$text);
-//                                                        debug($t);
-//  for ($i= 0; $i<count($t)-1; $i+=2) {
-//    $foto= $t[$i]; $desc= $t[$i+1];
-//                                                        display("$i,$foto,$desc");
-//    $f[$foto]= $desc;
-//  }
-//                                                        debug($f);
-//  ksort($f);
-//                                                        debug($f);
-//  $text= '';
-//  foreach($f as $foto=>$desc) {
-//    $text.= "$foto,$desc,";
-//  }
-//                                                        display($text);
-//  // zápis
-//  query("UPDATE setkani.tx_gncase_part SET text='$text' WHERE uid='$uid'");
 //  return 1;
 //}
 //# ----------------------------------------------------------------------------------==> . move fotky

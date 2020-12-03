@@ -40,8 +40,8 @@ function namiru(_id,_div_id) {
   return 1;
 }
 // --------------------------------------------------------------------------------------- cmd fotky
-function cmd_fotky(_fid,_name,_cmd) {
-  Ezer.run.$.part.p._call(0,'cmd_fotky',_fid,_name,_cmd);
+function cmd_fotky(_fid,_name,_cmd,_desc) {
+  Ezer.run.$.part.p._call(0,'cmd_fotky',_fid,_name,_cmd,_desc);
   return 1;
 }
 // ------------------------------------------------------------------------------------ namiru fotky

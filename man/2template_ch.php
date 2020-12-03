@@ -436,7 +436,7 @@ __EOT;
           }
         }
         else {
-          // zavřený rok - v letošním a loňském roce zjistíme počet publikovaných akcí
+          // zavřený rok - v letošním a loňském roce zjistíme počet (ne)publikovaných akcí
           if ( 1 || $r==$letos || $r==$letos-1 ) {
             $pocet= 0;
             $edited= 0;
@@ -453,9 +453,9 @@ __EOT;
           }
           if ($pocet || $REDAKCE) {
             $akce= kolik_1_2_5($pocet,"akce,akcí,akcí");
-            $akce_r= kolik_1_2_5($edited,"akce,akce,akcí");
+            $akce_r= kolik_1_2_5($edited,"akce nepublikovaná,akce nepublikované,akcí nepublikovaných");
             $zacatek= "Archiv $akce z roku $r";
-            $zacatek.= $REDAKCE && $edited ? " + $akce_r nepublikované" : '';
+            $zacatek.= $REDAKCE && $edited ? " + $akce_r" : '';
             $jmp= str_replace('*',$r,$backref);
             $html.= "<div class='kniha_bg'><a class='jump' $jmp>$zacatek</a></div>";
           }
