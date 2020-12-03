@@ -269,8 +269,6 @@ function fotky2array($fid) {
   foreach ($fotky as $fotka) {
     $n++;
     $orig= mb_substr($fotka,mb_strlen($path)+1);
-    // vyloučení podsložek, zmenšenin a miniatur
-    if (substr($orig,0,1)=='.') continue;
     // případná transformace jména do ASCII
     $file= $ezer_server 
         ? $orig 
@@ -280,7 +278,9 @@ function fotky2array($fid) {
     if ($ascii!=$file && rename("$path/$orig","$path/$ascii")) {
       $file= $ascii;
     }
-    // získání Exif
+    // dále už jen s originálem
+    if (substr($orig,0,1)=='.') continue;
+    // získání Exif 
     $datetime= '';
     $exif= @exif_read_data("$path/$file",'FILE,EXIF',true,false);
     // pokračujeme jen v případě úspěchu
@@ -309,6 +309,7 @@ function fotky2array($fid) {
       file_put_contents("$path/$file.txt",$desc);
     }
   }
+                                              debug($time,"fotky2array($fid)");
   return $time;
 }
 # --------------------------------------------------------------------------------------- corr fotky
@@ -433,7 +434,8 @@ function load_fotky($fid) { trace();
           ['otočit doprava',function(){cmd_fotky($fid,'$fsi','rotate_r','')}],
           ['zkopírovat do příloh',function(){cmd_fotky($fid,'$fsi','attach','')}],
           ['-upravit popis',function(){cmd_fotky($fid,'$fsi','popis','$desc')}],
-          ['-smazat fotku',function(){cmd_fotky($fid,'$fsi','delete','')}]
+          ['-smazat fotku',function(){cmd_fotky($fid,'$fsi','delete','')}],
+          ['přesunout fotky do inc/f/?',function(){cmd_fotky($fid,'$fsi','moveto','')}]
         ],arguments[0]);return false;\"";
       $n= $i/2;
       $x->fotky.=
@@ -476,7 +478,9 @@ function save_fotky($x,$perm=null) {
 # ---------------------------------------------------------------------------------------- cmd fotky 
 # různé operace nad jednou fotkou
 function cmd_fotky($fid,$foto,$cmd,$desc='') {
-  $ok= 0;
+  global $abs_root;
+  $path= "$abs_root/inc/f/$fid";
+  $err= '';
   $deg= 90;
   $path= "inc/f/$fid";
   // extrakce seznamu fotek do $fotky, $n je index $foto
@@ -487,23 +491,44 @@ function cmd_fotky($fid,$foto,$cmd,$desc='') {
   if ( $n===false ) goto end;   // $foto nebyla nalezena
   // operace
   switch ($cmd) {
-  case 'popis':   // ---------------------------------------- popsání fotky
-    $fotky[$n+1]= $desc;
+  case 'moveto':  // ---------------------------------------- kopírování fotky a dalších do desc
+    $to= "$abs_root/inc/f/$desc";
+    if (!is_dir($to)) { $err= "složka $to neexistuje"; goto end; }
     $ok= 1;
+    for ($i= $n; $i<count($fotky)-1; $i+=2) {
+      $fotka= $fotky[$i];
+      $err= rename("$path/$fotka","$to/$fotka") ? '' : "fotka $fotka nešla přesunout do $to"; 
+      rename("$path/.$fotka","$to/.$fotka");
+      rename("$path/..$fotka","$to/..$fotka");
+      rename("$path/$fotka.txt","$to/$fotka.txt");
+      if ($err) goto end;
+      unset($fotky[$i]); unset($fotky[$i+1]);
+    }
+    $chng= 1;
+    break;
+  case 'popis':   // ---------------------------------------- popsání fotky
+    $fotka= $fotky[$n];
+    $fotky[$n+1]= $desc;
+    if ($desc) {
+      if (!file_put_contents("$path/$fotka.txt",$desc)) { $err= "nešlo vytvořit $path/$fotka.txt"; }
+    }
+    else {
+      unlink("$path/$fotka.txt");
+    }
     $chng= 1;
     break;
   case 'delete':  // ---------------------------------------- smazání fotky
-    $ok= unlink("$path/$foto"); 
+    $err= unlink("$path/$foto") ? '' : "selhalo unlink($path/$foto)"; 
     unlink("$path/.$foto"); unlink("$path/..$foto");
     unset($fotky[$n]); unset($fotky[$n+1]);
-    $chng= $ok;
+    $chng= !$err;
     break;
   case 'attach':  // ---------------------------------------- zkopírování do příloh
     $path_c= "inc/c/$idc";
     if ( !file_exists($path_c) && !mkdir($path_c) ) {
-      goto end;
+      $err= "$path_c neexistuje nebo nelze vytvořit"; goto end;
     }
-    $ok= copy("$path/$foto","$path_c/$foto"); 
+    $err= copy("$path/$foto","$path_c/$foto") ? '' : "selhalo copy($path/$foto,$path_c/$foto)"; 
     break;
   case 'rotate_r':  // -------------------------------------- otočit fotku o -90
     $deg= 270;
@@ -516,26 +541,23 @@ function cmd_fotky($fid,$foto,$cmd,$desc='') {
       if ( !$img ) { $err= "$foto nema format JPEG"; goto end; }
       $img= imagerotate($img,$deg,0);
       if ( !imagejpeg($img,"$path/$foto") ) { $err= "$foto nelze ulozit"; goto end; }
-      $ok= 1;
       break;
     case 'png':
       $img= @imagecreatefrompng("$path/$foto");
       if ( !$img ) { $err= "$foto nema format PNG"; goto end; }
       $img= imagerotate($img,$deg,0);
       if ( !imagepng($img,"$path/$foto") ) { $err= "$foto nelze ulozit"; goto end; }
-      $ok= 1;
       break;
     case 'gif':
       $img= @imagecreatefromgif("$path/$foto");
       if ( !$img ) { $err= "$foto nema format GIF"; goto end; }
       $img= imagerotate($img,$deg,0);
       if ( !imagegif($img,"$path/$foto") ) { $err= "$foto nelze ulozit"; goto end; }
-      $ok= 1;
       break;
     default:
       $err= "$foto ma neznamy typ";
     }
-    if ( $ok ) {
+    if ( !$err ) {
       $width= $height= 512;
       x_resample("$path/$foto","$path/.$foto",$width,$height);
       $width= $height= 80;
@@ -549,7 +571,7 @@ function cmd_fotky($fid,$foto,$cmd,$desc='') {
     query("UPDATE xfotky SET seznam=\"$seznam\" WHERE id_xfotky='$fid'");
   }
 end:  
-  return $ok;
+  return $err;
 }
 # --------------------------------------------------------------------------------==> . namiru fotky
 # upraví velikost obrázků podle dodané šířky

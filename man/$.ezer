@@ -95,14 +95,14 @@ panel p [0,0,*,*] { type:'main', _sys:'$'
 //  | alert("operace ",_cmd," pro ",_name," selhala")
 //  }
   # cmd=delete|attach|rotate*|popis
-  func cmd_fotky(_fid,_name,_cmd,_desc) { 
-    if (_cmd=='popis') {
-      _desc= prompt2('uprav popis fotky',_desc);
-    }
-    if ( php.cmd_fotky(_fid,_name,_cmd,_desc) ) 
+  func cmd_fotky(_fid,_name,_cmd,_desc) { var err:text
+    if (_cmd=='popis') _desc= prompt2('uprav popis fotky',_desc);
+    if (_cmd=='moveto') _desc= prompt2('kam přesunout tuto a následující fotky (inc/f/?) ',_desc);
+    err= php.cmd_fotky(_fid,_name,_cmd,_desc);
+    if (!err) 
       FOTKY.refresh();
     else 
-      alert("operace ",_cmd," pro ",_name," selhala")
+      alert("operace ",_cmd," pro ",_name," selhala (",err,")")
   }
 //  proc namiru(_id,_div_id) { var _list:array, _y:object
 //    _list.set(function('div',"return namiru_fotky(div);",_div_id));
