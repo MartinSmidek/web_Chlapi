@@ -1507,6 +1507,7 @@ function show_fotky2($fid,$lst,$back_href='') {
     $midi= "inc/f/$fid/.$fs[$i]";
     $orig= "inc/f/$fid/$fs[$i]";
     $open= !$dot && file_exists($orig) ? $orig : $midi;
+    $open= !$dot && file_exists($midi) ? $midi : $orig;
     if ( file_exists($mini) ) {
       $mini= str_replace(' ','%20',$mini);
       $title= '';
@@ -1524,7 +1525,6 @@ function show_fotky2($fid,$lst,$back_href='') {
 # ----------------------------------------------------------------------------------==> . show fotky
 # uid určuje složku
 function show_fotky($fid,$lst,$back_href) { 
-  global $REDAKCE;
   $lstx= $lst;
 //  popup("Prohlížení fotografií","$fid~$lstx",$back_href,'foto');
   $h= '';
@@ -1532,7 +1532,7 @@ function show_fotky($fid,$lst,$back_href) {
   $last= count($fs)-1;
   for ($i= 0; $i<$last; $i+=2) {
     $mini= "inc/f/$fid/..$fs[$i]";
-//    $open= "inc/f/$fid/.$fs[$i]";
+    $open= "inc/f/$fid/.$fs[$i]";
 //    $orig= "inc/f/$fid/$fs[$i]";
     if ( file_exists($mini) ) {
       $mini= str_replace(' ','%20',$mini);
@@ -1542,9 +1542,9 @@ function show_fotky($fid,$lst,$back_href) {
         $title= strtr($title,array('##44;'=>',',"'"=>'"','~'=>'-'));
       }
       $i2= $i/2;
-      $onclick= $REDAKCE ? '' : " onclick=\"foto_show(arguments[0],$i2);return false;\"";
-      $h.= " <span data-foto-n='$i2' title='$title' $onclick
-               class='foto foto_cms' style='background-image:url($mini)'></span>";
+      $h.= " <a href='$open' target='foto'>
+        <span data-foto-n='$i2' title='$title' 
+               class='foto foto_cms' style='background-image:url($mini)'></span></a>";
     }
   }
   return $h;

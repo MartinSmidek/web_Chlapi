@@ -97,7 +97,10 @@ panel p [0,0,*,*] { type:'main', _sys:'$'
   # cmd=delete|attach|rotate*|popis
   func cmd_fotky(_fid,_name,_cmd,_desc) { var err:text
     if (_cmd=='popis') _desc= prompt2('uprav popis fotky',_desc);
-    if (_cmd=='moveto') _desc= prompt2('kam přesunout tuto a následující fotky (inc/f/?) ',_desc);
+    if (_cmd=='moveto') {
+      _desc= prompt2('kam přesunout tuto a následující fotky (inc/f/?) ',_desc);
+      if (!_desc) return()
+    }
     err= php.cmd_fotky(_fid,_name,_cmd,_desc);
     if (!err) 
       FOTKY.refresh();

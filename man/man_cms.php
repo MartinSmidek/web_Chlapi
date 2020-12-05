@@ -428,7 +428,8 @@ function load_fotky($fid) { trace();
 //      $chk= "<input type='checkbox' onchange=\"this.parentNode.dataset.checked=this.checked;\" />";
 //          ['upravit popis',foto_note]
       $menu= "oncontextmenu=\"Ezer.fce.contextmenu([
-          ['url fotky do schránky',function(){Ezer.fce.clipboard('$midi');}],
+          ['<a href=\'inc/f/$fid/$fsi\' target=\'foto\'>ukázat fotku</a> (pravý klik)',function(){}],
+          ['-url fotky do schránky',function(){Ezer.fce.clipboard('$midi');}],
           ['url miniatury do schránky',function(){Ezer.fce.clipboard('$mini');}],
           ['-otočit doleva',function(){cmd_fotky($fid,'$fsi','rotate_l','')}],
           ['otočit doprava',function(){cmd_fotky($fid,'$fsi','rotate_r','')}],
@@ -495,13 +496,17 @@ function cmd_fotky($fid,$foto,$cmd,$desc='') {
     $to= "$abs_root/inc/f/$desc";
     if (!is_dir($to)) { $err= "složka $to neexistuje"; goto end; }
     $ok= 1;
-    for ($i= $n; $i<count($fotky)-1; $i+=2) {
+    for ($i= $n; $i<count($fotky); $i+=2) {
       $fotka= $fotky[$i];
+      if (!$fotka) break;
       $err= rename("$path/$fotka","$to/$fotka") ? '' : "fotka $fotka nešla přesunout do $to"; 
+      if (!$err) display("$fotka --> $desc");  
       rename("$path/.$fotka","$to/.$fotka");
       rename("$path/..$fotka","$to/..$fotka");
       rename("$path/$fotka.txt","$to/$fotka.txt");
       if ($err) goto end;
+    }
+    for ($i= $n; $i<count($fotky); $i+=2) {
       unset($fotky[$i]); unset($fotky[$i+1]);
     }
     $chng= 1;
