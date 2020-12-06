@@ -1525,7 +1525,7 @@ function show_fotky2($fid,$lst,$back_href='') {
       $open= !$dot && file_exists($orig) ? $orig : $midi;
     else
       $open= !$dot && file_exists($midi) ? $midi : $orig;
-      if ( file_exists($mini) ) {
+    if ( file_exists($mini) ) {
       $mini= str_replace(' ','%20',$mini);
       $title= '';
       if ( $fs[$i+1] ) {
@@ -1549,8 +1549,12 @@ function show_fotky($fid,$lst,$back_href) {
   $last= count($fs)-1;
   for ($i= 0; $i<$last; $i+=2) {
     $mini= "inc/f/$fid/..$fs[$i]";
-    $open= "inc/f/$fid/.$fs[$i]";
-//    $orig= "inc/f/$fid/$fs[$i]";
+    $midi= "inc/f/$fid/.$fs[$i]";
+    $orig= "inc/f/$fid/$fs[$i]";
+    if (isset($_COOKIE['fullhd']) && $_COOKIE['fullhd']) 
+      $open= file_exists($orig) ? $orig : $midi;
+    else
+      $open= file_exists($midi) ? $midi : $orig;
     if ( file_exists($mini) ) {
       $mini= str_replace(' ','%20',$mini);
       $title= $fs[$i];
