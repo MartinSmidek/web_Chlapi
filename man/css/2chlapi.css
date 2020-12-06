@@ -634,6 +634,16 @@ div.galery_obal {
   clear: both;
   margin: 1em;
 }
+div.galery_obal div.detail {
+  display: block;
+  width: 115px;
+  float: right;
+  background: orange;
+  border-radius: .5em;
+}
+div.galery_obal div.detail label {
+  vertical-align: text-bottom;
+}
 div.galery_obal div.galerie {
   width: 100%;
   background-color: #FFFFFF;

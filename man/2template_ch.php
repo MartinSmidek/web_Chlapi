@@ -671,12 +671,27 @@ __EOT;
                 <i class='fa fa-bars'></i></span>";
             }
           }
+          // přepínač HD / FullHD
+          $foto_hd= $foto_fullhd= '';
+          $foto_msg= "Pro uplatnění změny podrobnosti zobrazení fotografií rozlišení obnov stránku";
+          if (isset($_COOKIE['fullhd']) && $_COOKIE['fullhd']) 
+            $foto_fullhd= 'checked';
+          else 
+            $foto_hd= 'checked';
+          $foto_on= "onchange=\"set_cookie('fullhd',this.value);setTimeout(function(){"
+              . "alert('$foto_msg')},100);\"";
+          $details= "
+            <div class='detail'>
+              <input type='radio' name='hd$fid' value='0' $foto_hd $foto_on><label>HD</label>
+              <input type='radio' name='hd$fid' value='1' $foto_fullhd $foto_on><label>FullHD</label>
+           </div>
+            ";
           $galery= show_fotky2($fid,$seznam);
           $html.= "
             <div class='galery_obal' $menu>
               <div id='xfotky$fid' class='galerie'>
                 <div class='text'>
-                  $ipad
+                  $ipad $details
                   <h1>&nbsp;&nbsp;&nbsp;$nazev $note</h1>
                   $galery
                   <div class='podpis'>$podpis</div>
@@ -687,7 +702,7 @@ __EOT;
         }
       }
       else {
-        // zobrazit jako abstrakt
+        // zobrazit jako abstrakt<div class="text">
         $obsah= x_shorting($obsah);
         if ( $book->tit ) {
           $obsah= "<b>$book->tit</b> $obsah";
@@ -1506,9 +1521,11 @@ function show_fotky2($fid,$lst,$back_href='') {
     $mini= "inc/f/$fid/..$fs[$i]";
     $midi= "inc/f/$fid/.$fs[$i]";
     $orig= "inc/f/$fid/$fs[$i]";
-    $open= !$dot && file_exists($orig) ? $orig : $midi;
-    $open= !$dot && file_exists($midi) ? $midi : $orig;
-    if ( file_exists($mini) ) {
+    if (isset($_COOKIE['fullhd']) && $_COOKIE['fullhd']) 
+      $open= !$dot && file_exists($orig) ? $orig : $midi;
+    else
+      $open= !$dot && file_exists($midi) ? $midi : $orig;
+      if ( file_exists($mini) ) {
       $mini= str_replace(' ','%20',$mini);
       $title= '';
       if ( $fs[$i+1] ) {
