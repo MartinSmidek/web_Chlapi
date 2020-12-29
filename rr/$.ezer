@@ -76,7 +76,7 @@ menu rr { type:'main', active:rr.richard
           show [,,40,] { title:'den', data:rr.day, format:'qs' }
           show [,,20,] { title:'ps', data:rr.state, format:'qs' }
           show datum [,,70,] { title:'datum', data:rr.datum, format:'qs' }
-          show [,,140,] { title:'název', data:rr.subject, format:'qs' }
+          show [,,140,] { title:'název', data:rr.subject, format:'tqs' }
           proc onsubmit() {
             form.den.set(den.get); form.datum.set(replace(sql2date(datum.get),' ','')); }
         }
@@ -91,6 +91,12 @@ menu rr { type:'main', active:rr.richard
             datum.set(replace(sql2date(ret.next),' ',''));
             den.set(sum(den.get,pocet.get));
             f.b.browse_seek(conc('day_n=',sum(den.get,-1)));
+          }
+        }
+        button [582,40,,] { title:'zruš'
+          proc onclick() { 
+            msg.set(ask('rr_zrus',den.get,pocet.get));
+            f.b.browse_refresh();
           }
         }
         label msg [340,70,300,200]

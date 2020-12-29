@@ -4,18 +4,31 @@
 # $par = {den:ode dneška,poslat: 0/1}
 function rr_nastav($den,$datum,$pocet) {  trace();
   $ret= (object)array('msg'=>'','last'=>'','next'=>'');
-  $nastaveno= 0;
+  $nastaveno= $zruseno= 0;
   $dat= sql_date1($datum,1);
   $ndat0= sql2stamp($dat);
   for ($d= 0; $d<$pocet; $d++) {
     $day_n= $den+$d;
     $ndatum= date('Y-m-d',$ndat0+$d*60*60*24);
+    $zruseno+= query("UPDATE rr SET datum='0000-00-00',state='unasigned' WHERE datum='$ndatum'");
     $nastaveno+= query("UPDATE rr SET datum='$ndatum',state='prepared' WHERE day_n=$day_n");
   }
   $ret->last= date('Y-m-d',$ndat0+($pocet-1)*60*60*24);
   $ret->next= date('Y-m-d',$ndat0+$pocet*60*60*24);
-  $ret->msg= "nastaveno $nastaveno dnů od $dat po $ndatum";
+  $ret->msg= "nastaveno $nastaveno dnů od $dat po $ndatum, zrušeno $zruseno předchozích nastavení";
   return $ret;
+}
+# ------------------------------------------------------------------------------------------ rr zrus
+# zruší nastavená data
+function rr_zrus($den,$pocet) {  trace();
+  $zruseno= 0;
+  for ($d= 0; $d<$pocet; $d++) {
+    $day_n= $den+$d;
+    $ndatum= date('Y-m-d',$ndat0+$d*60*60*24);
+    $zruseno+= query("UPDATE rr SET datum='0000-00-00',state='unasigned' WHERE day_n=$day_n");
+  }
+  $msg= "zrušeno $zruseno předchozích nastavení";
+  return $msg;
 }
 # ------------------------------------------------------------------------------------------ rr send
 # $par = {den:ode dneška,poslat: 0/1}
