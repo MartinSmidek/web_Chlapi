@@ -167,6 +167,8 @@ div.filler {
 #menu {
   width: 100%;
   text-align: right;
+  z-index: 1;
+  position: relative;
   /*#page_tm::before { color:white; }*/
 }
 #menu a.active {
@@ -632,6 +634,7 @@ a.aclanek:hover {
 }
 div.galery_obal {
   clear: both;
+  display: inline-grid;
   margin: 1em;
 }
 div.galery_obal div.detail {
@@ -691,6 +694,7 @@ div.kniha {
 }
 .kniha_bg > a.jump {
   margin: 1em;
+  position: relative;
 }
 .kniha_bg div.kniha_br {
   clear: both;
@@ -782,6 +786,8 @@ div.pdf span.sorry {
   }
   #menu {
     font-size: 8pt;
+    z-index: 1;
+    position: relative;
   }
   #menu #page_hm a {
     max-width: 4em;
@@ -815,6 +821,8 @@ div.pdf span.sorry {
   }
   #menu {
     font-size: 9pt;
+    z-index: 1;
+    position: relative;
   }
   #menu #page_sm {
     top: 5.2em;
@@ -844,6 +852,8 @@ div.pdf span.sorry {
   }
   #menu {
     font-size: 9pt;
+    z-index: 1;
+    position: relative;
   }
   #menu #page_sm {
     top: 5.2em;
@@ -867,6 +877,8 @@ div.pdf span.sorry {
   }
   #menu {
     font-size: 10pt;
+    z-index: 1;
+    position: relative;
   }
   #menu #page_sm {
     top: 5.2em;

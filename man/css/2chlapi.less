@@ -99,7 +99,7 @@ div.filler { height: 2em; }
   position: absolute; left: 0.5em; top: 0.5em; width: 6em; }
 // menu
 #menu {
-  width:100%; text-align: right;
+  width:100%; text-align: right; z-index: 1; position: relative;
   a {
     &.active {
       background-color: @activ_b !important; color: @activ_c !important; }
@@ -305,7 +305,7 @@ a.aclanek {
 }
 // galerie
 div.galery_obal {
-  clear: both;
+  clear: both; display: inline-grid;
   margin: 1em;
   div.detail {
     display: block; width: 115px; float: right; background: orange; border-radius: .5em; 
@@ -338,7 +338,8 @@ div.kniha {
   display: block; clear: both; border-radius: .8em; 
   text-align: center;
   &>a.jump { 
-    margin:1em; }
+    margin:1em; 
+    position: relative; }
   div.kniha_br {
     clear: both; padding: 1em 0; text-align: center; color:@text_b; .shadow-txt
   }
@@ -395,7 +396,7 @@ div.pdf {
 
 @media all and (max-width:30em) {
   #page_tm::before { content:"M"; }
-  #menu { font-size:8pt; 
+  #menu { font-size:8pt; z-index: 1; position: relative;
     #page_hm a { max-width: 4em; white-space: wrap; overflow: hidden; }
     #page_sm { top: 5.2em; }
   }
@@ -413,7 +414,7 @@ div.pdf {
 
 @media all and (min-width: 30em) and (max-width: 55em) {
   #page_tm::before { content:"L"; }
-  #menu { font-size:9pt; 
+  #menu { font-size:9pt; z-index: 1; position: relative;
     #page_sm { top: 5.2em; }
   }
   #list {
@@ -438,7 +439,7 @@ div.pdf {
 
 @media all and (min-width: 55em) and (max-width: 70em) {
   #page_tm::before { content:"T"; }
-  #menu { font-size:9pt; 
+  #menu { font-size:9pt; z-index: 1; position: relative;
     #page_sm { top: 5.2em; }
   }
   #list {
@@ -452,7 +453,8 @@ div.pdf {
 @media all and (min-width: 70em) {
   #page_tm::before { content:"C"; }
   #web { width:92em; margin: 0 auto; }
-  #menu { font-size:10pt;  #page_sm { top: 5.2em; } }
+  #menu { font-size:10pt;  z-index: 1; position: relative;
+    #page_sm { top: 5.2em; } }
   #list {
     div.abstr { width:25%; }
   }

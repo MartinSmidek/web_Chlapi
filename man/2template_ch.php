@@ -1583,15 +1583,15 @@ function servant($qry,$context=null) {
       "http://setkani4.doma/servant.php?secret=$secret",
       "https://www.setkani.org/servant.php?secret=$secret"  // ben
     )[$ezer_server];
-  $_SESSION['web']['servant_last']= "$servant&$qry";
+  $_SESSION['web']['*servant_last']= "$servant&$qry";
   $json= url_get_contents("$servant&$qry",false,$context);
-                                          display("<b style='color:red'>servant</b> $servant$qry");
+//                                          display("<b style='color:red'>servant</b> $servant$qry");
   if ( $json===false ) {
-    $y->msg= "$ezer_server:$qry vrátil false";
     $err= error_get_last();
-    $_SESSION['web']['servant_state']= "false:{$err['type']},{$err['message']}";
-    $_SESSION['web']['wrappers']= stream_get_wrappers();
-    $_SESSION['web']['openssl']= extension_loaded('openssl');
+    $y->msg= "$ezer_server:$qry vrátil false ($err)";
+//    $_SESSION['web']['servant_state']= "false:{$err['type']},{$err['message']}";
+//    $_SESSION['web']['wrappers']= stream_get_wrappers();
+//    $_SESSION['web']['openssl']= extension_loaded('openssl');
     $y->ses= $_SESSION;
 //    session_write_close ();
 //    exit;
@@ -1851,9 +1851,13 @@ function db_connect() {
       'ezertask' => array(0,'localhost','ymca','JW4YNPTDf4Axkj9','utf8','myslenky')
     ),
     array(  // 3 = ladící - Synology DOMA
-      'setkani'  => array(0,'localhost','gandi','','utf8','chlapi'),
-      'ezertask' => array(0,'localhost','gandi','','utf8','myslenky')
+      'setkani'  => array(0,'localhost:3307','gandi10','Radost_2020','utf8','chlapi'),
+      'ezertask' => array(0,'localhost:3307','gandi10','Radost_2020','utf8','myslenky')
     ),
+//    array(  // 3 = ladící - Synology DOMA
+//      'setkani'  => array(0,'localhost','gandi','','utf8','chlapi'),
+//      'ezertask' => array(0,'localhost','gandi','','utf8','myslenky')
+//    ),
     array(  // 4 = ladící - ben
       'setkani'  => array(0,'localhost','gandi','','utf8','chlapi'),
       'ezertask' => array(0,'localhost','gandi','','utf8')

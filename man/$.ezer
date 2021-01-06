@@ -99,7 +99,7 @@ panel p [0,0,*,*] { type:'main', _sys:'$'
     if (_cmd=='popis') _desc= prompt2('uprav popis fotky',_desc);
     if (_cmd=='moveto') {
       _desc= prompt2('kam přesunout tuto a následující fotky (inc/f/?) ',_desc);
-      if (!_desc) return()
+      if (!_desc) return
     }
     err= php.cmd_fotky(_fid,_name,_cmd,_desc);
     if (!err) 
@@ -230,7 +230,7 @@ panel p [0,0,*,*] { type:'main', _sys:'$'
     }
   }
   # vrátí počet nevyplněných povinných elementů tj. s par.obligatory=1
-  func form_obligatory_test(f:ezer) { var n:number, e:ezer
+  func form_obligatory_test(f:ezer):number { var n:number, e:ezer
     n= 0;
     for (e of f) {
       if ( e.par )
@@ -250,10 +250,9 @@ panel p [0,0,*,*] { type:'main', _sys:'$'
 //    [ e.get | form_obligatory_n.set(sum(form_obligatory_n.get,1)) ]
 //  }
 
-  func item_title (i:ezer) { var ow: ezer
+  func item_title (i:ezer):text { var ow: ezer
     ow= i.owner();
     return(`${ow.title} - ${replace_fa(i.title)}`);
-    return('x')
   }
 # ----------------------------------------------------------------------------==> control bar
   form _f [,,*,30] { css:'grey admin', style:'z-index:9999;position:fixed'
@@ -552,18 +551,18 @@ panel ADMIN [0,0,600,465] { title:'Aktivita CMS', type:'popup', css:'dialog_menu
         u.fill(p.item_title(i),php.git_make(i.par));
       }
     }
-    menu { title:'(errata)', type:'group', skill:'m'
-      item { title:'oprava fotek - 1'     par:°{copy:'id_xfotky=1'} }
-      item { title:'oprava fotek - 35'    par:°{copy:'id_xfotky=35'} }
-      item { title:'oprava fotek - 48'    par:°{copy:'id_xfotky=48'} }
-      item { title:'oprava fotek - 49,50' par:°{copy:'id_xfotky IN (49,50)'} }
-      item { title:'oprava fotek - vše'   par:°{copy:"path!=''"} }
-      func onclick(i:ezer) {
-        clear(); panel.display(2,'mu'); u.den.display(0);
-        u.fill(p.item_title(i),' ');
-        u.append(php.ERRATA_2020(i.par.copy));
-      }
-    }
+//    menu { title:'(errata)', type:'group', skill:'m'
+//      item { title:'oprava fotek - 1'     par:°{copy:'id_xfotky=1'} }
+//      item { title:'oprava fotek - 35'    par:°{copy:'id_xfotky=35'} }
+//      item { title:'oprava fotek - 48'    par:°{copy:'id_xfotky=48'} }
+//      item { title:'oprava fotek - 49,50' par:°{copy:'id_xfotky IN (49,50)'} }
+//      item { title:'oprava fotek - vše'   par:°{copy:"path!=''"} }
+//      func onclick(i:ezer) {
+//        clear(); panel.display(2,'mu'); u.den.display(0);
+//        u.fill(p.item_title(i),' ');
+//        u.append(php.ERRATA_2020(i.par.copy));
+//      }
+//    }
     func onclick (i:ezer) {  var y:text
       panel.display(2,'mu'); 
       u.den.display(i.par.c=='den');
@@ -639,7 +638,7 @@ panel REDAKCE [0,0,840,515] {type:'popup', title:'Redakce', css:'dialog_menu',
   use dskill: form desc_skills [335,120,,]  { tag:'u' }
 
   func onfirstfocus() {
-    watch_css();
+//    watch_css();
     last_par= see.all.actives.par;
     sel= 'use';
     refresh();
@@ -690,42 +689,51 @@ panel REDAKCE [0,0,840,515] {type:'popup', title:'Redakce', css:'dialog_menu',
   # test položek před uložením
   var msg:text
   proc u_test(id) {
-    sys('options','watch_access');
-    msg.set(ask('sys_user_access',sys('options','watch_access'),uzivatel.org.key,uzivatel.access.key));
-    msg.get; alert(msg.get); return(1)
-  | msg.set(ask('sys_user_unique',id,uzivatel.username.get,uzivatel.znacka.get));
+//    sys('options','watch_access');
+//    msg.set(ask('sys_user_access',sys('options','watch_access'),uzivatel.org.key,uzivatel.access.key));
+//    msg.get; alert(msg.get); return(1)
+//  | 
+    msg.set(ask('sys_user_unique',id,uzivatel.username.get,uzivatel.znacka.get));
     msg.get; alert(msg.get); return(1)
   | // testy prošly - uprav změny pro uložení
-    [ uzivatel.access.changed; uzivatel.access.set(uzivatel.access.key); uzivatel.access.change ];
-    [ uzivatel.org.changed; uzivatel.org.set(uzivatel.org.key); uzivatel.org.change ];
+//    [ uzivatel.access.changed; uzivatel.access.set(uzivatel.access.key); uzivatel.access.change ];
+//    [ uzivatel.org.changed; uzivatel.org.set(uzivatel.org.key); uzivatel.org.change ];
     [ uzivatel.password.changed; msg.set(ask('sys_hash_password', uzivatel.password.get)); uzivatel.password.set(msg.get); uzivatel.password.change ];
     return(0)
   }
   # obnovení seznamu uživatelů
-  proc refresh() { var see_access:text
-    see_access.set(cconc(sys('options','watch_access_opt'),conc(" AND access&",sys('user','access')),""));
-    uzivatele.lst.browse_load(conc(last_par.get('cond'),see_access));
-    cmd.enable(1,last_par.get('on'));
-    cmd.enable(0,last_par.get('off'));
-    watch_css;
+  func refresh() { var see_access:text, kolik:number
+    see_access= sys('options','watch_access_opt') ? ` AND access&${sys('user','access')}` : "";
+    kolik= uzivatele.lst.browse_load(conc(last_par.cond,see_access));
+    if (kolik==0) dskill.seznam.browse_init();
+    cmd.enable(1,last_par.on);
+    cmd.enable(0,last_par.off);
+//    watch_css();
   }
+//  proc refresh() { var see_access:text
+//    see_access.set(cconc(sys('options','watch_access_opt'),conc(" AND access&",sys('user','access')),""));
+//    uzivatele.lst.browse_load(conc(last_par.get('cond'),see_access));
+//    cmd.enable(1,last_par.get('on'));
+//    cmd.enable(0,last_par.get('off'));
+//    watch_css;
+//  }
   # kompozice obarvení z Ezer.options.watch_access_opt.css (je-li)
-  proc watch_css() { var opt:object
-    sys('options','watch_access_opt');
-    opt.set(ask('sys_user_watch_css',sys('options','watch_access_opt')));
-    uzivatele.lst.zkratka.set_attrib('css_cell',replace(opt.css_cell,'@','org'));
-    uzivatele.lst.username.set_attrib('css_cell',replace(opt.css_cell,'@','access'));
-    uzivatel.org.selects(opt.sel_org);
-    uzivatel.access.selects(opt.sel_access);
-  }
+//  proc watch_css() { var opt:object
+//    sys('options','watch_access_opt');
+//    opt.set(ask('sys_user_watch_css',sys('options','watch_access_opt')));
+//    uzivatele.lst.zkratka.set_attrib('css_cell',replace(opt.css_cell,'@','org'));
+//    uzivatele.lst.username.set_attrib('css_cell',replace(opt.css_cell,'@','access'));
+//    uzivatel.org.selects(opt.sel_org);
+//    uzivatel.access.selects(opt.sel_access);
+//  }
   # ----------------------------------------------------------------==> ... menu
   menu see { type:'left', active:*, format:'f-'
     menu n {title:'Úpravy webu',type:'group'
       item z {title:'Volby aktuálního zobrazení' 
-        proc onclick(i) { var cs:number
+        func onclick(i) { var cs:number
           panel.display(2,'g'); 
-          cs.set(ask('select',"cms_skill","xclanek",conc("id_xclanek=",news.get)));
-          [ cs; glob.novinky.set(0) | glob.novinky.set(1) ];
+          cs= php.select("cms_skill","xclanek",`id_xclanek=${news}`);
+          glob.novinky= cs ? 0 : 1;
         }
       }
     }
@@ -776,17 +784,22 @@ panel REDAKCE [0,0,840,515] {type:'popup', title:'Redakce', css:'dialog_menu',
 
     // příkazy
     label  [12,5,145,30] { css:'ae_parm'}
-    button [20,11,,] { title:"[fa-database] Nový", proc onclick() { var ver_max:number
+    button [20,11,,] { title:"[fa-database] Nový", 
+      func onclick() { var ver_max:number
         form.init(2); 
-        [ a_version.get; version.set(sum(a_version.get,1)); version.change ];
-        kind.change; datum.set(now); datum.change; /*topic.change;*/ hlp.change; }}
-    button [79,11,,] { title:"[fa-trash-o] Vymazat", proc onclick() {
-      confirm("Opravdu vymazat zprávu ",s.topic.get,"?");
-      _help.delete_record(conc("id_help=",s.id_help.get)); refresh }}
+        if (a_version) { version= a_version+1; version.change() };
+        kind.change(); datum= now(); datum.change(); hlp.change(); 
+    }}
+    button [79,11,,] { title:"[fa-trash-o] Vymazat", 
+      func onclick() {
+        if (confirm("Opravdu vymazat zprávu ",s.topic.get,"?")) {
+          _help.delete_record(`id_help=${s.id_help}`); refresh()
+        }
+    }}
 
     label  [240,5,123,30] { css:'ae_parm'}
-    button [250,11,,] { title:"[fa-save] Ulož",  proc onclick() { ADMIN.the_formsave(form,s) }}
-    button [306,11,,] { title:"[fa-undo] Zpět", proc onclick() { form.key(s.id_help.get); form.load}}
+    button [250,11,,] { title:"[fa-save] Ulož",  func onclick() { ADMIN.the_formsave(form,s) }}
+    button [306,11,,] { title:"[fa-undo] Zpět", func onclick() { form.key(s.id_help); form.load() }}
 
     // nová změna
     field kind { data:h.kind, value:'v' }
@@ -836,29 +849,42 @@ panel REDAKCE [0,0,840,515] {type:'popup', title:'Redakce', css:'dialog_menu',
       show user [,,37,] { title:'č.', help:'jednoznačné číslo uživatele',
         data:u.id_user, format:'rsq=' }
       show zkratka [,,25,] { title:'značka', help:'jednoznačná třípísmenná zkratka',
-        data:u.abbr, format:'sq*', css_cell:'' }
+        data:u.abbr, format:'sq*'}
       show username [,,63,] { title:'uživatel', help:'jednoznačné přihlašovací jméno',
         data:u.username, format:'sq*' }
       show prijmeni [,,60,] { title:'příjmení', data:u.surname, format:'s+q*' }
       show jmeno [,,50,] { title:'jméno', data:u.forename, format:'sq*' }
-      show org [,,0,] { title:'org.', data:u.org, format:'rtsq*' }
-      show access [,,0,] { title:'přístup', data:u.access, format:'rtsq*' }
+//      show org [,,0,] { title:'org.', data:u.org, format:'rtsq*' }
+//      show access [,,0,] { title:'přístup', data:u.access, format:'rtsq*' }
       show skills [,,50,] { title:'oprávnění', help:'seznam kódů funkčních oprávnění',
         data:u.skills, format:'utsq*'
         func onsubmit() { this.save() } }
-      proc onrowclick () {
-        new_skill.set('');
-        cmd.get.enable(0,'c');
-        uzivatel.load(user.get);
-        uzivatel.org.key(org.get);
-        uzivatel.access.key(access.get);
+      func onrowclick () {
+        new_skill= '';
+        cmd.enable(0,'c');
+        uzivatel.load(user);
+//        uzivatel.org.key(org);
+//        uzivatel.access.key(access);
         uzivatel.znacka.enable(0);
         // zobrazení v seznamu vlastností jako vybraných
-        dskill.missing.set(ask('sys_skills_test',uzivatel.skills.get));
-        dskill.seznam.selected('set',ask('sys_skills2ids',uzivatel.skills.get));
-        dskill.seznam.selected(sel.get);
-        dskill.seznam.browse_load;
+        dskill.missing= php.sys_skills_test(uzivatel.skills);
+        dskill.seznam.selected('set',php.sys_skills2ids(uzivatel.skills));
+        dskill.seznam.selected(sel);
+        dskill.seznam.browse_load();
       }
+//      proc onrowclick () {
+//        new_skill.set('');
+//        cmd.get.enable(0,'c');
+//        uzivatel.load(user.get);
+//        uzivatel.org.key(org.get);
+//        uzivatel.access.key(access.get);
+//        uzivatel.znacka.enable(0);
+//        // zobrazení v seznamu vlastností jako vybraných
+//        dskill.missing.set(ask('sys_skills_test',uzivatel.skills.get));
+//        dskill.seznam.selected('set',ask('sys_skills2ids',uzivatel.skills.get));
+//        dskill.seznam.selected(sel.get);
+//        dskill.seznam.browse_load;
+//      }
     }
   }
   # ----------------------------------------------------------------==> ... user
@@ -887,15 +913,15 @@ panel REDAKCE [0,0,840,515] {type:'popup', title:'Redakce', css:'dialog_menu',
         }
       }
     }
-    select org [168,48,66,] { tag:'ac', data:u.org, format:'w', title:'^organizace' }
-    select access [242,48,44,] { tag:'ac', data:u.access, format:'w', title:'^přístup k' }
+//    select org [168,48,66,] { tag:'ac', data:u.org, format:'w', title:'^organizace' }
+//    select access [242,48,44,] { tag:'ac', data:u.access, format:'w', title:'^přístup k' }
     field prijmeni [5,92,98,] { data:u.surname title:'^příjmení' par:°{obligatory:1}}
     field jmeno [117,92,64,] { data:u.forename title:'^jméno' par:°{obligatory:1}}
     edit ips [298,47,127,64] { tag:'ip', data:u.ips, title:'^povolené IP adresy' }
     field login { data:u.login }
     field kdo { data:u.zmena_kdo }
     field kdy { data:u.zmena_kdy }
-    proc onchanged() { cmd.get.enable(1,'c|z') }
+    func onchanged() { cmd.enable(1,'c|z') }
   }
   # ----------------------------------------------------------------==> ... desc_skills
   form desc_skills [,,433,351] { 
@@ -912,16 +938,31 @@ panel REDAKCE [0,0,840,515] {type:'popup', title:'Redakce', css:'dialog_menu',
 //        item { title:'zobrazit roční aktivitu'
 //          proc onclick() { uzivatele.lst.track(1) } }
         item { title:'odebrat všechna oprávnění'
-          func onclick() { seznam.selected("clear"); cmd.enable(1,'c'); } }
+          func onclick() { 
+            seznam.selected("clear"); 
+            uzivatel.skills= '';
+            uzivatel.skills.change();
+            cmd.enable(1,'c|z'); } }
         item { title:'-přidat nový řádek', skill:'m|m'
-          proc onclick() {
-            eq(sel.get,'ignore');
-            seznam.browse_seek(conc('id_skill=',
-              _skill.insert_record(
-                object('skill_abbr',conc(abb.get,'?'),'skill_desc',conc(dsc.get,'.?')))));
-          | confirm('Pro přidávání musí seznam opravnění zobrazovat všechny položky. Přepnout?');
-            seznam.selected("ignore"); sel.set('ignore'); seznam.browse_load
-        } }
+          func onclick() {
+            if (sel=='ignore') {
+              seznam.browse_seek(conc('id_skill=',
+                _skill.insert_record(
+                  object('skill_abbr',conc(abb,'?'),'skill_desc',conc(dsc,'.?')))));
+            }
+            elseif (confirm('Pro přidávání musí seznam opravnění zobrazovat všechny položky. Přepnout?')) {
+              seznam.selected("ignore"); sel= 'ignore'; seznam.browse_load()
+            }
+          } 
+//          proc onclick() {
+//            eq(sel.get,'ignore');
+//            seznam.browse_seek(conc('id_skill=',
+//              _skill.insert_record(
+//                object('skill_abbr',conc(abb.get,'?'),'skill_desc',conc(dsc.get,'.?')))));
+//          | confirm('Pro přidávání musí seznam opravnění zobrazovat všechny položky. Přepnout?');
+//            seznam.selected("ignore"); sel.set('ignore'); seznam.browse_load
+//          } 
+        }
         item { title:'odebrat běžný řádek', skill:'m|m'
           func onclick() { 
             if (confirm('opravdu odebrat oprávnění ',abb,':',dsc,'?')) {
@@ -953,15 +994,10 @@ panel REDAKCE [0,0,840,515] {type:'popup', title:'Redakce', css:'dialog_menu',
 //        uzivatel.skills.change();
 //        cmd.enable(1,'c|z');
 //      }
-      proc onchoice() {
-#         // pokud je přihlášený administrátor, zablokujeme mu možnost změnit si oprávnění
-#         eq(uzivatele.lst.user.get,sys('user','id_user'));
-#         contains(uzivatele.lst.user.get,sys('ezer','options','admins'));
-#         warning('Administrátor si nemůže měnit svoje práva');
-#       |
-        uzivatel.skills.set(ask('sys_ids2skills',this.selected('get')));
-        uzivatel.skills.change;
-        cmd.get.enable(1,'c|z');
+      func onchoice() {
+        uzivatel.skills= php.sys_ids2skills(this.selected('get'));
+        uzivatel.skills.change();
+        cmd.enable(1,'c|z');
       }
     }
   }
@@ -970,39 +1006,46 @@ panel REDAKCE [0,0,840,515] {type:'popup', title:'Redakce', css:'dialog_menu',
     # -------------------------------- úpravy uživatelů
     label  [0,6,361,30] { css:'ae_parm' }
     button [11,12,,] { tag:'h',type:'html', title:'[fa-plug fa-rotate-180 fa-red] Skrýt' skill:'a|m'
-      proc onclick() { confirm("Opravdu znemožnit přihlášení uživateli ",uzivatel.username.get,'?');
-        alert(ask('sys_user_hide',uzivatele.lst.user.get,1)); refresh
+      func onclick() { 
+        if (confirm("Opravdu znemožnit přihlášení uživateli ",uzivatel.username,'?')) {
+          alert(php.sys_user_hide(uzivatele.lst.user,1)); refresh()
+        }
     }}
     button [71,12,,] { tag:'u', type:'html', title:'[fa-plug] Obnovit'                   skill:'a|m'
-      proc onclick() { confirm("Opravdu obnovit uživatele ",uzivatel.username.get,'?');
-        alert(ask('sys_user_hide',uzivatele.lst.user.get,0)); refresh
+      func onclick() { 
+        if (confirm("Opravdu obnovit uživatele ",uzivatel.username,'?')) {
+          alert(ask('sys_user_hide',uzivatele.lst.user,0)); refresh() 
+        }
     }}
     button watch_key [195,12,,] { title:'Vygenerovat klíč', format:'n'                   skill:'a|m' 
-      proc onclick() {
-        confirm("Vygenerování nového klíče znemožní přístup současným uživatelům. Pokračovat?");
-        watch_ref.set(ask('sys_watch_key'))
+      func onclick() {
+        if (confirm("Vygenerování nového klíče znemožní přístup současným uživatelům. Pokračovat?"))
+          watch_ref= php.sys_watch_key()
       }
     }
     label watch_ref [316,15,250,15]
     # -------------------------------- změny uživatele
     label  [436,6,292,30] { css:'ae_parm' }
     button [449,12,,] { tag:'c', type:'html', title:'[fa-save] Uložit'                   skill:'a|m'
-      proc onclick () { u_uloz
+      func onclick () { u_uloz()
     } }
     button [515,12,,] { tag:'z', type:'html', title:'[fa-undo] Zpět'                     skill:'a|m'
-      proc onclick () {
-        p.form_obligatory(uzivatel.get,0);
-        uzivatele.lst.browse_key; uzivatel.load(uzivatele.lst.browse_key);
-        cmd.get.enable(0,'c|z');
+      func onclick () {
+        p.form_obligatory(uzivatel,0);
+        if (uzivatele.lst.browse_key()) {
+          uzivatel.load(uzivatele.lst.browse_key());
+          cmd.enable(0,'c|z');
+        }
     } }
-    button [651,12,,] { type:'html', title:'[fa-heart] Vytvořit'                         skill:'a|m'
-      proc onclick () {
-        cmd.get.enable(0,'c'); cmd.get.enable(1,'z');
+    button [574,12,,] { type:'html', title:'[fa-heart] Vytvořit'                         skill:'a|m'
+      func onclick () {
+        cmd.enable(0,'c'); cmd.enable(1,'z');
         dskill.seznam.selected('clear');
-        uzivatele.lst.blur; uzivatel.init; uzivatel.kdo.set(sys('user','id_user'));
-        uzivatel.kdy.set(now);
+        uzivatele.lst.blur(); uzivatel.init(); 
+        uzivatel.kdo= sys('user','id_user');
+        uzivatel.kdy= now();
         uzivatel.znacka.enable(1);
-        p.form_obligatory(uzivatel.get,1);
+        p.form_obligatory(uzivatel,1);
     } }
   }
   # --------------------------------------------- u
@@ -1379,13 +1422,13 @@ panel UPLOAD [0,0,400,130] { title:' Nahrát soubor', type:'popup', style:"min-w
     label dlab [0,10,380,] {tag:'l_', title:'... použij [init] ' }
     label drop [0,27,380,100] {tag:'l_', type:'drop', 
         par:°{contextmenu:"-vložit obrázek;vložit odkaz"}
-      func ondrop(f:object) {                                                // možnost odmítnutí přenosu
+      func ondrop(f:object):text {                                                // možnost odmítnutí přenosu
         //gt(f.size,5242880); warning('odmítnuto ',f.name,' má více jak 5MB'); return(0)
         echo('dropped=',f.name);                                      // jméno nemusí být ASCII
         return(f.name);
       }
       func onload(f:object) { echo("loaded=",f.name) } // po dokončení přenosu, jméno bude ASCII
-      func onerror(e:object) { // funkce onerror nesmí obsahovat asynchronní kód a lokální proměnné
+      func onerror(e:object):number { // funkce onerror nesmí obsahovat asynchronní kód a lokální proměnné
         echo("drop error=",e.msg); return(1) // vrácení 0 způsobí standardní hlášení chyby
       }
       func onmenu(op,name,ref) { var name2:text
@@ -1459,7 +1502,7 @@ panel UPLOAD [0,0,400,130] { title:' Nahrát soubor', type:'popup', style:"min-w
         echo('lsdir=',drop.lsdir())
       }
     }
-    button [-14,2,,] { title:"[fa-cloud-download] Vložit soubor odkazem"
+    button [-14,2,,] { title:"[fa-cloud-download] Vložit externí soubor odkazem"
       func onclick() { var url:text, ret:object
         url= UPLOAD_URL.modal();
         if (url) {
@@ -1517,7 +1560,7 @@ panel FOTKY [0,0,680,265] { title:' Organizér fotek', type:'popup', css:'dialog
     }
     else {
       alert("tyto fotky může upravovat jen ",f.editors ? f.editors.get : 'šéfredaktor');
-      return(0)
+      return
     }
     //    [ function("foto_sortable('start');") ];
     //    f.drop_init;
@@ -1652,7 +1695,7 @@ panel FOTKY [0,0,680,265] { title:' Organizér fotek', type:'popup', css:'dialog
 //        max_width:1200,max_height:960});
 //    }
     label drop   [0,72,80,80]      { type:'drop', tag:'o', css:'drop_foto', format:'t' 
-      func ondrop(x:object) { //var name: text
+      func ondrop(x:object):text { //var name: text
 //        [ not(fid.get); create ];--
         drop.set_css('','drop_area drop_area_hover');
 //        name.set(ask('upload_fotky',fileinfo,fid.get));
@@ -1668,7 +1711,7 @@ panel FOTKY [0,0,680,265] { title:' Organizér fotek', type:'popup', css:'dialog
         php.minify_fotky(x.name,f.fid);
         refresh(); p.refresh();
       } 
-      func onerror(e:object) { // funkce onerror nesmí obsahovat asynchronní kód a lokální proměnné, ale přes call lze zavolat už cokoliv
+      func onerror(e:object):number { // funkce onerror nesmí obsahovat asynchronní kód a lokální proměnné, ale přes call lze zavolat už cokoliv
         warning(e.msg); return(1) // vrácení 0 způsobí standardní hlášení chyby
       }
       func onprogress(n,msg) { 
