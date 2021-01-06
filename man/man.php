@@ -135,6 +135,7 @@ __EOD;
   $Ezer_web= $del= '';
   if ( isset($_SESSION['web'])) {
     foreach ($_SESSION['web'] as $wi=>$w) {
+      if (substr($wi,0,1)=='*') continue;
       $Ezer_web.= "$del$wi:'$w'";
       $del= ',';
     }

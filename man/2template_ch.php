@@ -753,22 +753,14 @@ __EOT;
       $obsah= str_replace('$index',$index,$obsah);
       $menu= '';
       if ( $REDAKCE ) {
-        $obsah= preg_replace("~href=\"(?:$http_server/|/|(?!https?://))(.*)\"~U", 
-//              "onclick=\"go(arguments[0],'page=$1','$prefix$1','',0);\" title='$1'", 
-              "onclick=\"go(arguments[0],'page=$1','$1','',0);\" title='$1'", 
-              $obsah);
+        $obsah= preg_replace_callback("~(href=\"(?:$http_server/|/|(?!https?://)))(.*)\"~U", 
+            function($m) {
+              return preg_match("~$inc/(c|f)/~",$m[2])
+                ? $m[1].$m[2].'"'
+                : "onclick=\"go(arguments[0],'page=$m[2]','$m[2]','',0);\" title='$m[2]'";
+            }, 
+            $obsah);
         $div_id= "c$id";
-//        $kod= "Ezer.fce.contextmenu([$cmenu
-//              ['editovat článek',function(el){ opravit('xclanek',$id); }],
-//              ['upravit obrázky článku',function(el){ namiru('$id','$div_id'); }],
-//              ['vyjmout embeded obrázky',function(el){ bez_embeded('$id'); }],
-//              ['-zobrazit jako abstrakt',function(el){ zmenit($curr_menu->mid,'xclanek',$id,'aclanek'); }],
-//              ['-přidat článek na začátek',function(el){ pridat('xclanek',$curr_menu->mid,1); }],
-//              ['přidat článek na konec',function(el){ pridat('xclanek',$curr_menu->mid,0); }],
-//              ['-přidat knihu na začátek',function(el){ pridat('xkniha',$curr_menu->mid,1); }],
-//              ['přidat knihu na konec',function(el){ pridat('xkniha',$curr_menu->mid,0); }]
-//            ],arguments[0],0,0,'#xclanek$id');return false;\"";
-//        $menu= " title='článek $id' oncontextmenu=\"$kod\"";
         $menu= title_menu("článek $id","ec;eo,$div_id;xo;-za;-pcn;pcd;-pkn;pkd",$id,0,$curr_menu->mid);
         if ( $mobile ) {
           $ipad= "<span class='ipad_menu' onclick=\"arguments[0].stopPropagation();$kod\">
@@ -783,37 +775,10 @@ __EOT;
           </div>
         </div>
       ";
-//        // pokud jsou fotky, přidáme
-//        $rf= pdo_qry("SELECT id_xfotky,nazev,seznam,path,autor FROM xfotky WHERE id_xclanek=$id");
-//        while ($rf && list($fid,$nazev,$seznam,$path,$podpis)=pdo_fetch_row($rf)) {
-//          if ( $REDAKCE ) {
-//            $note= "<span style='float:right;color:red;font-style:italic;font-size:x-small'>
-//                  ... zjednodušené zobrazení fotogalerie pro editaci</span>";
-//            $menu= " title='fotky $fid' oncontextmenu=\"
-//                Ezer.fce.contextmenu([
-//                  ['organizovat fotky',function(el){ opravit('xfotky',$fid); }],
-//                  ['kopírovat ze setkání',function(el){ zcizit('fotky',$fid,0); }],
-//                  ['... jen test',function(el){ zcizit('fotky',$fid,1); }]
-//                ],arguments[0],0,0,'#xclanek$id');return false;\"";
-//          }
-//          $galery= show_fotky2($fid,$seznam);
-//          $html.= "
-//            <div class='galery_obal' $menu>
-//              <div id='xfotky$fid' class='galerie'>
-//                <div class='text'>
-//                  <h1>&nbsp;&nbsp;&nbsp;$nazev $note</h1>
-//                  $galery
-//                  <div class='podpis'>$podpis</div>
-//                </div>
-//              </div>
-//            </div>
-//          ";
-//        }
       break;
 
     case 'kalendar': # ----------------------------------------------- . kalendar
       global $y;
-//      $edit_entity= 'kalendar';
       $edit_id= 0;
       // zjistíme YS + FA
       ask_server((object)array('cmd'=>'kalendar'));
@@ -822,11 +787,6 @@ __EOT;
       $qa= "SELECT id_xakce,datum_od,datum_do,nazev,misto,web_text 
           FROM xakce WHERE datum_od>NOW() AND skupina=0 ORDER BY datum_od";
       $ra= pdo_query($qa);
-//      if ( pdo_num_rows($ra)==0 ) {
-//        $qa= "SELECT id_xakce,datum_od,datum_do,nazev,misto,web_text 
-//            FROM xakce WHERE datum_od<=NOW() AND skupina=0 ORDER BY datum_od DESC LIMIT 1";
-//        $ra= pdo_query($qa);
-//      }
       while ( $ra && list($id,$od,$do,$nazev,$misto,$text)=pdo_fetch_array($ra)) {
         $oddo= datum_oddo($od,$do);
         if ( !$edit_id )
@@ -840,10 +800,6 @@ __EOT;
       });
       $menu= '';
       if ( $REDAKCE ) {
-//        $kod= "Ezer.fce.contextmenu([
-//              ['editovat kalendář',function(el){ opravit('kalendar',$edit_id); }]
-//            ],arguments[0],0,0,'#xclanek$id');return false;\"";
-//        $menu= " oncontextmenu=\"$kod\"";
         $menu= title_menu('kalendář',"et,$edit_id");
         if ( $mobile ) {
           $ipad= "<span class='ipad_menu' onclick=\"arguments[0].stopPropagation();$kod\">

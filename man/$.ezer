@@ -1243,7 +1243,7 @@ panel EDITOR [0,0,720,550] { type:'popup', style:"min-width:700px", par:°{close
       func onclick() { panel.hide(0); }}
     button [-1,40,,] { title:'[fa-files-o] Přílohy', help:'seznam souborů sdružených s textem'
       func onclick() {
-        UPLOAD.ckeditor= obsah;
+        UPLOAD.ckeditor= &obsah;
         UPLOAD.path= path;
         UPLOAD.modal() //(50,100)
       }
@@ -1297,10 +1297,10 @@ panel EDITOR [0,0,720,550] { type:'popup', style:"min-width:700px", par:°{close
     button [-1,5,,] { title:'Zpět', help:'ukončit editor bez uložení změn'
       proc onclick() { panel.hide(0); }}
     button [-89,5,,] { title:'[fa-files-o] Přílohy', help:'seznam souborů sdružených s textem'
-      proc onclick() {
-        UPLOAD.ckeditor.set(obsah);
-        UPLOAD.path.set(path.get);
-        UPLOAD.modal //(50,100)
+      func onclick() {
+        UPLOAD.ckeditor= &obsah;
+        UPLOAD.path= path;
+        UPLOAD.modal() //(50,100)
       }
     }
     // položky akce
@@ -1373,7 +1373,7 @@ panel EDITOR [0,0,720,550] { type:'popup', style:"min-width:700px", par:°{close
     }
     button app [-3,4,,] { title:'[fa-files-o] Přílohy', help:'seznam souborů sdružených s textem'
       func onclick() {
-        UPLOAD.ckeditor= obsah;
+        UPLOAD.ckeditor= &obsah;
         UPLOAD.path= path;
         UPLOAD.modal() //(50,100)
       }
