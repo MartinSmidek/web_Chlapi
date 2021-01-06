@@ -589,9 +589,13 @@ __EOT;
       $obsah= x_cenzura($obsah);
       $menu= $note= '';
       if ( $REDAKCE ) {
-        $obsah= preg_replace("~href=\"(?:$http_server/|/|(?!https?://))(.*)\"~U", 
-              "onclick=\"go(arguments[0],'page=$1','$prefix$1','',0);\" title='$1'", 
-              $obsah);
+        $obsah= preg_replace_callback("~(href=\"(?:$http_server/|/|(?!https?://)))(.*)\"~U", 
+            function($m) {
+              return preg_match('~inc/(c|f)/~',$m[2])
+                ? $m[1].$m[2].'"'
+                : "onclick=\"go(arguments[0],'page=$m[2]','$m[2]','',0);\" title='$m[2]'";
+            }, 
+            $obsah);
         if ( !$book  ) {
           $div_id= "c$id";
           $namiru= $plny ? "eo;xo;" : '';
@@ -755,7 +759,7 @@ __EOT;
       if ( $REDAKCE ) {
         $obsah= preg_replace_callback("~(href=\"(?:$http_server/|/|(?!https?://)))(.*)\"~U", 
             function($m) {
-              return preg_match("~$inc/(c|f)/~",$m[2])
+              return preg_match('~inc/(c|f)/~',$m[2])
                 ? $m[1].$m[2].'"'
                 : "onclick=\"go(arguments[0],'page=$m[2]','$m[2]','',0);\" title='$m[2]'";
             }, 
@@ -821,7 +825,15 @@ __EOT;
             $web= "přihlášku najdeš na webu $web";
           }
           else {
-            $web= $a->text;
+            $web= $REDAKCE
+              ? preg_replace_callback("~(href=\"(?:$http_server/|/|(?!https?://)))(.*)\"~U", 
+                  function($m) {
+                    return preg_match('~inc/(c|f)/~',$m[2])
+                      ? $m[1].$m[2].'"'
+                      : "onclick=\"go(arguments[0],'page=$m[2]','$m[2]','',0);\" title='$m[2]'";
+                  }, 
+                  $a->text)
+              : $a->text;
           }
           $oddo= $a->oddo;
           if ( $a->obsazeno ) {
@@ -868,98 +880,7 @@ __EOT;
         <div id="skup2"></div>
 __EOT;
       break;
-/*
-//    // clanky=vzor získání abstraktů akcí podle roků a vzoru  {tx_gncase.chlapi RLIKE vzor}
-//    case 'akce':      # ------------------------------------------------ . akce
-//      global $y, $backref, $top, $links;
-//      $links= "fotorama";
-//      $ys_html= "<script>jQuery('.fotorama').fotorama();</script>";
-//      // získání pole abstraktů akcí
-//      $patt= $top ? "$id!$top" : $id;
-//      ask_server((object)array('cmd'=>'akce','chlapi'=>$patt,'back'=>$backref)); 
-//      // úzké abstrakty
-//      $ys_html.= str_replace("abstr-line","abstr",$y->obsah);
-//      // překlad na globální odkazy do setkani.(org|bean)
-//      $fileadmin= get_fileadmin();  
-//      $ys_html= preg_replace("/(src|href)=(['\"])(?:\\/|)fileadmin/","$1=$2$fileadmin",$ys_html);
-//      if ( $top ) {
-//        if ( $REDAKCE ) {
-//          list($rok,$idp)= explode(',',$top);
-//          $menu= " title='akce setkani.org: $idp' oncontextmenu=\"
-//              Ezer.fce.contextmenu([
-//                ['kopie akce ze setkání/$idp',function(el){ zcizit('akce',$idp,$curr_menu->mid); }],
-//                ['... jen test',function(el){ zcizit('?akce',$idp,$curr_menu->mid); }]
-//              ],arguments[0],0,0,'#clanek$idp');return false;\"";
-//          $ys_html= strtr($ys_html,array(
-//              "id='fokus_case'"  => "id='fokus_case' $menu" //,
-////              "id='clanek$top'"  => "id='clanek$top' $menu"
-//          ));
-//        }
-//      }
-//      $html.= $ys_html;
-//      break;
 
-    // clanky=vzor získání abstraktů článků s danou hodnotou {tx_gncase.chlapi RLIKE vzor}
-    case 'clanky':    # ------------------------------------------------ . clanky
-      global $y, $backref, $top, $links, $REDAKCE;
-      $links= "fotorama";
-      $ys_html= "<script>jQuery('.fotorama').fotorama();</script>";
-      // získání pole abstraktů článků s danými ids 
-      $patt= $top ? "$id!$top" : $id;
-      ask_server((object)array('cmd'=>'clanky','chlapi'=>$patt,'back'=>$backref)); 
-      // úzké abstrakty
-      $ys_html.= $y->obsah;
-      $ys_html= strtr($ys_html,array(
-          "class='abstr-line'"   => "class='back'",
-          "class='abstr-line x'" => "class='back'",
-          "class='abstrakt  x '" => "class='aclanek home'",
-          "class='abstrakt x'"   => "class='aclanek home'",
-          "<hr style='clear:both;border:none'>"  => "<hr style='clear:both;display:none'>"
-      ));
-      // překlad na globální odkazy do setkani.(org|bean)
-      $fileadmin= get_fileadmin();  
-      $ys_html= preg_replace("/(src|href)=(['\"])(?:\\/|)fileadmin/","$1=$2$fileadmin",$ys_html);
-      // vložení tranformované prezentace
-      // 1) z PPT uložené jako PDF s minimalizací pro web
-      // 2) pdf2htmlEX --use-cropbox 0 --fit-width 800 --embed CFIJO --bg-format jpg $fname.pdf
-      if ( $top ) {
-        if ( $REDAKCE ) {
-          $ys_kniha= preg_match("~id='fokus_page'~", $ys_html);
-          $co= "setkani_".($ys_kniha?"k":"c");
-          $cosi= $ys_kniha?'knihy':'článku';
-          $kod= "Ezer.fce.contextmenu([
-                ['kopie $cosi ze setkání/$top',function(el){ zcizit('$co',$top,$curr_menu->mid); }],
-                ['... jen test',function(el){ zcizit('?$co',$top,$curr_menu->mid); }]
-              ],arguments[0],0,0,'#clanek$top');return false;\"";
-          $menu= " title='".($ys_kniha?'kniha':'článek')." setkani.org: $top' oncontextmenu=\"$kod\"";
-          if ( $mobile ) {
-            $ipad= "<span class='ipad_menu' onclick=\"arguments[0].stopPropagation();$kod\">
-              <i class='fa fa-bars'></i></span>";
-          }
-          $ys_html= strtr($ys_html,array(
-              "id='fokus_page'"  => "id='fokus_page' $menu",
-              "id='clanek$top'"  => "id='clanek$top' $menu"
-          ));
-        }
-        $ys_html= preg_replace_callback("/(###([\w\-]+)###)/",
-          function($m) {
-            global $REDAKCE, $ipad;
-            $fname= "pdf/$m[2].html";
-            if ( file_exists($fname) ) {
-              if ( $REDAKCE )
-                return "<span class='sorry'>$ipad soubor $fname existuje, 
-                        ale jako administrátor jej neuvidíš (velký overhead)</span>";
-              else
-                return file_get_contents($fname);
-            }
-            else
-              return "<span class='sorry'>$ipad soubor $fname neexistuje</span>";
-          }, 
-          $ys_html);
-      }
-      $html.= $ys_html;
-      break;
-*/
     // clanek=pid -- samostatně zobrazený rozvinutý part
     case 'clanek':  # ------------------------------------------------ . clanek
       global $y;
