@@ -74,7 +74,8 @@ function rr_send($par) {
         // odeslání a ochrana proti zdvojení
         $email= $_GET['email'] ? $_GET['email'] : 'chlapi-myslenky@googlegroups.com';
         $html.= "<hr/>zaslání na <i>$email</i> skončilo se stavem ";
-        $ok= send_mail($subj,$body,'smidek@proglas.cz',$email,'Richard Rohr');
+        $ok= rr_send_mail($subj,$body,'martin.smidek@setkani.org',$email,'Richard Rohr');
+//        $ok= send_mail($subj,$body,'smidek@proglas.cz',$email,'Richard Rohr');
 //        $ok= send_mail($subj,$body,'smidek@proglas.cz','martin@smidek.eu','Richard Rohr');
         $html.= $ok;
         //$html.= $mail->sendHtmlMail('smidek@proglas.cz',$email,'','',$subj,$body,'Richard Rohr');
@@ -86,4 +87,55 @@ function rr_send($par) {
     }
   }
   return $html;
+}
+# ---------------------------------------------------------------------------------------- send mail
+# pošle systémový mail, pokud není určen adresát či odesílatel jde o mail správci aplikace
+# $to může být seznam adres oddělený čárkou
+function rr_send_mail($subject,$html,$from='',$to='',$fromname='') { trace();
+  global $ezer_path_serv, $ezer_root, $EZER;
+//  $from= $from ? $from : ($EZER->smtp->from ? $EZER->smtp->from : $EZER->options->mail);
+//  $fromname= $fromname ? $fromname : $ezer_root;
+  $to= $to ? $to : $EZER->options->mail;
+  // poslání mailu
+  $phpmailer_path= "$ezer_path_serv/licensed/phpmailer";
+  require_once("$phpmailer_path/class.smtp.php");
+  require_once("$phpmailer_path/class.phpmailer.php");
+  // napojení na mailer
+  $mail= new PHPMailer;
+  $mail->SetLanguage('cs',"$phpmailer_path/language/");
+  
+  $mail->IsSMTP();
+  $mail->Mailer= 'smtp';
+  $mail->Host= "smtp.gmail.com";
+  $mail->Port= 465;
+  $mail->SMTPAuth= 1;
+  $mail->SMTPSecure= "ssl";
+  $mail->Username= "answer@setkani.org";
+  $mail->Password= "answer2017";
+//  $mail->AddAddress("martin@smidek.eu");
+  
+  
+//  $mail->IsSMTP();
+//  $mail->Host= isset($EZER->smtp->host) ? $EZER->smtp->host : "192.168.1.1";
+//  $mail->Port= isset($EZER->smtp->port) ? $EZER->smtp->port : 25;
+  $mail->CharSet = "utf-8";
+  $mail->From= $from;
+  $mail->FromName= $fromname;
+  foreach (explode(',',$to) as $to1) {
+    $mail->AddAddress($to1);
+  }
+  $mail->Subject= $subject;
+  $mail->Body= $html;
+  $mail->IsHTML(true);
+//   $mail->Mailer= "smtp";
+  // pošli
+  $ok= $mail->Send();
+//                                                display("send_mail=$ok,".$mail->ErrorInfo);
+  if ( !$ok )
+    fce_warning("Selhalo odeslání mailu: $mail->ErrorInfo");
+  else {
+//                                                $mail->Subject= $mail->Body= $mail->language= "---";
+//                                                debug($mail,"send_mail(..,..,$from,$to)=$ok");
+  }
+  return $ok;
 }
