@@ -8,7 +8,7 @@
   $ezer_server= 
     $_SERVER["SERVER_NAME"]=='chlapi.bean'      ? 0 : (       // 0:lokální NTB
     $_SERVER["SERVER_NAME"]=='chlapi.cz'        ? 1 : (       // 1:Synology - YMCA
-    $_SERVER["SERVER_NAME"]=='192.168.1.213'    ? 1 : (       // 1:Synology - YMCA (lokálně)
+    $_SERVER["SERVER_NAME"]=='192.168.7.111'    ? 1 : (       // 1:Synology - YMCA (lokálně)
     $_SERVER["SERVER_NAME"]=='ezer.smidek.eu'   ? 2 : (       // 2:endora
     $_SERVER["SERVER_NAME"]=='chlapi.doma'      ? 3 : -1)))); // Synology - DOMA
 
