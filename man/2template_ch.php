@@ -282,6 +282,9 @@ function title_menu($title,$items,$id=0,$idk=0,$idm=0) {
     // z - zobrazit
     case 'za':  $cm[]= "['{$c}zobrazit jako abstrakt',function(el){ zmenit($idm,'xclanek',$id,'aclanek');}]"; break;
     case 'zc':  $cm[]= "['{$c}zobrazit jako článek',function(el){ zmenit($idm,'aclanek',$id,'xclanek');}],"; break;
+    // t - transformace
+    case 'tak': $cm[]= "['{$c}vytvořit z článku knihu',function(el){ clanek2kniha($idm,'aclanek',$id);}]"; break;
+    case 'tck': $cm[]= "['{$c}vytvořit z článku knihu',function(el){ clanek2kniha($idm,'xclanek',$id);}]"; break;
     default: fce_error("'$item' není menu");
     }
   }
@@ -599,7 +602,7 @@ __EOT;
         if ( !$book  ) {
           $div_id= "c$id";
           $namiru= $plny ? "eo;xo;" : '';
-          $menu= title_menu("$co $idn","ec;{$namiru}-zc;-pf;-mcn;mcd;-pcn;pcd;-pkn;pkd",$id,0,$curr_menu->mid);
+          $menu= title_menu("$co $idn","ec;{$namiru}-zc;-pf;-mcn;mcd;-pcn;pcd;-pkn;pkd;tak",$id,0,$curr_menu->mid);
           if ( $mobile ) {
             $ipad= "<span class='ipad_menu' onclick=\"arguments[0].stopPropagation();$kod\">
               <i class='fa fa-bars'></i></span>";
@@ -765,7 +768,7 @@ __EOT;
             }, 
             $obsah);
         $div_id= "c$id";
-        $menu= title_menu("článek $id","ec;eo,$div_id;xo;-za;-pcn;pcd;-pkn;pkd",$id,0,$curr_menu->mid);
+        $menu= title_menu("článek $id","ec;eo,$div_id;xo;-za;-pcn;pcd;-pkn;pkd;tck",$id,0,$curr_menu->mid);
         if ( $mobile ) {
           $ipad= "<span class='ipad_menu' onclick=\"arguments[0].stopPropagation();$kod\">
             <i class='fa fa-bars'></i></span>";
@@ -1716,8 +1719,8 @@ function db_connect() {
   $http_server= "http://$ezer_server";
   $dbs= array(
     array(  // 0 = lokální
-      'setkani'  => array(0,'localhost','gandi','','utf8','chlapi'),
-      'ezertask' => array(0,'localhost','gandi','','utf8')
+      'setkani'  => array(0,'localhost','gandi','radost','utf8','chlapi'),
+      'ezertask' => array(0,'localhost','gandi','radost','utf8')
     ),
     array(  // 1 = ostré - Synology + online 
       'setkani'  => array(0,'localhost','ymca','JW4YNPTDf4Axkj9','utf8','chlapi'),
@@ -1732,12 +1735,12 @@ function db_connect() {
       'ezertask' => array(0,'localhost:3307','gandi10','Radost_2020','utf8','myslenky')
     ),
 //    array(  // 3 = ladící - Synology DOMA
-//      'setkani'  => array(0,'localhost','gandi','','utf8','chlapi'),
-//      'ezertask' => array(0,'localhost','gandi','','utf8','myslenky')
+//      'setkani'  => array(0,'localhost','gandi','radost','utf8','chlapi'),
+//      'ezertask' => array(0,'localhost','gandi','radost','utf8','myslenky')
 //    ),
     array(  // 4 = ladící - ben
-      'setkani'  => array(0,'localhost','gandi','','utf8','chlapi'),
-      'ezertask' => array(0,'localhost','gandi','','utf8')
+      'setkani'  => array(0,'localhost','gandi','radost','utf8','chlapi'),
+      'ezertask' => array(0,'localhost','gandi','radost','utf8')
     ),
   );
   $ezer_db= $dbs[$ezer_server];

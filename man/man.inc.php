@@ -1,6 +1,6 @@
 <?php # (c) 2018 Martin Smidek <martin@smidek.eu>
 
-  global $ezer_root, $ezer_local, $ezer_server;
+  global $ezer_root, $ezer_local, $ezer_server, $EZER;
   
   date_default_timezone_set('Europe/Prague');
 
@@ -61,4 +61,3 @@
   // je to aplikace se startem v rootu
   require_once("{$EZER->version}/ezer_ajax.php");
 
-?>

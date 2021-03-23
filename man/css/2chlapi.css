@@ -93,7 +93,7 @@ a.cke_button_off:active {
 }
 .jump {
   display: inline-block;
-  border-radius: .4em;
+  border-radius: 0.4em;
   padding: 0.1em 0.6em;
   font-weight: bold;
   text-decoration: none;
@@ -117,7 +117,7 @@ span.neodkaz a.jump {
   color: #000000;
   text-align: center;
   display: inline-block;
-  border-radius: .4em;
+  border-radius: 0.4em;
   padding: 0.1em 0.6em;
   font-weight: bold;
   text-decoration: none;
@@ -132,7 +132,7 @@ span.neodkaz a.jump a {
   text-decoration: none;
 }
 div.text {
-  padding: .4em;
+  padding: 0.4em;
 }
 div.podpis {
   text-align: right;
@@ -196,7 +196,7 @@ div.filler {
   height: 1.5em;
 }
 #menu #page_tm a.jump {
-  border-radius: 0em 0em .8em .8em;
+  border-radius: 0em 0em 0.8em 0.8em;
 }
 #menu #page_hm {
   margin: 0.4em 2em;
@@ -207,7 +207,7 @@ div.filler {
 }
 #menu #page_hm a.jump.subs {
   border-bottom: 0.5em solid #807340;
-  border-radius: .8em .8em 0em 0em;
+  border-radius: 0.8em 0.8em 0em 0em;
 }
 #menu #page_sm {
   position: absolute;
@@ -215,7 +215,7 @@ div.filler {
   right: 3em;
 }
 #menu #page_sm a.jump {
-  border-radius: 0em 0em .8em .8em;
+  border-radius: 0em 0em 0.8em 0.8em;
 }
 #menu #page_sm > span {
   display: inline-block;
@@ -246,7 +246,7 @@ div.filler {
 }
 #bar_items span {
   background-color: #FFFFFF;
-  padding: .5em;
+  padding: 0.5em;
   display: block;
   text-align: left;
 }
@@ -263,7 +263,7 @@ div.box {
   transform: translate(-50%, -50%);
   line-height: 2em;
   color: black;
-  border-radius: .4em;
+  border-radius: 0.4em;
   padding: 1em 1em 0em 1em;
   box-shadow: black 4px 6px 20px;
   background: white;
@@ -276,7 +276,7 @@ div.box div.box_title {
   text-align: center;
   height: 2em;
   background: black;
-  border-radius: .4em .4em 0 0;
+  border-radius: 0.4em 0.4em 0 0;
   color: white;
   font-weight: bold;
 }
@@ -286,7 +286,7 @@ div.box div.box_text {
 }
 div.box div.box_ok {
   text-align: center;
-  padding: .5em;
+  padding: 0.5em;
 }
 div.box div.box_ok button {
   position: relative;
@@ -342,7 +342,7 @@ a.home,
   background-color: #FFFFFF;
   color: #000000;
   float: right;
-  margin: .4em 1em;
+  margin: 0.4em 1em;
   max-width: 100%;
   z-index: 1;
   line-height: 1.5;
@@ -400,7 +400,7 @@ a.home#user_mail span#user_mail_head,
   text-align: center;
   height: 2em;
   background-color: #807340;
-  border-radius: .4em .4em 0 0;
+  border-radius: 0.4em 0.4em 0 0;
   color: #FFFFFF;
   font-weight: bold;
 }
@@ -617,10 +617,10 @@ a.aclanek:hover {
 #list div.abstr a.abstrakt {
   background-color: #E6E1CF;
   color: #000000;
-  border-radius: .4em;
+  border-radius: 0.4em;
   cursor: pointer;
   margin: 0.5em;
-  padding: .4em;
+  padding: 0.4em;
   box-shadow: -1px 1px 0px #567, 1px -1px 0px #567, -1px -1px 0px #567, 5px 5px 10px #567;
   display: block;
   text-decoration: none;
@@ -642,7 +642,7 @@ div.galery_obal div.detail {
   width: 115px;
   float: right;
   background: orange;
-  border-radius: .5em;
+  border-radius: 0.5em;
 }
 div.galery_obal div.detail label {
   vertical-align: text-bottom;
@@ -655,7 +655,7 @@ div.galery_obal div.galerie {
   overflow: hidden;
   margin: 0;
   position: relative;
-  border-radius: .5em;
+  border-radius: 0.5em;
 }
 #vlakno,
 .sloupce,
@@ -689,7 +689,7 @@ div.kniha {
   color: #000000;
   display: block;
   clear: both;
-  border-radius: .8em;
+  border-radius: 0.8em;
   text-align: center;
 }
 .kniha_bg > a.jump {
@@ -752,7 +752,7 @@ div.pdf span.sorry {
     width: 100%;
   }
   a.home {
-    margin-left: .5em;
+    margin-left: 0.5em;
   }
   a.home.home {
     width: calc(100vw - 4.5em);
@@ -798,7 +798,7 @@ div.pdf span.sorry {
     top: 5.2em;
   }
   div.home {
-    margin: .5em;
+    margin: 0.5em;
     width: calc(100vw - 4.3em) !important;
   }
   #list div.abstr {

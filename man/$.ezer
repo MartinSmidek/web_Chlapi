@@ -9,13 +9,6 @@ panel p [0,0,*,*] { type:'main', _sys:'$'
   var history: array, top=-1
   use f: form _f [0,0,,]
   use w: form _w [0,30,,]
-//  proc onstart() { var gets:object
-//    gets.set(function('return Ezer.get;'));
-//    last.set(cconc(gets.page,gets.page,'home'));
-//    // zapisuj každý klik hned
-//    function('Ezer.sys.ezer.activity.touch_limit=1; return 1;');
-//    go_menu(last.get);
-//  }
   func onstart() { var gets:object
     gets= function('return Ezer.get;');
     last= cconc(gets.page,gets.page,'home');
@@ -23,13 +16,6 @@ panel p [0,0,*,*] { type:'main', _sys:'$'
     function('Ezer.sys.ezer.activity.touch_limit=1; return 1;');
     go_menu(last);
   }
-//  proc opravit(_typ,_id,_idk) { 
-//    eq('xclanek',_typ); EDITOR.Clanek(_id); refresh 
-//  | eq('xakce',_typ); EDITOR.Akce(_id,_idk); refresh 
-//  | eq('xkniha',_typ); EDITOR.Kniha(_id); refresh 
-//  | eq('kalendar',_typ); EDITOR.Kalendar(_id); refresh 
-//  | eq('xfotky',_typ); FOTKY.oprava(_id); refresh
-//  }
   func opravit(_typ,_id,_idk) { 
     switch (_typ) {
       case 'xclanek': EDITOR.Clanek(_id); refresh(); break; 
@@ -40,20 +26,12 @@ panel p [0,0,*,*] { type:'main', _sys:'$'
       case 'xucasti': TABLE.oprava(_id); refresh(); break;
     }
   }
-//  proc zmenit(_mid,_typ1,_id,_typ2) { 
-//    ask('menu_chng_elem',_mid,_typ1,_id,_typ2); refresh
-//  }
   func zmenit(_mid,_typ1,_id,_typ2) { 
     php.menu_chng_elem(_mid,_typ1,_id,_typ2); refresh()
   }
-//  proc pridat(_typ,_mid,_first) { var me:number
-//    me.set(sys('user','id_user'));
-//    eq('xclanek',_typ); ask('menu_add_elem',_mid,_typ,_first,me); refresh 
-//  | eq('xkniha',_typ); ask('menu_add_elem',_mid,_typ,_first,me); refresh 
-//  | eq('xkniha.elem',_typ); ask('menu_add_elem',_mid,_typ,_first,me); refresh 
-//  | eq('xfotky',_typ); FOTKY.novy(_mid); refresh 
-//  | eq('xakce',_typ); ask('menu_add_elem',_mid,_typ,0,me); refresh 
-//  }
+  func clanek2kniha(_mid,_typ,_id) {
+    php.menu_clanek2kniha(_mid,_typ,_id); refresh()
+  }
   func pridat(_typ,_mid,_first) { var me:number
     me= sys('user','id_user');
     switch (_typ) {
@@ -66,11 +44,6 @@ panel p [0,0,*,*] { type:'main', _sys:'$'
       case 'xucasti': TABLE.novy(_mid); refresh(); break;
     }
   }
-//  proc zcizit(_typ,_pid,_mid) { 
-//    eq(_typ,'fotky'); [ ask('menu_copy_foto',_pid,_mid); refresh ]  // _mid je zde test
-//  | eq(substr(_typ,0,1),'?'); ask('menu_copy_elem',substr(_typ,1),_pid,_mid,1) 
-//  | not(eq(substr(_typ,0,1),'?')); ask('menu_copy_elem',_typ,_pid,_mid,0); refresh
-//  }
   func zcizit(_typ,_pid,_mid) { 
     if (_typ=='fotky') {
       php.menu_copy_foto(_pid,_mid); // _mid je zde test
@@ -83,17 +56,9 @@ panel p [0,0,*,*] { type:'main', _sys:'$'
       refresh()
     }
   }
-//  proc posunout(_typ,_mid,_id,_dolu) { 
-//    ask('menu_shift_elem',_typ,_mid,_id,_dolu); refresh
-//  }
   func posunout(_typ,_mid,_id,_dolu) { 
     php.menu_shift_elem(_typ,_mid,_id,_dolu); refresh()
   }
-//  proc cmd_fotky(_fid,_name,_cmd) { var ok:number // cmd=delete|attach
-//    ok.set(ask('cmd_fotky',_fid,_name,_cmd)); 
-//    ok; FOTKY.refresh
-//  | alert("operace ",_cmd," pro ",_name," selhala")
-//  }
   # cmd=delete|attach|rotate*|popis
   func cmd_fotky(_fid,_name,_cmd,_desc) { var err:text
     if (_cmd=='popis') _desc= prompt2('uprav popis fotky',_desc);
@@ -107,15 +72,6 @@ panel p [0,0,*,*] { type:'main', _sys:'$'
     else 
       alert("operace ",_cmd," pro ",_name," selhala (",err,")")
   }
-//  proc namiru(_id,_div_id) { var _list:array, _y:object
-//    _list.set(function('div',"return namiru_fotky(div);",_div_id));
-//    _y.set(ask('namiru_fotky',_id,_list,0)); 
-//    { _y.n; [ 
-//      confirm(_y.msg);
-//      ask('namiru_fotky',_id,_list,1); refresh ]
-//    | alert(_y.msg)
-//    }
-//  }
   func namiru(_id,_div_id) { var _list:array, _y:object
     _list= function('div',"return namiru_fotky(div);",_div_id);
     _y= php.namiru_fotky(_id,_list,0); 
@@ -128,14 +84,6 @@ panel p [0,0,*,*] { type:'main', _sys:'$'
         alert(_y.msg)
     }
   }
-//  proc bez_embeded(_id) { var _list:array, _y:object
-//    _y.set(ask('bez_embeded',_id,0)); 
-//    { _y.n; [ 
-//      confirm(_y.msg);
-//      ask('bez_embeded',_id,1); refresh ]
-//    | alert(_y.msg)
-//    }
-//  }
   func bez_embeded(_id) { var _y:object
     _y= php.bez_embeded(_id,0); 
     if ( _y.n ) {

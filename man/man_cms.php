@@ -1078,6 +1078,24 @@ function menu_copy_elem($co,$pid,$mid,$test=true) {
   return $msg;
 }
 /** ===========================================================================================> WEB */
+# -------------------------------------------------------------------------------- menu clanek2kniha
+# vytvoří knihu a přidá článek $id jako první kapitolu
+# ty=aclanek|xclanek
+function menu_clanek2kniha($mid,$typ,$cid) {
+  // zjištění pozice v Menu
+  $elems= select("elem","menu","mid=$mid");
+  $ms= explode(';',$elems);
+  $elem= "$typ=$cid";
+  $i= array_search($elem,$ms);
+  // vytvoření knihy s článkem jako abstraktem
+  query("INSERT INTO xkniha (xelems) VALUES ('aclanek=$cid')");
+  $kid= pdo_insert_id();
+  // uložení změnu do Menu
+  $ms[$i]= "akniha=$kid";
+  $elems= implode(';',$ms);                 
+  query("UPDATE menu SET elem='$elems' WHERE mid=$mid");
+  return 1;
+}
 # ------------------------------------------------------------------------------------ menu add_elem
 # přidá do menu další element, resp. pro xakce vytvoří novou akci roku daného $mid
 function menu_add_elem($mid,$table,$first=0,$id_user=0) {

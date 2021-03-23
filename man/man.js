@@ -18,6 +18,12 @@ function zcizit(typ,id,mid) {
   Ezer.run.$.part.p._call(0,'zcizit',typ,id,mid);
   return 1;
 }
+// ---------------------------------------------------------------------------------- clanek 2 kniha
+// zamění článek za knihu 
+function clanek2kniha(mid,typ,cid) {
+  Ezer.run.$.part.p._call(0,'clanek2kniha',mid,typ,cid);
+  return 1;
+}
 // ----------------------------------------------------------------------------------- změnit clanek
 // změní typ elementu z typ1 na typ2
 function zmenit(mid,typ1,id,typ2) {
