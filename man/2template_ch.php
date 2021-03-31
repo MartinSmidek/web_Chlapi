@@ -950,6 +950,13 @@ function show_page($html) {
   gtag('config', 'UA-163664361-1');
 </script>
 __EOD;
+  
+  // verze js + css
+  $v_app= '';
+  if (file_exists("man/version.php")) {
+    require "man/version.php";
+    $v_app= "?v=$version";
+  }
 
   // gmaps
   $api_key= "AIzaSyAq3lB8XoGrcpbCKjWr8hJijuDYzWzImXo"; // Google Maps JavaScript API 'answer-test'
@@ -964,13 +971,13 @@ __EOJ;
   $script.= <<<__EOJ
     <script src="$client/licensed/jquery-3.2.1.min.js" type="text/javascript" charset="utf-8"></script>
     <script src="$client/licensed/jquery-ui.min.js" type="text/javascript" charset="utf-8"></script>
-    <script src="/man/2chlapi.js" type="text/javascript" charset="utf-8"></script>
+    <script src="/man/2chlapi.js$v_app" type="text/javascript" charset="utf-8"></script>
 __EOJ;
   
   $script.= $links!='fotorama' ? '' : <<<__EOJ
     $fb_script
-    <script src="/man/fotorama/fotorama.js" type="text/javascript" charset="utf-8"></script>
-    <link rel="stylesheet" href="/man/fotorama/fotorama.css" type="text/css" media="screen" charset="utf-8">
+    <script src="/man/fotorama/fotorama.js$v_app" type="text/javascript" charset="utf-8"></script>
+    <link rel="stylesheet" href="/man/fotorama/fotorama.css$v_app" type="text/css" media="screen" charset="utf-8">
 __EOJ;
   
   // pokud není CMS nebude uživatel přihlášen - vstup do Ezer je přes _oninit
@@ -1006,8 +1013,8 @@ __EOJ;
 //      <link rel="stylesheet" href="./man/web_edit.css" type="text/css" media="screen" charset="utf-8" />
   $n= isset($_GET['test']) ? $_GET['test'] : '2';
   $eb_link= <<<__EOJ
-      <link rel="stylesheet" href="/man/css/{$n}chlapi.css" type="text/css" media="screen" charset="utf-8" />
-      <link rel="stylesheet" href="/man/css/edit.css" type="text/css" media="screen" charset="utf-8" />
+      <link rel="stylesheet" href="/man/css/{$n}chlapi.css$v_app" type="text/css" media="screen" charset="utf-8" />
+      <link rel="stylesheet" href="/man/css/edit.css$v_app" type="text/css" media="screen" charset="utf-8" />
       <link rel="stylesheet" href="/$client/licensed/font-awesome/css/font-awesome.min.css" type="text/css" media="screen" charset="utf-8" />
 __EOJ;
 
