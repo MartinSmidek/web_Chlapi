@@ -39,8 +39,9 @@ html {
     span.neodkaz, span.odkaz {
       background:none;  
       a.odkaz { border-bottom: 1px dashed @odkaz_c; color: @odkaz_c; }
-      a:hover { background-color: @obal_b; }
+      a:hover { background-color: @obal_b; border-radius: .4em; }
     }
+    a > img:not(#logo) { border: 4px solid @jump_b; border-radius: .4em; .shadow-box; }
   }
   div.mapa.Panel3, div.mapa.Form3, div.mapa.Label3 {
     position: fixed; z-index: -1;

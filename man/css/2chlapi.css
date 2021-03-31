@@ -51,6 +51,12 @@ html #page span.odkaz a.odkaz {
 html #page span.neodkaz a:hover,
 html #page span.odkaz a:hover {
   background-color: #CFDDE6;
+  border-radius: 0.4em;
+}
+html #page a > img:not(#logo) {
+  border: 4px solid #E6CF73;
+  border-radius: 0.4em;
+  box-shadow: -1px 1px 0px #567, 1px -1px 0px #567, -1px -1px 0px #567, 5px 5px 10px #567;
 }
 html div.mapa.Panel3,
 html div.mapa.Form3,
