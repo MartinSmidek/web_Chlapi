@@ -791,15 +791,15 @@ __EOT;
       ask_server((object)array('cmd'=>'kalendar'));
       // přidáme lokálně zapsané akce - ale jen ty pro všechny chlapy
       ezer_connect('setkani');
-      $qa= "SELECT id_xakce,datum_od,datum_do,nazev,misto,web_text 
+      $qa= "SELECT id_xakce,datum_od,datum_do,nazev,misto,web_text,online
           FROM xakce WHERE datum_od>NOW() AND skupina=0 ORDER BY datum_od";
       $ra= pdo_query($qa);
-      while ( $ra && list($id,$od,$do,$nazev,$misto,$text)=pdo_fetch_array($ra)) {
+      while ( $ra && list($id,$od,$do,$nazev,$misto,$text,$online)=pdo_fetch_array($ra)) {
         $oddo= datum_oddo($od,$do);
         if ( !$edit_id )
           $edit_id= $id;
         $y->akce[]= (object)array('od'=>$od,'nazev'=>$nazev,'misto'=>$misto,
-            'oddo'=>$oddo,'text'=>$text);
+            'oddo'=>$oddo,'text'=>$text,'online'=>$online);
       }
       // seřadíme podle data
       usort($y->akce,function($a,$b) { 
@@ -838,13 +838,14 @@ __EOT;
                   $a->text)
               : $a->text;
           }
-          $oddo= $a->oddo;
+          $oddo= $a->oddo.($a->online ? "<br><i>online</i>" : '');
+          $nazev= "$a->nazev</b>".($a->online ? '' : ", $a->misto");
           if ( $a->obsazeno ) {
             $web.= ", ale akce je <b>obsazena</b>";
             $oddo= "<s>$oddo</s>";
           }
           $anotace= $a->anotace ? "<br><i>$a->anotace</i>" : '';
-          $html.= "<tr><td>$oddo</td><td><b>$a->nazev</b>, $a->misto<br><i>$web$anotace</i></td></tr>";
+          $html.= "<tr><td>$oddo</td><td><b>$nazev<br><i>$web$anotace</i></td></tr>";
         }
       }
       $html.= "</table></div></div>";
@@ -1460,7 +1461,7 @@ function show_fotky($fid,$lst,$back_href) {
 /** ========================================================================================> SERVER */
 # funkce na serveru přes AJAX
 function servant($qry,$context=null) {
-  global $y, $servant, $ezer_server;
+  global $s, $servant, $ezer_server;
   $secret= "WEBKEYNHCHEIYSERVANTAFVUOVKEYWEB";
   $servant= array(
 //      "https://www.setkani.org/servant.php?secret=$secret", 
@@ -1475,61 +1476,69 @@ function servant($qry,$context=null) {
 //                                          display("<b style='color:red'>servant</b> $servant$qry");
   if ( $json===false ) {
     $err= error_get_last();
-    $y->msg= "$ezer_server:$qry vrátil false ($err)";
+    $s->msg= "$ezer_server:$qry vrátil false ($err)";
 //    $_SESSION['web']['servant_state']= "false:{$err['type']},{$err['message']}";
 //    $_SESSION['web']['wrappers']= stream_get_wrappers();
 //    $_SESSION['web']['openssl']= extension_loaded('openssl');
-    $y->ses= $_SESSION;
+//    $s->ses= $_SESSION; !!!!!!!!
 //    session_write_close ();
 //    exit;
   }
   elseif ( substr($json,0,1)=='{' ) {
-    $y= json_decode($json);
+    $s= json_decode($json);
     $_SESSION['web']['servant_state']= "json";
   }
   else {
-    $y->msg= "Sorry, došlo k chybě č.4, martin@smidek.eu ti poradí ...";
+    $s->msg= "Sorry, došlo k chybě č.4, martin@smidek.eu ti poradí ...";
     $_SESSION['web']['servant_state']= "text:$json";
-                                                  display($y->msg);
-//    $y->msg= "'$servant&$qry' vrátil '$json'";
+                                                  display($s->msg);
+//    $s->msg= "'$servant&$qry' vrátil '$json'";
   }
 }
+function redaktor($id) {
+  global $s;
+  $s= (object)array('id'=>$id);
+  servant("redaktor=$id");
+//  $s->pass= substr(base64_encode(openssl_random_pseudo_bytes(6)),0,-1);
+  $s->znacka= strtoupper(utf2ascii(mb_substr($s->jmeno,0,1).mb_substr($s->prijmeni,0,2)));
+  return $s;
+}
 function ask_server($x) {
-  global $y;
+  global $s;
 //   $x->cmd= 'test'
   switch ( $x->cmd ) {
   case 'kalendar': // --------------------------------------------------------------------- kalendar
-    $y= (object)array('anotace'=>'zatím nejsou naplánovány žádné akce');
+    $s= (object)array('anotace'=>'zatím nejsou naplánovány žádné akce');
     servant("kalendar");
     break;
   
   case 'clanky':   // ----------------------------------------------------------------------- clanky
-    $y= (object)array('msg'=>'neznámý článek');
+    $s= (object)array('msg'=>'neznámý článek');
     servant("clanky=$x->chlapi&back=$x->back&groups={$_SESSION['web']['fe_usergroups']}"); // part.uid
     break;
   
   case 'akce':     // ------------------------------------------------------------------------- akce
-    $y= (object)array('msg'=>'neznámá akce');
+    $s= (object)array('msg'=>'neznámá akce');
     servant("akce=$x->chlapi&back=$x->back&groups={$_SESSION['web']['fe_usergroups']}"); // part.uid
     break;
   
   case 'knihy':   // ------------------------------------------------------------------------- knihy
-    $y= (object)array('msg'=>'neznámá kniha');
+    $s= (object)array('msg'=>'neznámá kniha');
     servant("knihy=$x->chlapi&back=$x->back&groups={$_SESSION['web']['fe_usergroups']}"); // part.uid
     break;
   
   case 'clanek':   // ----------------------------------------------------------------------- clanek
-    $y= (object)array('msg'=>'neznámý článek');
+    $s= (object)array('msg'=>'neznámý článek');
     servant("clanek=$x->pid&groups={$_SESSION['web']['fe_usergroups']}"); // part.uid
     break;
   
   case 'kapitoly':   // ------------------------------------------------------------------- kapitoly
-    $y= (object)array('msg'=>'neznámá kniha');
+    $s= (object)array('msg'=>'neznámá kniha');
     servant("kapitoly=$x->pid"); // part.uid
     break;
   
   case 'kniha':     // ----------------------------------------------------------------------- kniha
-    $y= (object)array('msg'=>'neznámý článek');
+    $s= (object)array('msg'=>'neznámý článek');
     servant("kniha=$x->cid&page=$x->page&kapitola=$x->kapitola&groups={$_SESSION['web']['fe_usergroups']}"); // case.uid,part.uid
     break;
   
@@ -1539,18 +1548,18 @@ function ask_server($x) {
     foreach($tos as $to) {
       $_SESSION['web']['phpmailer1']= $to;
       $err= '';
-      $y->ok= emailIsValid($to,$err) ? 1 : 0;
-      if ( $y->ok ) {
+      $s->ok= emailIsValid($to,$err) ? 1 : 0;
+      if ( $s->ok ) {
         // organizátorům
         $ret= mail_send($x->reply,$to,$x->subj,$x->body);
         $_SESSION['web']['phpmailer2']= $ret;
-        $y->txt= $ret->err
+        $s->txt= $ret->err
           ? " Mail se bohužel nepovedlo - napiš prosím na seskup@gmail.com "
           : " Mail byl odeslán organizátorům skupiny ";
         $poslano+= $ret->err ? 0 : 1;
       }
       else {
-        $y->txt= "'$to' nevypadá jako mailová adresa ($err)";
+        $s->txt= "'$to' nevypadá jako mailová adresa ($err)";
       }
     }
     if ( $poslano ) {
@@ -1560,7 +1569,7 @@ function ask_server($x) {
         pošli prosím kopii zprávy na adresu seskup@gmail.com, zařídíme to.";
       $ret= mail_send("seskup@gmail.com",$x->reply,"Fwd: $x->subj",$body);
       $_SESSION['web']['phpmailer3']= $ret;
-      $y->txt.= $ret->err
+      $s->txt.= $ret->err
         ? " Potvrzující mail se bohužel nepovedlo odeslat ($ret->err)"
         : " a byl Ti odeslán potvrzující mail ";
     }
@@ -1576,28 +1585,28 @@ function ask_server($x) {
   
   case 'me_login': // ------------------------------------------------------------------------ login
     servant("cmd=me_login&mail=$x->mail&pin=$x->pin&web=$x->web");
-    if ( isset($y->state) && $y->state=='ok') {
+    if ( isset($s->state) && $s->state=='ok') {
       // přepočítej _user.skill na fe_level
       db_connect();
-      $skills= select('skills','_user',"id_user='$y->user'");
+      $skills= select('skills','_user',"id_user='$s->user'");
       $skilla= $skills ? explode(' ',$skills) : array();
-      $y->skills= $skilla;
-      $y->klient= $y->mrop ? 1 : 0;   // iniciace
-      $y->klient+= $y->firm ? 2 : 0;  // firming
-      $y->redakce= 0;
-      $y->redakce+= in_array('m',$skilla) ? 1 : 0;
-      $y->redakce+= in_array('t',$skilla) ? 2 : 0;
-      $y->redakce+= in_array('r',$skilla) ? 4 : 0;
+      $s->skills= $skilla;
+      $s->klient= $s->mrop ? 1 : 0;   // iniciace
+      $s->klient+= $s->firm ? 2 : 0;  // firming
+      $s->redakce= 0;
+      $s->redakce+= in_array('m',$skilla) ? 1 : 0;
+      $s->redakce+= in_array('t',$skilla) ? 2 : 0;
+      $s->redakce+= in_array('r',$skilla) ? 4 : 0;
       // přihlas uživatele jako FE - zájímá nás jen id_osoba vrácená v y.user, y.mrop, y.name
       $_SESSION['web']['fe_usergroups']= '0,4,6';
-      $_SESSION['web']['user']= $y->user;
-      $_SESSION['web']['level']= $_SESSION['web']['level0']= $y->klient;
-      $_SESSION['web']['username']= $y->name;
+      $_SESSION['web']['user']= $s->user;
+      $_SESSION['web']['level']= $_SESSION['web']['level0']= $s->klient;
+      $_SESSION['web']['username']= $s->name;
       $_SESSION['web']['usermail']= $x->mail;
       $_SESSION['web']['news']= 1;
       // případně jako BE
-      if ( $y->redakce ) {
-        $_SESSION['man']['level']= $_SESSION['man']['level0']= $y->redakce;
+      if ( $s->redakce ) {
+        $_SESSION['man']['level']= $_SESSION['man']['level0']= $s->redakce;
       }
       else {
         // pokud to není redaktor zapiš me_login 
@@ -1605,7 +1614,7 @@ function ask_server($x) {
         unset($_SESSION['man']);
       }
     }
-    else if ( isset($y->state) && $y->state=='wait') {
+    else if ( isset($s->state) && $s->state=='wait') {
       // čekání na reakci nezapisujeme
       log_login('w',$x->mail);
     }
@@ -1616,8 +1625,8 @@ function ask_server($x) {
     break;
     
   case 'me_noedit': // ---------------------------------------------------------------------- noedit
-    $y->user= $_SESSION['web']['user'];
-    $y->username= $_SESSION['web']['username'];
+    $s->user= $_SESSION['web']['user'];
+    $s->username= $_SESSION['web']['username'];
     if ( $x->noedit ) {
       // zrušení možnosti editovat => jen prohlížení bez natažení Ezer
       log_login('u',$_SESSION['web']['usermail']);
@@ -1633,17 +1642,17 @@ function ask_server($x) {
     unset($_SESSION['web']);
     unset($_SESSION['man']);
     session_write_close();
-    $y->user= 0;
-    $y->klient= 0;
-    $y->redakce= 0;
-    $y->page= $x->page;
+    $s->user= 0;
+    $s->klient= 0;
+    $s->redakce= 0;
+    $s->page= $x->page;
     break;
   // obsluha tabulky účasti
   case 'table_tst':
-    $y->ok= $_SESSION['web']['tab']= trim(strtolower($y->test))=='rohr' ? 1 : 0;
+    $s->ok= $_SESSION['web']['tab']= trim(strtolower($s->test))=='rohr' ? 1 : 0;
     break;
   case 'table_add': // přidat účast
-    table_add($y->idc,$y->skupina,trim($y->jmeno));
+    table_add($s->idc,$s->skupina,trim($s->jmeno));
     break;
   }
   return 1;

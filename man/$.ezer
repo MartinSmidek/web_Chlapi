@@ -181,9 +181,8 @@ panel p [0,0,*,*] { type:'main', _sys:'$'
   func form_obligatory_test(f:ezer):number { var n:number, e:ezer
     n= 0;
     for (e of f) {
-      if ( e.par )
-        if ( e.par.obligatory==1 )
-          n= n+1
+      if ( e.par && e.par.obligatory==1 && e.get()=='')
+        n= n+1
     }
     return(n);
   }
@@ -581,7 +580,7 @@ panel REDAKCE [0,0,840,515] {type:'popup', title:'Redakce', css:'dialog_menu',
   use glob: form _glob [0,0,,]              { tag:'g' }
   use chng: form _chng [0,0,,]              { tag:'z' }
   use uzivatele: form users [0,0,,]         { tag:'u' }
-  use uzivatel: form user [335,0,,]         { tag:'u' }
+  use uzivatel: form _user [335,0,,]        { tag:'u' }
   use cmd: form _cmd [0,sys_users_cmd,,]    { tag:'u' }
   use dskill: form desc_skills [335,120,,]  { tag:'u' }
 
@@ -608,7 +607,7 @@ panel REDAKCE [0,0,840,515] {type:'popup', title:'Redakce', css:'dialog_menu',
 //    see.o.d.click;
 //  }
   # ==> ... uložení uživatele s kontrolou
-  proc u_uloz () { var idu:number
+  proc u_uloz () { 
     uzivatel.same;
   | uzivatel.kdo.set(sys('user','id_user')); uzivatel.kdo.change; uzivatel.kdy.set(now_sql(1));
     uzivatel.kdy.change;
@@ -623,12 +622,9 @@ panel REDAKCE [0,0,840,515] {type:'popup', title:'Redakce', css:'dialog_menu',
     alert("ještě nejsou vyplněny všechny povinné údaje (žluté)")
   | not(uzivatel.key);
     { u_test(0)
-    | // vytvoření uživatele - musí platit id_user=ezer_db2.id_osoba
-      p.form_obligatory(uzivatel.get,0);
-      idu.set(prompt(
-            "pro správnou funkci emailového přihlašování je třeba vyplnit ID osoby z Answeru",0));
-      idu;
-      uzivatel.id_user.set(idu); uzivatel.id_user.change;
+    | p.form_obligatory(uzivatel.get,0);
+      uzivatel.kdo.set(sys('user','id_user')); uzivatel.kdo.change; 
+      uzivatel.kdy.set(now_sql(1)); uzivatel.kdy.change;
       uzivatel.insert; novy.set(uzivatel.key); uzivatel.load;
       uzivatele.lst.browse_load; uzivatele.lst.raise('onrowclick',novy.get);
       cmd.get.enable(0,'c|z');
@@ -646,7 +642,7 @@ panel REDAKCE [0,0,840,515] {type:'popup', title:'Redakce', css:'dialog_menu',
   | // testy prošly - uprav změny pro uložení
 //    [ uzivatel.access.changed; uzivatel.access.set(uzivatel.access.key); uzivatel.access.change ];
 //    [ uzivatel.org.changed; uzivatel.org.set(uzivatel.org.key); uzivatel.org.change ];
-    [ uzivatel.password.changed; msg.set(ask('sys_hash_password', uzivatel.password.get)); uzivatel.password.set(msg.get); uzivatel.password.change ];
+//    [ uzivatel.password.changed; msg.set(ask('sys_hash_password', uzivatel.password.get)); uzivatel.password.set(msg.get); uzivatel.password.change ];
     return(0)
   }
   # obnovení seznamu uživatelů
@@ -835,37 +831,18 @@ panel REDAKCE [0,0,840,515] {type:'popup', title:'Redakce', css:'dialog_menu',
 //      }
     }
   }
-  # ----------------------------------------------------------------==> ... user
-  form user [,,433,125] { style:"z-index:2"
+  # ----------------------------------------------------------------==> ... _user
+  form _user [,,433,125] { style:"z-index:2"
     view u: table _user,
     label [5,6,89,15] { title:'<h1>Uživatel</h1>' }
     field id_user { data:u.id_user }
-    field skills [2,46,146,] { data:u.skills, format:'n' }
-    field username [5,48,59,] { data:u.username title:'^username' par:°{obligatory:1}}
-    field password [80,48,42,] { data:u.password title:'^heslo', format:'d' }
-    field znacka [139,48,38,] { data:u.abbr title:'^zkratka' par:°{obligatory:1}}
-    label [197,43,90,47] { title:'ID musí být stejné jako v ezer_db2' format:'c' }
-    button [213,92,,] { type:'html' title:'změnit ID' 
-//      func onclick() { var id:number
-//        id= prompt2("napiš ID z ezer_db2._user");
-//        if ( id ) {
-//          ask('query',conc("UPDATE _user SET id_user=",id," WHERE id_user=",uzivatele.lst.user));
-//          refresh
-//        }
-//      }
-      func onclick() { var id:number
-        id= prompt2("napiš ID z ezer_db2._user");
-        if (id) {
-          php.query(`UPDATE _user SET id_user=${id} WHERE id_user=${uzivatele.lst.user}`);
-          refresh();
-        }
-      }
-    }
-//    select org [168,48,66,] { tag:'ac', data:u.org, format:'w', title:'^organizace' }
-//    select access [242,48,44,] { tag:'ac', data:u.access, format:'w', title:'^přístup k' }
-    field prijmeni [5,92,98,] { data:u.surname title:'^příjmení' par:°{obligatory:1}}
-    field jmeno [117,92,64,] { data:u.forename title:'^jméno' par:°{obligatory:1}}
-    edit ips [298,47,127,64] { tag:'ip', data:u.ips, title:'^povolené IP adresy' }
+    field skills [195,6,80,] { data:u.skills, format:'ro' }
+    field username [5,48,56,] { data:u.username, title:'^username' par:{obligatory:1}}
+//    field password [76,48,55,] { data:u.password, title:'^heslo', format:'d', par:{obligatory:1} }
+    field znacka [117,48,33,] { data:u.abbr, title:'^zkratka', par:{obligatory:1}}
+    field prijmeni [5,92,98,] { data:u.surname, title:'^příjmení', format:'d' }
+    field jmeno [117,92,64,] { data:u.forename, title:'^jméno', format:'d' }
+    edit ips [194,48,83,61] { tag:'ip', data:u.ips, title:'^povolené IP' }
     field login { data:u.login }
     field kdo { data:u.zmena_kdo }
     field kdy { data:u.zmena_kdy }
@@ -952,7 +929,7 @@ panel REDAKCE [0,0,840,515] {type:'popup', title:'Redakce', css:'dialog_menu',
   # ----------------------------------------------------------------==> ... cmd
   form _cmd [,,852,39] { 
     # -------------------------------- úpravy uživatelů
-    label  [0,6,361,30] { css:'ae_parm' }
+    label  [0,6,255,30] { css:'ae_parm' }
     button [11,12,,] { tag:'h',type:'html', title:'[fa-plug fa-rotate-180 fa-red] Skrýt' skill:'a|m'
       func onclick() { 
         if (confirm("Opravdu znemožnit přihlášení uživateli ",uzivatel.username,'?')) {
@@ -965,7 +942,7 @@ panel REDAKCE [0,0,840,515] {type:'popup', title:'Redakce', css:'dialog_menu',
           alert(ask('sys_user_hide',uzivatele.lst.user,0)); refresh() 
         }
     }}
-    button watch_key [195,12,,] { title:'Vygenerovat klíč', format:'n'                   skill:'a|m' 
+    button watch_key [145,12,,] { title:'Vygenerovat klíč', format:'n'                   skill:'a|m' 
       func onclick() {
         if (confirm("Vygenerování nového klíče znemožní přístup současným uživatelům. Pokračovat?"))
           watch_ref= php.sys_watch_key()
@@ -973,11 +950,11 @@ panel REDAKCE [0,0,840,515] {type:'popup', title:'Redakce', css:'dialog_menu',
     }
     label watch_ref [316,15,250,15]
     # -------------------------------- změny uživatele
-    label  [436,6,292,30] { css:'ae_parm' }
-    button [449,12,,] { tag:'c', type:'html', title:'[fa-save] Uložit'                   skill:'a|m'
+    label  [336,6,292,30] { css:'ae_parm' }
+    button [349,12,,] { tag:'c', type:'html', title:'[fa-save] Uložit'                   skill:'a|m'
       func onclick () { u_uloz()
     } }
-    button [515,12,,] { tag:'z', type:'html', title:'[fa-undo] Zpět'                     skill:'a|m'
+    button [415,12,,] { tag:'z', type:'html', title:'[fa-undo] Zpět'                     skill:'a|m'
       func onclick () {
         p.form_obligatory(uzivatel,0);
         if (uzivatele.lst.browse_key()) {
@@ -985,16 +962,58 @@ panel REDAKCE [0,0,840,515] {type:'popup', title:'Redakce', css:'dialog_menu',
           cmd.enable(0,'c|z');
         }
     } }
-    button [574,12,,] { type:'html', title:'[fa-heart] Vytvořit'                         skill:'a|m'
-      func onclick () {
-        cmd.enable(0,'c'); cmd.enable(1,'z');
-        dskill.seznam.selected('clear');
-        uzivatele.lst.blur(); uzivatel.init(); 
-        uzivatel.kdo= sys('user','id_user');
-        uzivatel.kdy= now();
-        uzivatel.znacka.enable(1);
-        p.form_obligatory(uzivatel,1);
+    button [474,12,,] { tag:'v', type:'html', title:'[fa-heart] Vytvořit'                         skill:'a|m'
+      func onclick () { var id:number, y:object
+        uzivatel.init();
+        id= prompt2("napiš jaké ID má v Answeru");
+        y= php.redaktor(id);
+        echo(debug(y));
+        if (y.web_level) {
+          p.form_obligatory(uzivatel,1);
+          dskill.seznam.selected('clear');
+          uzivatel.id_user= id; uzivatel.id_user.change();
+          uzivatel.jmeno= y.jmeno; uzivatel.jmeno.change();
+          uzivatel.prijmeni= y.prijmeni; uzivatel.prijmeni.change();
+          uzivatel.skills= php.sys_ids2skills(y.web_level); uzivatel.skills.change();
+//          uzivatel.password= y.pass; uzivatel.password.enable(1); uzivatel.password.change();
+          uzivatel.znacka= y.znacka; uzivatel.znacka.enable(1); uzivatel.znacka.change();
+          cmd.enable(1,'c|z'); cmd.enable(0,'v');
+        }
+        else {
+          alert(`${uzivatel.jmeno} ${uzivatel.prijmeni} nemá v Answeru práva k redakci chlapi.cz`)
+        }
+//        if (id) {
+//          php.query(`UPDATE _user SET id_user=${id} WHERE id_user=${uzivatele.lst.user}`);
+//          refresh();
+//        }
+//
+//      
+//        cmd.enable(0,'c'); cmd.enable(1,'z');
+//        dskill.seznam.selected('clear');
+//        uzivatele.lst.blur(); uzivatel.init(); 
+//        uzivatel.kdo= sys('user','id_user');
+//        uzivatel.kdy= now();
+//        uzivatel.znacka.enable(1);
+//        p.form_obligatory(uzivatel,1);
     } }
+/*    label [197,43,90,47] { title:'ID musí být stejné jako v ezer_db2' format:'c' }
+    button [213,92,,] { type:'html' title:'změnit ID' 
+//      func onclick() { var id:number
+//        id= prompt2("napiš ID z ezer_db2._user");
+//        if ( id ) {
+//          ask('query',conc("UPDATE _user SET id_user=",id," WHERE id_user=",uzivatele.lst.user));
+//          refresh
+//        }
+//      }
+      func onclick() { var id:number
+        id= prompt2("napiš ID z ezer_db2._user");
+        if (id) {
+          php.query(`UPDATE _user SET id_user=${id} WHERE id_user=${uzivatele.lst.user}`);
+          refresh();
+        }
+      }
+    }
+*/
   }
   # --------------------------------------------- u
   # formulář pro levostranné menu s textem
@@ -1206,6 +1225,7 @@ panel EDITOR [0,0,720,550] { type:'popup', style:"min-width:700px", par:°{close
     field do [95,40,85,] { type:'date', title:'^do dne', data:xakce.datum_do }
     field nazev [190,40,248,] { title:'^název', data:xakce.nazev }
     field misto [450,40,183,] { title:'^místo', data:xakce.misto }
+    check online [450,60,183,] { title:'online akce', data:xakce.online }
     // anotace
     label [0,70,300,20] { title:'anotace s odkazem na pozvánku' }
     edit obsah [0,90,710,150] { type:'html', data:xakce.web_text, par:°{toolbar:'WEB'} }
@@ -1792,6 +1812,7 @@ table xakce { key_id:'id_xakce', db:'setkani'
   number id_xakce { key:'primary' }
   text nazev
   text misto
+  number online
   number skupina
   date datum_od { sql_pipe:'sql_date1' }
   date datum_do { sql_pipe:'sql_date1' }

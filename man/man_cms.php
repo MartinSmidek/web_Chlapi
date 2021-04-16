@@ -856,15 +856,10 @@ function x_resample($source, $dest, &$width, &$height,$copy_bigger=0,$use_min=0)
 # --------------------------------------------------------------------------------------------- TEST
 # přidá do menu další element
 function TEST() {
-  global $abs_root;
-  $url= 'https://www.setkani.org/fileadmin/photo/5880/.p1450211.JPG';
-  $path= '/home/users/gandi/chlapi.online/web/inc/g';
-  $path= "$abs_root/inc/g";
-  mkdir("$path/2");
-  $img= "$path/2/..p1070086.jpg";
-  // file
-  file_put_contents($img, file_get_contents($url));
-  return $msg;
+  global $yy;
+  $pass= substr(base64_encode(openssl_random_pseudo_bytes(6)),0,-1);
+  $yy= (object)array('pass'=>$pass);
+  return $yy;
 }
 # ----------------------------------------------------------------------------------- menu copy_foto
 # zkopíruje chybějící fotky ze setkani.org/filedamin/photo do chlapi.cz/inc/f
