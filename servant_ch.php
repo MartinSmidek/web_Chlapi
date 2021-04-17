@@ -36,8 +36,8 @@ $ezer_server=
 // přístup k serveru se servant_ch.php pro import článků brněnské skupiny z chlapi.cz
 $chlapi_cz= array(
   'http://chlapi.bean:8080',
-  'http://chlapi.cz',
-  'http://chlapi.cz',
+  'https://chlapi.cz',
+  'https://chlapi.cz',
   'http://chlapi.doma',
   'http://chlapi.ben'
 );

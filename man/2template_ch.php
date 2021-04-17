@@ -39,7 +39,7 @@ function get_prefix() {
   $prefix= array(
       "http://chlapi.bean:8080/",
       "http://chlapi.online/",
-      "http://chlapi.cz/",
+      "https://chlapi.cz/",
       "http://chlapi.doma/",
       "http://chlapi.ben:8080/"   // ben
     )[$ezer_server];

@@ -30,8 +30,8 @@
     );
   $rel_roots= array(
       "http://chlapi.bean:8080",
-      "http://chlapi.cz",
-      "http://chlapi.cz",
+      "https://chlapi.cz",
+      "https://chlapi.cz",
       "http://chlapi.doma",
       "http://chlapi.ben:8080",
     );
