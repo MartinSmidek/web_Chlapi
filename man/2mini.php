@@ -344,7 +344,7 @@ function pdo_affected_rows($res) {
 # pro SELECT vrací PDOStatement
 # jinak vrací chybu
 # 
-# provedení dotazu a textu v $y->qry="..." a případně doplnění $y->err
+# provedení dotazu a textu v $s->qry="..." a případně doplnění $s->err
 #   $qry      -- SQL dotaz
 #   $pocet    -- pokud je uvedeno, testuje se a při nedodržení se ohlásí chyba
 #   $err      -- text chybové hlášky, která se použije místo standardní ... pokud končí znakem':'
@@ -353,8 +353,8 @@ function pdo_affected_rows($res) {
 #   $to_throw -- chyba způsobí výjimku
 #   $db       -- před dotazem je přepnuto na databázi daného jména v tabulce $ezer_db nebo na hlavní
 function pdo_qry($qry,$pocet=null,$err=null,$to_throw=false,$db='') {
-  global $y, $totrace, $qry_del, $qry_count, $curr_db, $ezer_db;
-//  if ( !isset($y) ) $y= (object)array();
+  global $s, $totrace, $qry_del, $qry_count, $curr_db, $ezer_db;
+//  if ( !isset($s) ) $s= (object)array();
   $msg= ''; $abbr= $ok= '';
   $qry_count++;
   $myqry= strtr($qry,array('"'=>"'","<="=>'&le;',"<"=>'&lt;'));
@@ -382,7 +382,7 @@ function pdo_qry($qry,$pocet=null,$err=null,$to_throw=false,$db='') {
           $msg.= "zmeneno $res zaznamu misto $pocet" . ($err ? ", $err" : ""). " v $qry";
           $annr= "/$res";
         }
-        if ( isset($y) ) $y->ok= 'ko';
+        if ( isset($s) ) $s->ok= 'ko';
         $ok= "ko [$res]";
         $res= null;
       }
@@ -412,7 +412,7 @@ function pdo_qry($qry,$pocet=null,$err=null,$to_throw=false,$db='') {
         $msg.= "\"$myerr\" \nQRY:$qry";
         $abbr= '/E';
       }
-      if ( isset($y) ) $y->ok= 'ko';
+      if ( isset($s) ) $s->ok= 'ko';
     }
     else if ( $pocet  ) {
 //      fce_error("pdo_qry: OBSOLETE - 2.parametr (počet záznamů & PHP7/PDO)");
@@ -426,7 +426,7 @@ function pdo_qry($qry,$pocet=null,$err=null,$to_throw=false,$db='') {
           $msg.= "vraceno $num zaznamu misto $pocet" . ($err ? ", $err" : ""). " v $qry";
           $annr= "/$num";
         }
-        if ( isset($y) ) $y->ok= 'ko';
+        if ( isset($s) ) $s->ok= 'ko';
         $ok= "ko [$num]";
         $res= null;
       }
@@ -439,13 +439,13 @@ function pdo_qry($qry,$pocet=null,$err=null,$to_throw=false,$db='') {
     $pretty= trim($myqry);
     if ( strpos($pretty,"\n")===false )
       $pretty= preg_replace("/(FROM|LEFT JOIN|JOIN|WHERE|GROUP|HAVING|ORDER)/","\n\t\$1",$pretty);
-    if ( isset($y) ) $y->qry= (isset($y->qry)?"$y->qry\n":'')."$ok $time \"$pretty\" ";
+    if ( isset($s) ) $s->qry= (isset($s->qry)?"$s->qry\n":'')."$ok $time \"$pretty\" ";
   }
-  if ( isset($y) ) $y->qry_ms= isset($y->qry_ms) ? $y->qry_ms+$time : $time;
+  if ( isset($s) ) $s->qry_ms= isset($s->qry_ms) ? $s->qry_ms+$time : $time;
   $qry_del= "\n: ";
   if ( $msg ) {
     if ( $to_throw ) throw new Exception($err ? "$err$abbr" : $msg);
-    elseif ( isset($y) ) $y->error= (isset($y->error) ? $y->error : '').$msg;
+    elseif ( isset($s) ) $s->error= (isset($s->error) ? $s->error : '').$msg;
     else fce_error($msg);
   }
 end:
@@ -533,22 +533,22 @@ function sql_date1 ($datum,$user2sql=0,$del='.') {
     $text= '';
     if ( $datum ) {
       $datum= str_replace(' ','',$datum);
-      list($d,$m,$y)= explode('.',$datum);
-      $text= $y.'-'.str_pad($m,2,'0',STR_PAD_LEFT).'-'.str_pad($d,2,'0',STR_PAD_LEFT);
+      list($d,$m,$s)= explode('.',$datum);
+      $text= $s.'-'.str_pad($m,2,'0',STR_PAD_LEFT).'-'.str_pad($d,2,'0',STR_PAD_LEFT);
     }
   }
   else {
     // převeď sql tvar na uživatelskou podobu (default)
     $text= '';
     if ( $datum && substr($datum,0,10)!='0000-00-00' ) {
-      $y=substr($datum,0,4);
+      $s=substr($datum,0,4);
       $m=substr($datum,5,2);
       $d=substr($datum,8,2);
       //$h=substr($datum,11,2);
       //$n=substr($datum,14,2);
 
       $text.= date("j{$del}n{$del}Y",strtotime($datum));
-//      $text.= "$d.$m.$y";
+//      $text.= "$d.$m.$s";
 //                                                 display("$datum:$text");
     }
   }
@@ -562,8 +562,8 @@ function sql_date ($datum,$user2sql=0) {
     $text= '';
     if ( $datum ) {
       $datum= trim($datum);
-      list($d,$m,$y)= explode('.',$datum);
-      $text= $y.'-'.str_pad($m,2,'0',STR_PAD_LEFT).'-'.str_pad($d,2,'0',STR_PAD_LEFT);
+      list($d,$m,$s)= explode('.',$datum);
+      $text= $s.'-'.str_pad($m,2,'0',STR_PAD_LEFT).'-'.str_pad($d,2,'0',STR_PAD_LEFT);
     }
   }
   else {
@@ -571,15 +571,15 @@ function sql_date ($datum,$user2sql=0) {
     $dny= array('ne','po','út','st','čt','pá','so');
     $text= '';
     if ( $datum && substr($datum,0,10)!='0000-00-00' ) {
-      $y= 0+substr($datum,0,4);
+      $s= 0+substr($datum,0,4);
       $m= 0+substr($datum,5,2);
       $d= 0+substr($datum,8,2);
       //$h=substr($datum,11,2);
       //$n=substr($datum,14,2);
-      $t= mktime(0,0,1,$m,$d,$y)+1;
-//                                                 display("$datum:$m,$d,$y:$text:$t");
+      $t= mktime(0,0,1,$m,$d,$s)+1;
+//                                                 display("$datum:$m,$d,$s:$text:$t");
       $text= $dny[date('w',$t)];
-      $text.= " $d.$m.$y";
+      $text.= " $d.$m.$s";
     }
   }
   return $text;

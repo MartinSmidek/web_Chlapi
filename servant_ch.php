@@ -87,9 +87,9 @@ while ( $rc && (list($ida,$od,$do,$nadpis,$elems)=pdo_fetch_row($rc))) {
   }
 }
 
-$y= (object)array('rok'=>$rok,'clanky'=>$clanky,'dbg'=>$dbg);
+$s= (object)array('rok'=>$rok,'clanky'=>$clanky,'dbg'=>$dbg);
 
-$answer= json_encode($y);
+$answer= json_encode($s);
 header('Content-type: application/json; charset=UTF-8');
 echo $answer;
 exit;

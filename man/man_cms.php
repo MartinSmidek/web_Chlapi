@@ -585,7 +585,7 @@ end:
 # jinak vrátí dotaz, zda to udělat s informací o získaném prostoru
 function namiru_fotky($id,$imgs,$replace) { 
   global $ezer_path_root;
-  $y= (object)array('n'=>0,'msg'=>'');
+  $s= (object)array('n'=>0,'msg'=>'');
   $prefix= get_prefix();
   $dir= "/inc/c/$id";
   $text= select('web_text','xclanek',"id_xclanek=$id");
@@ -606,53 +606,53 @@ function namiru_fotky($id,$imgs,$replace) {
           else {
             $old= ceil(filesize($orig)/1024);
             $new= ceil(filesize($small)/1024);
-            $y->msg.= "<br>$name byl zmenšený z {$old}KB na {$new}KB";
+            $s->msg.= "<br>$name byl zmenšený z {$old}KB na {$new}KB";
           }
-          $y->n++;
+          $s->n++;
         }
       }
     }
   }
-  if ( $y->n ) {
+  if ( $s->n ) {
     if ( $replace ) {
       $text= escape_string($text);
       query("UPDATE xclanek SET web_text=\"$text\" WHERE id_xclanek=$id");
       log_obsah('r','c',$id);
     }
     else {
-      $y->msg.= "<hr>nahradit v článku?";
+      $s->msg.= "<hr>nahradit v článku?";
     }
   }
   else {
-    $y->msg.= "žádný obrázek nelze zmenšit";
+    $s->msg.= "žádný obrázek nelze zmenšit";
   }
-  return $y;
+  return $s;
 }
 # --------------------------------------------------------------------------------------- img oprava
 # opraví obrázky v part
 #  a) odstraní embeded obrázky
 function bez_embeded($idxc,$update,$inline='') {
-  $y= (object)array('n'=>0,'msg'=>'');
+  $s= (object)array('n'=>0,'msg'=>'');
   $text= $inline ? $inline : select("web_text","xclanek","id_xclanek=$idxc");
-  $text= preg_replace("/<img[^>]+src=.data:image[^>]+\>/i","(embeded image)",$text,-1,$y->n);
-  if ( $inline && $y->n ) {
-    $y->msg.= "POZOR obrázky do článku je třeba přidávat přes Přílohy";
+  $text= preg_replace("/<img[^>]+src=.data:image[^>]+\>/i","(embeded image)",$text,-1,$s->n);
+  if ( $inline && $s->n ) {
+    $s->msg.= "POZOR obrázky do článku je třeba přidávat přes Přílohy";
   }
-  elseif ( $y->n ) {
+  elseif ( $s->n ) {
     if ( $update ) {
       $text= pdo_real_escape_string($text);
   //                                                       display($text);
       pdo_qry("UPDATE xclanek SET web_text='$text' WHERE id_xclanek=$idxc");
-      $y->msg.= "z článku $idxc byl odstraněno $y->n embeded obrázek";
+      $s->msg.= "z článku $idxc byl odstraněno $s->n embeded obrázek";
     }
     else {
-      $y->msg.= "v článku $idxc je $y->n embeded obrázek - mám je(j) vyjmout?";
+      $s->msg.= "v článku $idxc je $s->n embeded obrázek - mám je(j) vyjmout?";
     }
   }
   else {
-    $y->msg.= "v článku $idxc není žádný embeded obrázek";
+    $s->msg.= "v článku $idxc není žádný embeded obrázek";
   }
-  return $y;
+  return $s;
 }
 # --------------------------------------------------------------------------------==> . minify fotky
 # originál fotky je již ve složce inc/f/fid mechanismem label.drop
@@ -907,7 +907,7 @@ function menu_copy_foto($fid,$test=1) {
 # ----------------------------------------------------------------------------------- menu copy_elem
 # zkopíruje ze setkani.org článek nebo knihu
 function menu_copy_elem($co,$pid,$mid,$test=true) {
-  global $y, $abs_root;
+  global $s, $abs_root;
   $fileadmin= get_fileadmin();
   $msg= '?';
   $elems= '';
@@ -919,8 +919,8 @@ function menu_copy_elem($co,$pid,$mid,$test=true) {
 
   // zjisti části - u knihy kapitoly - u článku, pokud jsou, vytvoř knihu
   ask_server((object)array('cmd'=>'kapitoly','pid'=>$pid));
-                                                      display("pids/$pid=$y->pids");
-  $pids= explode(',',$y->pids);
+                                                      display("pids/$pid=$s->pids");
+  $pids= explode(',',$s->pids);
   // pokud je více části - vytvoř knihu
   if ( $co=='akce' ) {
     $aid= 'a';
@@ -955,7 +955,7 @@ function menu_copy_elem($co,$pid,$mid,$test=true) {
         else fce_error("fotky nesmí být jako první"); 
       }
       ask_server((object)array('cmd'=>'clanek','pid'=>$pid));
-      $a= $y->autor; $n= $y->nadpis; $lst= $y->obsah; $p= sql_date($y->psano,1);
+      $a= $s->autor; $n= $s->nadpis; $lst= $s->obsah; $p= sql_date($s->psano,1);
       if ( $test ) {
         $msg.= " fotky/$xpid  ";
       }
@@ -972,25 +972,25 @@ function menu_copy_elem($co,$pid,$mid,$test=true) {
     case 'D': // ------------ ...
       ask_server((object)array('cmd'=>'clanek','pid'=>$pid));
       // uprav odkazy
-      $obsah= preg_replace("/(src|href)=(['\"])(?:\\/|)fileadmin/","$1=$2$fileadmin",$y->obsah);
+      $obsah= preg_replace("/(src|href)=(['\"])(?:\\/|)fileadmin/","$1=$2$fileadmin",$s->obsah);
       if ( $co=='akce' ) {  // ------------------------------ akce
         $oddo= '';
         $skill= 0;
         if ( $x=='A' ) {    
           // hlavička
-          $oddo= datum_oddo($y->od,$y->do);
-          $skill= in_array($y->fe_groups,array(4,6)) ? 8 : 0;
-          $tit= "$y->nadpis";
+          $oddo= datum_oddo($s->od,$s->do);
+          $skill= in_array($s->fe_groups,array(4,6)) ? 8 : 0;
+          $tit= "$s->nadpis";
           if ( $test ) {
             $msg.= " akce.nazev=$oddo:$tit  ";
           }
           else {
-            query("UPDATE xakce SET nazev='$tit',datum_od='$y->od',datum_do='$y->do' "
+            query("UPDATE xakce SET nazev='$tit',datum_od='$s->od',datum_do='$s->do' "
                 . "WHERE id_xakce=$aid");
           }
         }
         // hlavní článek
-        $clanek= "<h1>$oddo $y->nadpis</h1>$obsah";
+        $clanek= "<h1>$oddo $s->nadpis</h1>$obsah";
         $clanek= str_replace("'","\\'",$clanek);
         if ( $test ) {
           $xid= 'x';
@@ -1005,7 +1005,7 @@ function menu_copy_elem($co,$pid,$mid,$test=true) {
       else { // $co=setkani_* ------------------------------- článek
         // případně zapiš celkový název knihy
         if ( $x=='C' && $kid ) {
-          $tit= "$y->autor: $y->nadpis";
+          $tit= "$s->autor: $s->nadpis";
           $tit= str_replace("'","\\'",$tit);
           if ( $test ) {
             $msg.= " kniha.nazev=$tit  ";
@@ -1014,7 +1014,7 @@ function menu_copy_elem($co,$pid,$mid,$test=true) {
             query("UPDATE xkniha SET nazev='$tit' WHERE id_xkniha=$kid");
           }
         }
-        $clanek= "<h1>$y->nadpis</h1>$obsah";
+        $clanek= "<h1>$s->nadpis</h1>$obsah";
         $clanek= str_replace("'","\\'",$clanek);
         if ( $test ) {
           $xid= 'x';

@@ -785,7 +785,7 @@ __EOT;
       break;
 
     case 'kalendar': # ----------------------------------------------- . kalendar
-      global $y;
+      global $s;
       $edit_id= 0;
       // zjistíme YS + FA
       ask_server((object)array('cmd'=>'kalendar'));
@@ -798,11 +798,11 @@ __EOT;
         $oddo= datum_oddo($od,$do);
         if ( !$edit_id )
           $edit_id= $id;
-        $y->akce[]= (object)array('od'=>$od,'nazev'=>$nazev,'misto'=>$misto,
+        $s->akce[]= (object)array('od'=>$od,'nazev'=>$nazev,'misto'=>$misto,
             'oddo'=>$oddo,'text'=>$text,'online'=>$online);
       }
       // seřadíme podle data
-      usort($y->akce,function($a,$b) { 
+      usort($s->akce,function($a,$b) { 
         return strnatcmp($a->od,$b->od);
       });
       $menu= '';
@@ -815,8 +815,8 @@ __EOT;
       }
       // zformátujeme kalendář
       $html.= "<div class='back' $menu><div id='clanek2' class='home'>$ipad<table class='kalendar'>";
-      if ( count($y->akce) ) {
-        foreach ($y->akce as $a) {
+      if ( count($s->akce) ) {
+        foreach ($s->akce as $a) {
           if ( $a->org ) {
             $org=
               $a->org==1 ? "YMCA Setkání" : (
@@ -887,12 +887,12 @@ __EOT;
 
     // clanek=pid -- samostatně zobrazený rozvinutý part
     case 'clanek':  # ------------------------------------------------ . clanek
-      global $y;
+      global $s;
       ask_server((object)array('cmd'=>'clanek','pid'=>$id));
       $fileadmin= get_fileadmin();  
-      $obsah= preg_replace("/(src|href)=(['\"])(?:\\/|)fileadmin/","$1=$2$fileadmin",$y->obsah);
+      $obsah= preg_replace("/(src|href)=(['\"])(?:\\/|)fileadmin/","$1=$2$fileadmin",$s->obsah);
       $obsah= str_replace('$index',$index,$obsah);
-      $nadpis= "<h1>$y->nadpis</h1>";
+      $nadpis= "<h1>$s->nadpis</h1>";
       $html.= "
         <div class='back' title='setkani.org: $id'>
           <div id='clanek2' class='home'>
@@ -905,14 +905,14 @@ __EOT;
 
     // kniha=cid -- samostatně zobrazený rozvinutý case
     case 'kniha':  # ------------------------------------------------ . kniha
-      global $y, $backref, $top, $links;
+      global $s, $backref, $top, $links;
       ask_server((object)array('cmd'=>'kniha','back'=>$backref,
           'cid'=>$ids,'kapitola'=>1)); //isset($path[0]) ? $path[0] : 0)); 
       $fileadmin= get_fileadmin(); 
-      $obsah= preg_replace("/(src|href)=(['\"])(?:\\/|)fileadmin/","$1=$2$fileadmin",$y->obsah);
+      $obsah= preg_replace("/(src|href)=(['\"])(?:\\/|)fileadmin/","$1=$2$fileadmin",$s->obsah);
       $html.= "
         <div id='list'>
-              $y->obsah
+              $s->obsah
         </div>
       ";
       break;
@@ -1203,42 +1203,42 @@ __EOD;
 /** ==========================================================================================> AKCE */
 // dá další nebo předchozí akci - pro smer=0 vrátí informace pro nastavenou 
 function next_xakce($curr_id,$smer=1) {
-  $y= (object)array('id'=>$curr_id,'msg'=>'','info'=>'','text'=>'','dotaz'=>'');
+  $s= (object)array('id'=>$curr_id,'msg'=>'','info'=>'','text'=>'','dotaz'=>'');
   $curr_datum= $curr_id ? select('datum_od','xakce',"id_xakce=$curr_id") : date('Y-m-d');
   if ( $smer ) {
     $rel= $smer==1 ? '<' : '>';
     $mmm= $smer==1 ? 'MAX' : 'MIN';
-    $y->id= select1("SUBSTR($mmm(CONCAT(datum_od,id_xakce)),11)",'xakce',
+    $s->id= select1("SUBSTR($mmm(CONCAT(datum_od,id_xakce)),11)",'xakce',
         "datum_od $rel '$curr_datum' AND skupina=0");
   }
   list($nazev,$elems,$byla)= select("nazev,xelems,IF(datum_od<=NOW(),1,0)",
-      'xakce',"id_xakce='$y->id'");
+      'xakce',"id_xakce='$s->id'");
 //        "datum_od>NOW() AND datum_od $rel '$curr_datum'");
   if ( $elems ) {
     list($elem)= explode(';',$elems);
     list($typ,$id)= explode('=',$elem);
-    $y->text= "-- ($typ,$id)";
+    $s->text= "-- ($typ,$id)";
     if ( $typ=='aclanek' ) {
-      $y->info= "náhled na již existující zápis";
-      $y->text= select("web_text","xclanek","id_xclanek='$id'");
+      $s->info= "náhled na již existující zápis";
+      $s->text= select("web_text","xclanek","id_xclanek='$id'");
     }
   }
   elseif ($byla) {
-    $y->info= "k akci nikdo nenapsal zápis";
-    $y->dotaz= "mám založit článek pro zápis $nazev? "
+    $s->info= "k akci nikdo nenapsal zápis";
+    $s->dotaz= "mám založit článek pro zápis $nazev? "
         . "<br>Bude zařazen mezi akce a zatím viditelný jen pro redaktory";
   }
   else {
-    $y->info= "akce ještě neproběhla";
+    $s->info= "akce ještě neproběhla";
   }
-  if ( !$y->id ) {
-    $y->id= $curr_id;
-    $y->msg= "To je informace o ".($smer==1 ? 'první' : 'poslední').
+  if ( !$s->id ) {
+    $s->id= $curr_id;
+    $s->msg= "To je informace o ".($smer==1 ? 'první' : 'poslední').
         " připravovaná akci - ostatní informace jsou do kalendáře importovány přímo z "
         . "databáze akcí YMCA Setkání a YMCA Familia";
 
   }
-  return $y;
+  return $s;
 }
 // 
 function zapis_xakce($ida) {
@@ -1338,7 +1338,7 @@ end:
 # -----------------------------------------------------------------------------------==> . table add
 # přidání nového účastníka do tabulky nebo jeho odebrání či přeřazení
 function table_add($idc,$skupina,$jmeno) {
-  global $y;
+  global $s;
   db_connect();
   // old_* informace o skupině, kde jmeno už je
   $old_skupina= select('skupina','xucast',"id_xclanek=$idc AND TRIM(jmeno)='$jmeno'");
@@ -1349,29 +1349,29 @@ function table_add($idc,$skupina,$jmeno) {
   if ( $skupina==$old_skupina) {
     // bude smazáno
     query("DELETE FROM xucast WHERE id_xclanek=$idc AND TRIM(jmeno)='$jmeno'");
-    $y->msg= "jsi odhlášen ze skupiny '$skupina'";
+    $s->msg= "jsi odhlášen ze skupiny '$skupina'";
   }
   // je v jiné skupině
   elseif ( $old_skupina  ) {
     if ( $pocet>=$maximum ) {
       // ale nová skupina je plná
-      $y->msg= "skupina '$skupina' je už plná, není možné se přehlásit ze skupiny '$old_skupina'";
+      $s->msg= "skupina '$skupina' je už plná, není možné se přehlásit ze skupiny '$old_skupina'";
     }
     else {
       // pokud není plná, změníme skupinu
       query("UPDATE xucast SET skupina='$skupina' WHERE id_xclanek=$idc AND TRIM(jmeno)='$jmeno'");
-      $y->msg= "jsi přehlášen ze skupiny '$old_skupina' do '$skupina'";
+      $s->msg= "jsi přehlášen ze skupiny '$old_skupina' do '$skupina'";
     }
   }
   else {
     // jmeno není v žádné skupině
     if ( $pocet>=$maximum ) {
-      $y->msg= "skupina '$skupina' je už plná, není možné se přihlásit";
+      $s->msg= "skupina '$skupina' je už plná, není možné se přihlásit";
     }
     else {
       // přidáme do skupiny
       query("INSERT INTO xucast(id_xclanek,skupina,jmeno) VALUES ($idc,'$skupina','$jmeno')");
-      $y->msg= "jsi přihlášen do skupiny '$skupina'";
+      $s->msg= "jsi přihlášen do skupiny '$skupina'";
     }
   }
 }
@@ -1797,8 +1797,8 @@ function log_report($par) { debug($par,'log_report');
 //      $txt= $tab=='c' ? log_show('xclanek',$id_tab) : "akce $id_tab";
       $txt= log_show($tab,$id_tab);
       $krat= $krat==1 ? "" : " ($krat x)";
-      $y= log_path($tab,$id_tab); // pokus nalézt umístění
-      $html.= "$kdy <b>$username</b> - $jak $co $txt $krat $y->url<br>";
+      $s= log_path($tab,$id_tab); // pokus nalézt umístění
+      $html.= "$kdy <b>$username</b> - $jak $co $txt $krat $s->url<br>";
     }
     $html.= "</dl>";
     break;
@@ -1828,7 +1828,7 @@ function log_report($par) { debug($par,'log_report');
 # vrátí url článku nebo knihy a zkusí zjistit id_menu
 # pokud tab=xclanek a zmena=1 tak zapíše menu.ch_date=MAX(menu.ch_date,xclanek.ch_date)
 function log_path($tab,$idc,$zmena=0) { 
-  $y= (object)array('url'=>'','path'=>'');
+  $s= (object)array('url'=>'','path'=>'');
   $ch_date= '0000-00-00';
   $idm= 0;
   $path= array();
@@ -1845,7 +1845,7 @@ function log_path($tab,$idc,$zmena=0) {
         if ( $top ) $path[]= select('ref','menu',"mid=$top");
         $path[]= $ref;
         $path[]= $idc;
-        $y->path= "v menu <i>$menu</i>";
+        $s->path= "v menu <i>$menu</i>";
         goto end;
       }
     }
@@ -1858,7 +1858,7 @@ function log_path($tab,$idc,$zmena=0) {
       if ( $top ) $path[]= select('ref','menu',"mid=$top");
       $path[]= $ref;
       $path[]= $idc;
-      $y->path= "v menu <i>$menu</i>";
+      $s->path= "v menu <i>$menu</i>";
       goto end;
     }
     break;
@@ -1870,7 +1870,7 @@ function log_path($tab,$idc,$zmena=0) {
       if ( $top ) $path[]= select('ref','menu',"mid=$top");
       $path[]= $ref;
       $path[]= $idc;
-      $y->path= "v menu <i>$menu</i>";
+      $s->path= "v menu <i>$menu</i>";
       goto end;
     }
     // článek v knize ?
@@ -1882,7 +1882,7 @@ function log_path($tab,$idc,$zmena=0) {
       if ( $top ) $path[]= select('ref','menu',"mid=$top");
       $path[]= $ref;
       $path[]= "$idk,$idc";
-      $y->path= "v knize <i>$kniha</i> v menu <i>$menu</i>";
+      $s->path= "v knize <i>$kniha</i> v menu <i>$menu</i>";
       goto end;
     }
     // článek v akci ?
@@ -1891,7 +1891,7 @@ function log_path($tab,$idc,$zmena=0) {
     if ( $ida ) {
       $path[]= 'akce';
       $path[]= "$rok,$idc";
-      $y->path= "v akci <i>$nazev</i> roku $rok";
+      $s->path= "v akci <i>$nazev</i> roku $rok";
       goto end;
     }
     break;
@@ -1904,8 +1904,8 @@ end:
   }
   // konec
   $path= implode('!',$path);
-  $y->url= "<a onclick=\"go(0,'page=$path','$path')\">&nbsp;<i class='fa fa-arrow-right'></i>&nbsp;</a>";
-  return $y;
+  $s->url= "<a onclick=\"go(0,'page=$path','$path')\">&nbsp;<i class='fa fa-arrow-right'></i>&nbsp;</a>";
+  return $s;
 }
 # ----------------------------------------------------------------------------------------- log show
 # zobrazí náhled článku

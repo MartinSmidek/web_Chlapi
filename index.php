@@ -26,10 +26,10 @@ require_once("man/2template_ch.php");
 if ( count($_POST) ) {
   require_once("man/2mini.php");
   $x= array2object($_POST);
-  $y= $x;
+  $s= $x;
   ask_server($x);
   header('Content-type: application/json; charset=UTF-8');
-  $yjson= json_encode($y);
+  $yjson= json_encode($s);
   $z= json_last_error();
   if ( $z!=JSON_ERROR_NONE ) {
     $z= (object)array('error'=>$z);
