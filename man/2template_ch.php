@@ -1976,7 +1976,7 @@ function log_obsah($jak,$tab,$id_tab) {
 # ok= u pri uživatele, r pro redaktora, - pro chybu, x pro odhlášení redaktora
 # id_user pro přihlášeného redaktora (zapisuje se v man.php)
 function log_login($ok,$mail='') { 
-  global $y;
+  global $s;
   $day= date('Y-m-d');
   $time= date('H:i:s');
   $abbr= '';
@@ -2015,7 +2015,7 @@ function log_login($ok,$mail='') {
   }
   else { 
     $ok= '-';
-    $txt= str_replace("'","\\'",(isset($y->txt)?$y->txt:'?').(isset($y->msg)?$y->msg:'?'));
+    $txt= str_replace("'","\\'",(isset($s->txt)?$s->txt:'?').(isset($s->msg)?$s->msg:'?'));
     $menu= 'login';
     $msg= "ko|$mail|$ip||||$txt";
   }
