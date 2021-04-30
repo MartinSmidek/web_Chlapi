@@ -76,7 +76,8 @@ function bar_menu(e,x) {
 function _bar_menu(y,cmd) {
   switch (cmd) {
     case 'wallpaper':
-      jQuery('body').css('background-image',y.wall);
+      // jQuery('body').css('background-image',y.wall); ztratí !important
+      jQuery('body').attr('style','background-image:'+y.wall+'!important');
       break;
   }
 }

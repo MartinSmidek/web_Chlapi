@@ -1019,7 +1019,7 @@ __EOJ;
       <link rel="stylesheet" href="/$client/licensed/font-awesome/css/font-awesome.min.css" type="text/css" media="screen" charset="utf-8" />
 __EOJ;
 
-  // tapeta
+  // počáteční tapeta pro klientský běh, pro redakční je v man.php ve funkci specific
   $wall= isset($_COOKIE['wallpaper']) ? $_COOKIE['wallpaper'] : 'foto_home.jpg';
   // head
   $icon= array(
@@ -1032,15 +1032,13 @@ __EOJ;
   $head=  <<<__EOD
   <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
   <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en" dir="ltr">
-  <style>
-    body {background-image: url(man/css/wall/$wall);} 
-  </style>
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=11" />
     <meta name="viewport" content="width=device-width,user-scalable=yes,initial-scale=1" />
     <title>chlapi.cz</title>
     <link rel="shortcut icon" href="$icon" />
+    <style>body{background-image:url(man/css/wall/$wall);}</style>
     $script
     $eb_link
   </head>
@@ -1663,6 +1661,7 @@ function ask_server($x) {
   // změny vzhledu - v x.wall je současné body.background-image do s.wall bude vráceno další
   case 'wallpaper':
     $url= explode('/wall/',$x->wall);
+    $url[1]= trim(str_replace('!important','',$url[1]));
     $img= substr($url[1],0,-2);
     $walls= glob("man/css/wall/*.{jpg,JPG}",GLOB_BRACE);
     $last= count($walls)-1;

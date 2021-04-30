@@ -141,7 +141,11 @@ __EOD;
     }
   }
 
+  // počáteční tapeta pro redakční běh, pro klientský běh, je v 2template.php
+  $wall= isset($_COOKIE['wallpaper']) ? $_COOKIE['wallpaper'] : 'foto_home.jpg';
+
   $template_meta= <<<__EOD
+    <style>body{background-image:url(./man/css/wall/$wall) !important;}</style>
     <meta name="robots" content="noindex, nofollow" />
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=9" />
