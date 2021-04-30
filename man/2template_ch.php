@@ -1019,6 +1019,8 @@ __EOJ;
       <link rel="stylesheet" href="/$client/licensed/font-awesome/css/font-awesome.min.css" type="text/css" media="screen" charset="utf-8" />
 __EOJ;
 
+  // tapeta
+  $wall= isset($_COOKIE['wallpaper']) ? $_COOKIE['wallpaper'] : 'foto_home.jpg';
   // head
   $icon= array(
       '/man/img/chlapi_ico_local.png',
@@ -1030,6 +1032,9 @@ __EOJ;
   $head=  <<<__EOD
   <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
   <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en" dir="ltr">
+  <style>
+    body {background-image: url(man/css/wall/$wall);} 
+  </style>
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=11" />
@@ -1059,6 +1064,7 @@ __EOD;
     </span>
     <div id='bar_items'>
       $loginout
+      <span onclick="bar_menu(arguments[0],'wallpaper');" class='separator'><i class='fa fa-image'></i> použij jiné pozadí</span>
     </div>
 __EOD;
 
@@ -1653,6 +1659,24 @@ function ask_server($x) {
     break;
   case 'table_add': // přidat účast
     table_add($s->idc,$s->skupina,trim($s->jmeno));
+    break;
+  // změny vzhledu - v x.wall je současné body.background-image do s.wall bude vráceno další
+  case 'wallpaper':
+    $url= explode('/wall/',$x->wall);
+    $img= substr($url[1],0,-2);
+    $walls= glob("man/css/wall/*.{jpg,JPG}",GLOB_BRACE);
+    $last= count($walls)-1;
+    for ($i= 0; $i<=$last; $i++) {
+      list($_,$wall)= explode('/wall/',$walls[$i]);
+      if ($wall==$img) {
+        $wall= $i==$last ? $walls[0] : $walls[$i+1];
+        list($_,$wall)= explode('/wall/',$wall);
+        setcookie('wallpaper',$wall);
+        break;
+      }
+    }
+    $url[1]= "$wall\")";
+    $s->wall= implode('/wall/',$url);
     break;
   }
   return 1;

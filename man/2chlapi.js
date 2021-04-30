@@ -60,6 +60,10 @@ function bar_menu(e,x) {
   }
   else {
     switch (x) {
+    case 'wallpaper':
+      let back= jQuery('body').css('background-image');
+      ask({cmd:'wallpaper',wall:back},_bar_menu,'wallpaper');
+      break;
     case 'me_login':
 //      alert('Je mi líto, ale nyní se nelze přihlásit. Našemu serveru je špatně.\nŽivot je těžký ... Martin');
       jQuery('#user_mail').css({display:'block'}).addClass('key_in').attr('data-login','me');
@@ -68,6 +72,13 @@ function bar_menu(e,x) {
     items.css({display:'none'});
   }
   return false;
+}
+function _bar_menu(y,cmd) {
+  switch (cmd) {
+    case 'wallpaper':
+      jQuery('body').css('background-image',y.wall);
+      break;
+  }
 }
 // ------------------------------------------------------------------------------------- change info
 // alternace informačního rohu
