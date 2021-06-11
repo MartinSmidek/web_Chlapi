@@ -1490,11 +1490,11 @@ function servant($qry,$context=null) {
   }
   elseif ( substr($json,0,1)=='{' ) {
     $s= json_decode($json);
-    $_SESSION['web']['servant_state']= "json";
+    $_SESSION['web']['*servant_state']= "json";
   }
   else {
     $s->msg= "Sorry, došlo k chybě č.4, martin@smidek.eu ti poradí ...";
-    $_SESSION['web']['servant_state']= "text:$json";
+    $_SESSION['web']['*servant_state']= "text:$json";
                                                   display($s->msg);
 //    $s->msg= "'$servant&$qry' vrátil '$json'";
   }
@@ -1547,34 +1547,39 @@ function ask_server($x) {
     break;
   
   case 'sendmail': // -------------------------------------------------------------------- send mail
+    $s= (object)array(ok=>0,txt=>'?');
     $tos= preg_split("~[\s,;]~", $x->to,-1,PREG_SPLIT_NO_EMPTY);
     $poslano= 0;
     foreach($tos as $to) {
-      $_SESSION['web']['phpmailer1']= $to;
-      $err= '';
-      $s->ok= emailIsValid($to,$err) ? 1 : 0;
+      $_SESSION['web']['*phpmailer1']= $to;
+      $err= ''; $err_style= " style='background:yellow'";
+      $s->ok= emailIsValid($x->reply,$err) ? 1 : 0;
       if ( $s->ok ) {
         // organizátorům
         $ret= mail_send($x->reply,$to,$x->subj,$x->body);
-        $_SESSION['web']['phpmailer2']= $ret;
-        $s->txt= $ret->err
-          ? " Mail se bohužel nepovedlo - napiš prosím na seskup@gmail.com "
-          : " Mail byl odeslán organizátorům skupiny ";
-        $poslano+= $ret->err ? 0 : 1;
+        $_SESSION['web']['*phpmailer2']= "ok:{$ret->msg}";
+        $s->txt= $ret->msg
+          ? " <hr><span$err_style>Mail se bohužel nepovedlo odeslat 
+              - napiš prosím na seskup@gmail.com a v kopii na chlapi@familia.cz</span>"
+          : " <hr>Mail byl odeslán organizátorům skupiny ";
+        $poslano+= $ret->msg ? 0 : 1;
       }
       else {
-        $s->txt= "'$to' nevypadá jako mailová adresa ($err)";
+        $_SESSION['web']['*phpmailer2']= "ko:$err";
+        $s->txt= " <hr><span$err_style>'$x->reply' nevypadá jako mailová adresa ($err)
+          Oprav adresu a znovu pošli.</span>";
       }
     }
     if ( $poslano ) {
       // zpětná vazba odesílateli
       $body= "Posíláme Ti potvrzení o odeslání zprávy pro skupinu <i>$x->skupina</i>. 
         Pokud se od nich nedočkáš v přiměřeném čase odpovědi, 
-        pošli prosím kopii zprávy na adresu seskup@gmail.com, zařídíme to.";
+        pošli prosím kopii zprávy na adresu seskup@gmail.com (v kopii na chlapi@familia.cz), 
+        zařídíme to.";
       $ret= mail_send("seskup@gmail.com",$x->reply,"Fwd: $x->subj",$body);
-      $_SESSION['web']['phpmailer3']= $ret;
-      $s->txt.= $ret->err
-        ? " Potvrzující mail se bohužel nepovedlo odeslat ($ret->err)"
+      $_SESSION['web']['*phpmailer3']= $ret;
+      $s->txt.= $ret->msg
+        ? " <hr><span$err_style>Potvrzující mail se Ti bohužel nepovedlo odeslat ($ret->msg)</span>"
         : " a byl Ti odeslán potvrzující mail ";
     }
     break;

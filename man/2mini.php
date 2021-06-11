@@ -648,51 +648,50 @@ function emailIsValid($email,&$reason) {
 # odešle mail
 # k posílání přes GMail viz http://phpmailer.worxware.com/?pg=examplebgmail
 function mail_send($reply_to,$address,$subject,$body) { trace(); 
-  $ret= (object)array('err'=>0,'msg'=>'N.Y.I');
-// goto end;
-//   $address= "martin@smidek.eu";
-//   $subject= "test";
-//   $body= "TEST";
+  $ret= (object)array('msg'=>'');
   $TEST= 0;
+//  $TEST= 1;
   $ezer_path_serv= "ezer3.1/server";
   $phpmailer_path= "$ezer_path_serv/licensed/phpmailer";
   require_once("$phpmailer_path/class.phpmailer.php");
   require_once("$phpmailer_path/class.smtp.php");
-  $n= $nko= 0;
+  $nko= 0;
   // nastavení phpMail
   $mail= new PHPMailer(true);
-  $mail->SetLanguage('cz',"$phpmailer_path/language/");
+  $mail->SetLanguage('cs',"$phpmailer_path/language/");
   $mail->IsSMTP();
-  $mail->SMTPAuth = true; // enable SMTP authentication
-  $mail->SMTPSecure= "ssl"; // sets the prefix to the server
+  $mail->Mailer= 'smtp';
   $mail->Host= "smtp.gmail.com"; // sets GMAIL as the SMTP server
   $mail->Port= 465; // set the SMTP port for the GMAIL server
-//  $mail->Username= "answer@setkani.org";
-//  $mail->Password= "answer2017";
-  $mail->Username= "www.chlapi.cz@gmail.com";
-  $mail->Password= "nesmer2004";
-  $mail->CharSet= "UTF-8";
-  $mail->IsHTML(true);
-  // zpětné adresy
-  $mail->ClearReplyTos();
-  $mail->AddReplyTo($reply_to);
-  $mail->SetFrom('www.chlapi.cz@gmail.com', 'chlapi.cz');
-  // vygenerování mailu
+  $mail->SMTPAuth = 1; // enable SMTP authentication
+  $mail->SMTPSecure= "ssl"; // sets the prefix to the server
+  // účet www.chlapi.cz
+//    $mail->Username= "www.chlapi.cz@gmail.com";
+//    $mail->Password= "nesmer2004";
+  // Answer
+  $mail->Username= "answer@setkani.org";
+  $mail->Password= "answer2017";
+  // další nastavení
+  $mail->CharSet= "utf-8";
+  $mail->From= 'www.chlapi.cz@gmail.com';
+  $mail->FromName= 'chlapi.cz';
+  $mail->AddAddress($address);
   $mail->Subject= $subject;
   $mail->Body= $body;
-  // přidání příloh
-  $mail->ClearAttachments();
-  // přidání adres
-  $mail->ClearAddresses();
-  $mail->ClearCCs();
-  $mail->AddAddress($address);
+  $mail->IsHTML(true);
   if ( $TEST ) {
     $ret->msg= "TESTOVÁNÍ - vlastní mail.send je vypnuto";
     goto end;
   }
   else {
     // odeslání mailu
-    $ok= $mail->Send();
+    try {
+      $ok= $mail->Send();
+    }
+    catch (Exception $e) { 
+      $_SESSION['web']['phpmailer_errorinfo']= $mail->ErrorInfo;
+      goto end;
+    };
     $msg= $ok ? '' : $mail->ErrorInfo;
   }
   $ret->msg= $msg;

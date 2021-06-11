@@ -394,9 +394,20 @@ panel CMS [0,0,610,400] { type:'popup',  title:'CMS - definice menu',
   }
 }
 # ----------------------------------------------------------------------------==> ADMIN
-panel ADMIN [0,0,600,465] { title:'Aktivita CMS', type:'popup', css:'dialog_menu', 
+panel ADMIN [0,0,600,465] { title:'Nástroje administrátora', type:'popup', css:'dialog_menu', 
     style:"min-width:590px", _sys:'adm'
   func onfirstfocus() { m.a.d.click() }
+  func tab_append(tab,cond,mode) {
+    clear();
+    if (mode==1)
+      u.append(php.tab_append_using(tab,cond));
+    elseif (mode==2)
+      u.append(php.tab_append(tab,`TRUE`));
+    elseif (mode==3)
+      u.append(php.man_append(tab,cond));
+    else // mode==0
+      u.append(php.tab_append(tab,cond));
+  }
   menu m { type:'left', format:'f'
     menu a { title:'Aktivní redaktoři', type:'group', skill:'s'
       item d { title:'dnes'             par:°{s:'uzivatele',c:'dnes',short:'1'}}
@@ -411,7 +422,7 @@ panel ADMIN [0,0,600,465] { title:'Aktivita CMS', type:'popup', css:'dialog_menu
       item   { title:'správná přihlášení'   par:°{cmd:'me_login',typ:'ok'}}
       item   { title:'přihlášení k editaci' par:°{cmd:'me_login',typ:'r'}}
       func onclick (i:ezer) {  var y:text
-        panel.display(2,'mu'); u.den.display(0);
+        panel.display(2,'mu'); u.display(0,'d|t');
         y= php.log_report(i.par);
         u.fill(p.item_title(i),y);
       }
@@ -429,6 +440,16 @@ panel ADMIN [0,0,600,465] { title:'Aktivita CMS', type:'popup', css:'dialog_menu
     menu { title:'Struktura databáze',type:'group',skill:'m'
       //item {title:'[fa-object-group] Přehled struktury dat'     par:°{img:'schema_db_chlapi_2020'} }
       item {title:'[fa-object-group] Přehled struktury dat'     par:°{img:'schema_db_chlapi_2019'} }
+      item {title:'[fa-question] zobrazení záznamů'
+        func onclick (i:ezer) {
+          clear(); u.display(1,'t'); u.display(0,'d');
+          u.fill('tabulka',' ');
+          u.tab.selects(php.tab_selects());
+          if (!u.tab) {
+            u.tab.key(1);
+          }
+        }
+      }
       item {title:'[fa-database] tabulka MENU',                 par:°{tab:'menu'} }
       item {title:'[fa-database] tabulka xAKCE',                par:°{tab:'xakce'} }
       item {title:'[fa-database] tabulka xKNIHA',               par:°{tab:'xkniha'} }
@@ -436,7 +457,7 @@ panel ADMIN [0,0,600,465] { title:'Aktivita CMS', type:'popup', css:'dialog_menu
       item {title:'[fa-database] tabulka xFOTKY',               par:°{tab:'xfotky'} }
       item {title:'[fa-database] tabulka xUCAST',               par:°{tab:'xucast'} }
       func onclick (i:ezer) {
-        clear(); panel.display(2,'mu'); u.den.display(0);
+        clear(); panel.display(2,'mu'); u.display(0,'d|t');
         u.fill(p.item_title(i),' ');
         if (i.par.tab)
           u.append(php.i_doc_table_struct(i.par.tab,1,'systable'));
@@ -449,7 +470,7 @@ panel ADMIN [0,0,600,465] { title:'Aktivita CMS', type:'popup', css:'dialog_menu
       item { title:"[fa-upload] zálohuj teď"                    par:°{typ:'special'}}
       item { title:"[fa-download] obnova ze zálohy (jen local)" par:°{typ:'restore'}}
       func onclick(i:ezer) {
-        panel.display(2,'mu'); u.den.display(0);
+        panel.display(2,'mu'); u.display(0,'d|t');
         u.fill(p.item_title(i),' ');
         switch (i.par.typ) {
         case 'download':
@@ -494,7 +515,7 @@ panel ADMIN [0,0,600,465] { title:'Aktivita CMS', type:'popup', css:'dialog_menu
       item { title:'[fa-gears] Ezer: git fetch ...' help:"po fetch>git reset --hard origin/master"
                                                     par:°{folder:'ezer',op:'cmd',cmd:'fetch'}}
       func onclick (i:ezer) {  
-        panel.display(2,'mu'); u.den.display(0); 
+        panel.display(2,'mu'); u.display(0,'d|t');
         u.fill(p.item_title(i),php.git_make(i.par));
       }
     }
@@ -511,7 +532,7 @@ panel ADMIN [0,0,600,465] { title:'Aktivita CMS', type:'popup', css:'dialog_menu
 //      }
 //    }
     func onclick (i:ezer) {  var y:text
-      panel.display(2,'mu'); 
+      panel.display(2,'mu'); u.display(0,'t');
       u.den.display(i.par.c=='den');
       y= php.sys_activity(i.par,skip,u.den,sys('options','watch_access_opt'));
       u.fill(p.item_title(i),y);
@@ -544,7 +565,7 @@ panel ADMIN [0,0,600,465] { title:'Aktivita CMS', type:'popup', css:'dialog_menu
   # formulář pro levostranné menu s textem
   form _u [,,*,*] { css:'popup-right'
     label result [5,0,*,*] { title:'', style:'overflow:auto' }
-    field den [-4,4,85,18] { type:'date', style:'z-index:2', format:'Rrt' }
+    field den [-4,4,85,18] {tag:'d', type:'date', style:'z-index:2', format:'Rrt' }
     label head [0,0,*,30]  { title:'' }
     label note [0,30,*,440] { title:'' style:'overflow:auto' }
     func Init() { head.set(''); note.set(''); }
@@ -560,10 +581,20 @@ panel ADMIN [0,0,600,465] { title:'Aktivita CMS', type:'popup', css:'dialog_menu
     func shift(x) {
       note= conc(x,note)
     }
+    // ==> procházení záznamů
+    select tab [-182,5,105,] {tag:'t', format:'t'}
+    field idt [-116,5,40,] {tag:'t', title:'klíč', style:'color:white', format:'t'}
+    button [-56,5,,] {tag:'t', title:'zobraz'
+      func onclick() {
+        clear(); form.note= conc(form.note,php.tab_append(tab,`*='${idt}'`)); // * bude primary_key
+    }}
+    button [-5,5,,] {tag:'t', title:'vymaž'
+      func onclick() { form.note= '';
+    }}
   }
 }
 # ----------------------------------------------------------------------------==> REDAKCE
-panel REDAKCE [0,0,840,515] {type:'popup', title:'Redakce', css:'dialog_menu', 
+panel REDAKCE [0,0,840,515] {type:'popup', title:'Nástroje redaktora', css:'dialog_menu', 
     /*style:"min-width:830px",*/ skill:'a|a', _sys:'red'
 
   const sys_users_list = 22

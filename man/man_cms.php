@@ -98,6 +98,29 @@ function git_make($par) {
   return $msg;
 }
 /** =========================================================================================> TABLE */
+# zobrazované tabulky >* je označuje klíč, >tab označuje klíč jiné tabulky
+$app_tables= (object)array(
+  'menu'    => "mid>*,mid_top>menu,mid_sub>menu,nazev,elem>;",
+  'xakce'   => "id_xakce>*,nazev,xelems>;",
+  'xclanek' => "id_xclanek>*",
+  '_' => 'ADMIN,systable' // cesta k funkci tab_append, css tabulky
+);
+# --------------------------------------------------------------------------------------- man append
+# zobraz záznam referovaný daným elementem
+function man_append($table,$elem) {
+  global $app_tables;
+  $html= '';
+  // rozeber element
+  list($name,$value)= explode('=',trim($elem,' -'));
+  switch ($name) {
+    case 'aclanek':
+    case 'xclanek':
+      $html.= tab_append('xclanek',"id_xclanek='$value'");
+      break;
+  }
+  return $html;
+}
+/** ========================================================================================> ÚČASTI */
 # funkce pro úpravu tabulky účastí
 # --------------------------------------------------------------------------------------- table load
 # načtení tabulky pro editaci
