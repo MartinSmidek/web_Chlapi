@@ -116,7 +116,7 @@ function eval_menu($path) {
   foreach ($menu as $m) {
     $level= '';
     // filtrace chráněných položek
-    foreach (array(ADMIN=>'admin',SUPER=>'super',REDAKTOR=>'redaktor',MROP=>'mrop',TESTER=>'tester') 
+    foreach (array(1=>'admin',2=>'super',4=>'redaktor',8=>'mrop',16=>'tester') 
         as $skill=>$class) {
       if ( $m->level & $skill ) {
         $level.= " $class";
@@ -162,7 +162,7 @@ function eval_menu($path) {
         $top= array_shift($path);
       }
       $amenu->main[]= $m->nazev ? array($m->nazev,"jump$level$active",$jmp,$m->_zmena) : '-';
-      $mainmenu.= "<a $jmp class='jump$level$active'><span>$m->nazev</span></a>";
+//      $mainmenu.= "<a $jmp class='jump$level$active'><span>$m->nazev</span></a>";
       break;
     case 2:                             // zobrazení submenu aktivního mainmenu
       if ( $m->mid_top===$main ) {
@@ -312,13 +312,14 @@ function eval_elem($desc,$book=null) {
     if ( $ids ) {
       $id= array();
       foreach (explode(',',$ids) as $id12) {
-        list($id_server,$id_local)= explode('/',$id12);
-        $id[]= $id_local ? (!$ezer_server ? $id_local : $id_server) : $id_server; 
+        $id_sl= explode('/',$id12);
+//        list($id_server,$id_local)= explode('/',$id12);
+        $id[]= count($id_sl>1) ? (!$ezer_server ? $id_sl[1] : $id_sl[0]) : $id_sl[0]; 
       }
       $id= implode(',',$id);
     }
     $typ= str_replace(' ','',$typ);
-                                                      display("$typ $id");
+//                                                      display("$typ $id");
     switch ($typ) {
 
     case 'menu':    # ----------------------------------------------- . menu
@@ -711,7 +712,7 @@ __EOT;
       else {
         // zobrazit jako abstrakt<div class="text">
         $obsah= x_shorting($obsah);
-        if ( $book->tit ) {
+        if ( isset($book->tit) ) {
           $obsah= "<b>$book->tit</b> $obsah";
         }
         $styl= 'aclanek';

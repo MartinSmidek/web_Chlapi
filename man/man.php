@@ -2,7 +2,7 @@
 
   // volba verze jádra Ezer
   $kernel= "ezer3.1"; 
-  $_GET['pdo']= 1;
+  $_GET['pdo']= 2;
 
   // rozlišení lokální a ostré verze
 //  $ezer_local= preg_match('/^\w+\.bean$/',$_SERVER["SERVER_NAME"])?1:0;
