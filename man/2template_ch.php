@@ -297,9 +297,10 @@ function title_menu($title,$items,$id=0,$idk=0,$idm=0) {
 // desc :: key [ = ids ]
 // ids  :: id1 [ / id2 ] , ...    -- id2 je klíč v lokální db pro ladění
 // $counts je pole sčítající skutečně renderované (viditelné) elementy
-function eval_elem($desc,$book=null) {
+function eval_elem($desc,$book=null) { //trace();
   global $REDAKCE, $KLIENT, $ezer_server, $http_server, $index, $load_ezer, $curr_menu, $top, 
       $prefix, $mobile, $cmenu, $backref, $counts; 
+                                                    debug(array($desc,$book),"eval_elem");
   $elems= explode(';',$desc);
   $ipad= '';
   $html= '';
@@ -377,7 +378,7 @@ __EOT;
           foreach ( explode(';',$elems) as $elem ) {
             $html.= eval_elem($elem,(object)array('subtyp'=>'pozvanka',
                 'open'=>true,'idk'=>'','ida'=>$a,'tit'=>$tit,'header'=>$header,
-                'first'=>$first));
+                'first'=>$first,'first_open'=>1));
             $first= false;
           }
         }
