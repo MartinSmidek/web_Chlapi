@@ -131,9 +131,9 @@ function table_load($idc) {
   $idu= select("id_xucast","xucast","id_xclanek=$idc");
   if ( !$idu ) { $err= "tabulka pro pozvánku $idc neexistuje"; goto end; }
   // přečtení tabulky 
-  $tr= mysql_qry("
+  $tr= pdo_qry("
     SELECT COUNT(*),skupina,MAX(poradi) FROM xucast WHERE id_xclanek=$idc GROUP BY skupina");
-  while ( $tr && (list($pocet,$nazev,$maxim)= mysql_fetch_row($tr)) ) {
+  while ( $tr && (list($pocet,$nazev,$maxim)= pdo_fetch_row($tr)) ) {
     $ret->rows[]= (object)array('nazev'=>$nazev,'maxim'=>$maxim,'pocet'=>$pocet-1);
   }
 end:
@@ -152,9 +152,9 @@ function table_change($idc,$rows) {
   $idu= select("id_xucast","xucast","id_xclanek=$idc");
   if ( !$idu ) { $err= "tabulka pro pozvánku $idc neexistuje"; goto end; }
   // přečtení tabulky 
-  $tr= mysql_qry("
+  $tr= pdo_qry("
     SELECT skupina,MAX(poradi) FROM xucast WHERE id_xclanek=$idc GROUP BY skupina");
-  while ( $tr && (list($nazev,$maxim)= mysql_fetch_row($tr)) ) {
+  while ( $tr && (list($nazev,$maxim)= pdo_fetch_row($tr)) ) {
     $max[$nazev]= $maxim;
   }
   // úprava změněných maxim a názvů dat tabulky v xucast, přidání či ubrání řádků
