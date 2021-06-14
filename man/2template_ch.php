@@ -312,14 +312,13 @@ function eval_elem($desc,$book=null) {
     if ( $ids ) {
       $id= array();
       foreach (explode(',',$ids) as $id12) {
-        $id_sl= explode('/',$id12);
-//        list($id_server,$id_local)= explode('/',$id12);
-        $id[]= count($id_sl>1) ? (!$ezer_server ? $id_sl[1] : $id_sl[0]) : $id_sl[0]; 
+        list($id_server,$id_local)= explode('/',$id12);
+        $id[]= $id_local ? (!$ezer_server ? $id_local : $id_server) : $id_server; 
       }
       $id= implode(',',$id);
     }
     $typ= str_replace(' ','',$typ);
-//                                                      display("$typ $id");
+                                                      display("$typ $id");
     switch ($typ) {
 
     case 'menu':    # ----------------------------------------------- . menu
@@ -565,7 +564,7 @@ __EOT;
       $idn= $id;
       list($exists,$obsah,$wskill,$cskill,$zmena)= 
           select("id_xclanek,web_text,web_skill,cms_skill,TO_DAYS(NOW())-IFNULL(TO_DAYS(ch_date),0)",
-              "xclanek","id_xclanek=$id");
+              "xclanek","id_xclanek='$id'");
       if ( !test_elem($exists,"Článek $id",$elem,$html) ) continue;
       $wskill= 0+$wskill;
       $cskill= 0+$cskill;
@@ -742,7 +741,7 @@ __EOT;
     case 'xclanek': # ------------------------------------------------ . xčlánek
       list($exists,$obsah,$wskill,$cskill,$zmena)= 
           select("id_xclanek,web_text,web_skill,cms_skill,TO_DAYS(NOW())-IFNULL(TO_DAYS(ch_date),0)",
-              "xclanek","id_xclanek=$id");
+              "xclanek","id_xclanek='$id'");
       if ( !test_elem($exists,"Článek $id",$elem,$html) ) continue;
       if ( $wskill && !($KLIENT->level & $wskill) ) {
         break;

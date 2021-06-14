@@ -40,13 +40,12 @@
       "http://chlapi.ben:8080"        // ben
     );
   
-  // určení uživatele podle session.web.fe_user
   require_once("../$kernel/server/ae_slib.php");
   require_once '2template_ch.php';
-  if ( $kernel=='ezer3.1') {
-    require_once("../$kernel/mysql.inc.php");
-    require_once("../$kernel/server/ezer_pdo.php");
-  }
+  require_once("../$kernel/pdo.inc.php");
+  require_once("../$kernel/server/ezer_pdo.php");
+
+  // určení uživatele podle session.web.fe_user
   db_connect();
   $username= select("username","_user","id_user={$_SESSION['web']['user']}");
   if ( $username ) {
