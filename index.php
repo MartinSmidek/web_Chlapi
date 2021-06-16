@@ -14,7 +14,8 @@ $ezer_server=
 # ------------------------------------------ init
 
 $microtime_start= microtime();
-if ( !isset($_SESSION) ) session_start();
+//if ( !isset($_SESSION) ) 
+session_start();
 $_SESSION['web']['index']= $index= 'index.php';
 $_SESSION['web']['server']= $ezer_server;
 if ( isset($_GET['err']) && $_GET['err'] ) error_reporting(E_ERROR); else error_reporting(0);
