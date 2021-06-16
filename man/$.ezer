@@ -396,18 +396,52 @@ panel CMS [0,0,610,400] { type:'popup',  title:'CMS - definice menu',
 # ----------------------------------------------------------------------------==> ADMIN
 panel ADMIN [0,0,600,465] { title:'Nástroje administrátora', type:'popup', css:'dialog_menu', 
     style:"min-width:590px", _sys:'adm'
-  func onfirstfocus() { m.a.d.click() }
+    par:{
+      infos: [
+        {title:'[fa-object-group] Schema databáze',
+         html: "<br>Schema databáze pro <b>chlapi.cz</b>
+              <img src='man/img/schema_db_chlapi_2019.png' />"}
+      ],
+      tables: {
+        menu:     "mid>*,mid_top>menu,mid_sub>menu,nazev,elem>_seznam;",
+        xakce:    "id_xakce>*,nazev,xelems>_seznam;",
+        xclanek:  "id_xclanek>*,kdy",
+        xfotky:   "id_xfotky>*,id_xclanek>xclanek,nazev",
+        xkniha:   "id_xkniha>*,nazev,xelems>_seznam;",
+        xucast:   "id_xucast>*,id_xclanek>xclanek,skupina,jmeno",
+        log:      "id_log>-,kdo,kdy,jak,tab,id_tab"
+      },
+      css: 'systable' // styl tabulek
+    }
+  func onfirstfocus() { var db_info:object
+    db_info= php.sys_db_info(this.par,'..ADMIN'); 
+    m.str.attach_code(db_info.group);
+    m.a.d.click() 
+  }
+  func append(x) { u.append(x) }
+  func _seznam(tab,val) { append(php.man_append(tab,val)) }
   func tab_append(tab,cond,mode) {
     clear();
     if (mode==1)
-      u.append(php.tab_append_using(tab,cond));
+      u.append(php.sys_db_append_using(tab,cond));
     elseif (mode==2)
-      u.append(php.tab_append(tab,`TRUE`));
-    elseif (mode==3)
-      u.append(php.man_append(tab,cond));
+      u.append(php.sys_db_append(tab,`TRUE`));
+//    elseif (mode==3)
+//      u.append(php.man_append(tab,cond));
     else // mode==0
-      u.append(php.tab_append(tab,cond));
+      u.append(php.sys_db_append(tab,cond));
   }
+//  func tab_append(tab,cond,mode) {
+//    clear();
+//    if (mode==1)
+//      u.append(php.tab_append_using(tab,cond));
+//    elseif (mode==2)
+//      u.append(php.tab_append(tab,`TRUE`));
+//    elseif (mode==3)
+//      u.append(php.man_append(tab,cond));
+//    else // mode==0
+//      u.append(php.tab_append(tab,cond));
+//  }
   menu m { type:'left', format:'f'
     menu a { title:'Aktivní redaktoři', type:'group', skill:'s'
       item d { title:'dnes'             par:°{s:'uzivatele',c:'dnes',short:'1'}}
@@ -437,34 +471,53 @@ panel ADMIN [0,0,600,465] { title:'Nástroje administrátora', type:'popup', css
       item { title:'čekající BUGs'      par:°{s:'chyby',c:'BUG1'}}
       item { title:'vyřešené BUGs'      par:°{s:'chyby',c:'BUG2'}}
     }
-    menu { title:'Struktura databáze',type:'group',skill:'m'
-      //item {title:'[fa-object-group] Přehled struktury dat'     par:°{img:'schema_db_chlapi_2020'} }
-      item {title:'[fa-object-group] Přehled struktury dat'     par:°{img:'schema_db_chlapi_2019'} }
+    menu  {title:'Zobrazení dat aplikace', type:'group', skill:'m'
       item {title:'[fa-question] zobrazení záznamů'
-        func onclick (i:ezer) {
+        func onclick (i:ezer) { 
           clear(); u.display(1,'t'); u.display(0,'d');
-          u.fill('tabulka',' ');
-          u.tab.selects(php.tab_selects());
           if (!u.tab) {
+            u.tab.selects(php.sys_db_selects());
             u.tab.key(1);
           }
         }
       }
-      item {title:'[fa-database] tabulka MENU',                 par:°{tab:'menu'} }
-      item {title:'[fa-database] tabulka xAKCE',                par:°{tab:'xakce'} }
-      item {title:'[fa-database] tabulka xKNIHA',               par:°{tab:'xkniha'} }
-      item {title:'[fa-database] tabulka xCLANEK',              par:°{tab:'xclanek'} }
-      item {title:'[fa-database] tabulka xFOTKY',               par:°{tab:'xfotky'} }
-      item {title:'[fa-database] tabulka xUCAST',               par:°{tab:'xucast'} }
+    }
+    menu str {title:'Struktura dat aplikace', type:'group'
+      // itemy budou doplněny metodou attach_code
       func onclick (i:ezer) {
         clear(); panel.display(2,'mu'); u.display(0,'d|t');
-        u.fill(p.item_title(i),' ');
-        if (i.par.tab)
-          u.append(php.i_doc_table_struct(i.par.tab,1,'systable'));
-        elseif (i.par.img) 
-          u.append(`<br>Schema databáze pro <b>chlapi.cz</b><img src='man/img/${i.par.img}.png'/>`);
+        u.fill('tabulka',' ');
+        u.append(i.par.tab ? php.sys_db_struct(i.par.tab,0) : i.par.info);
       }
     }
+//    menu { title:'Struktura databáze',type:'group',skill:'m'
+//      //item {title:'[fa-object-group] Přehled struktury dat'     par:°{img:'schema_db_chlapi_2020'} }
+//      item {title:'[fa-object-group] Přehled struktury dat'     par:°{img:'schema_db_chlapi_2019'} }
+//      item {title:'[fa-question] zobrazení záznamů'
+//        func onclick (i:ezer) {
+//          clear(); u.display(1,'t'); u.display(0,'d');
+//          u.fill('tabulka',' ');
+//          u.tab.selects(php.tab_selects());
+//          if (!u.tab) {
+//            u.tab.key(1);
+//          }
+//        }
+//      }
+//      item {title:'[fa-database] tabulka MENU',                 par:°{tab:'menu'} }
+//      item {title:'[fa-database] tabulka xAKCE',                par:°{tab:'xakce'} }
+//      item {title:'[fa-database] tabulka xKNIHA',               par:°{tab:'xkniha'} }
+//      item {title:'[fa-database] tabulka xCLANEK',              par:°{tab:'xclanek'} }
+//      item {title:'[fa-database] tabulka xFOTKY',               par:°{tab:'xfotky'} }
+//      item {title:'[fa-database] tabulka xUCAST',               par:°{tab:'xucast'} }
+//      func onclick (i:ezer) {
+//        clear(); panel.display(2,'mu'); u.display(0,'d|t');
+//        u.fill(p.item_title(i),' ');
+//        if (i.par.tab)
+//          u.append(php.i_doc_table_struct(i.par.tab,1,'systable'));
+//        elseif (i.par.img) 
+//          u.append(`<br>Schema databáze pro <b>chlapi.cz</b><img src='man/img/${i.par.img}.png'/>`);
+//      }
+//    }
     menu { title:'Import a záloha databáze',type:'group',skill:'m'
       item { title:"[fa-question] přehled záloh"                par:°{typ:'download'}}
       item { title:"[fa-upload] zálohuj teď"                    par:°{typ:'special'}}
@@ -586,7 +639,9 @@ panel ADMIN [0,0,600,465] { title:'Nástroje administrátora', type:'popup', css
     field idt [-116,5,40,] {tag:'t', title:'klíč', style:'color:white', format:'t'}
     button [-56,5,,] {tag:'t', title:'zobraz'
       func onclick() {
-        clear(); form.note= conc(form.note,php.tab_append(tab,`*='${idt}'`)); // * bude primary_key
+//        clear(); form.note= conc(form.note,php.tab_append(tab,`*='${idt}'`)); // * bude primary_key
+        clear(); form.note= conc(form.note,
+            php.sys_db_append(tab,idt ? `*='${idt}'`:'TRUE')); // * bude primary_key
     }}
     button [-5,5,,] {tag:'t', title:'vymaž'
       func onclick() { form.note= '';
