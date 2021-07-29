@@ -2,7 +2,7 @@
 
   // volba verze jádra Ezer
   $kernel= "ezer3.1"; 
-  $_GET['pdo']= 1;
+  $_GET['pdo']= 2;
 
   // hostující servery
   $ezer_server= 

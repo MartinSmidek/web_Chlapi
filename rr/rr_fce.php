@@ -42,7 +42,7 @@ function rr_send($par) {
   ezer_connect("ezertask");
   $qry= "SELECT * FROM rr WHERE datum=curdate()$offset ";
   $res= pdo_qry($qry);
-                                                $html.= "<br>$res=$qry";
+//                                                $html.= "<br>$res=$qry";
   while ( $res && ($o= pdo_fetch_object($res)) ) {
 //     $html= $o->text_cz;
     $day_n= $o->day_n;
@@ -72,7 +72,9 @@ function rr_send($par) {
     if ( $par->poslat  ) {
       if ( $state=='prepared' || $par->opakovat || $_GET['again']=='yes' ) {
         // odeslání a ochrana proti zdvojení
-        $email= $_GET['email'] ? $_GET['email'] : 'chlapi-myslenky@googlegroups.com';
+        $email= isset($par->test)
+            ? $par->test
+            : ($_GET['email'] ? $_GET['email'] : 'chlapi-myslenky@googlegroups.com');
         $html.= "<hr/>zaslání na <i>$email</i> skončilo se stavem ";
         $ok= rr_send_mail($subj,$body,'martin.smidek@setkani.org',$email,'Richard Rohr');
 //        $ok= send_mail($subj,$body,'smidek@proglas.cz',$email,'Richard Rohr');

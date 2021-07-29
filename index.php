@@ -22,7 +22,9 @@ if ( isset($_GET['err']) && $_GET['err'] ) error_reporting(E_ERROR); else error_
 ini_set('display_errors', 'On');
 require_once("man/man_web.php");
 require_once("man/2template_ch.php");
-
+// databáze
+$deep_root= "../files/chlapi";
+require_once("$deep_root/man.dbs.php");
 # ------------------------------------------ ajax
 if ( count($_POST) ) {
   global $s;

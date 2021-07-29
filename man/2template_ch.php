@@ -1760,8 +1760,9 @@ function db_connect() {
 //  );
 //  ezer_connect('setkani');
   
-  global $ezer_db, $ezer_server, $http_server;
-  $http_server= "http://$ezer_server";
+  global $ezer_db, $dbs, $ezer_server, $http_server;
+  $http_server= "https://$ezer_server";
+  /*
   $dbs= array(
     array(  // 0 = lokální
       'setkani'  => array(0,'localhost','gandi','radost','utf8','chlapi'),
@@ -1788,6 +1789,7 @@ function db_connect() {
       'ezertask' => array(0,'localhost','gandi','radost','utf8')
     ),
   );
+  */
   $ezer_db= $dbs[$ezer_server];
   ezer_connect('setkani'); 
 }
