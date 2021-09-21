@@ -1812,19 +1812,6 @@ panel TABLE [0,0,500,240] { title:' Organizér tabulky účastníků akce', type
     else 
       alert(ret.msg);
   }
-//  proc oprava(_cid) { var ret:object
-//    nova.set(0); f.init; f.skupina.init; f.display(2,'n'); f.cid.set(_cid);
-//    ret.set(ask('table_load',_cid));
-//    [ ret.ok; foreach(ret.rows,read_row); panel.modal ];
-//    [ not(ret.ok); alert(ret.msg) ];
-//  }
-//  proc read_row(row) { var i:number
-//    i.set(f.skupina.add);
-//    f.skupina.part(i).part('nazev').set(row.nazev);
-//    f.skupina.part(i).part('stary').set(row.nazev);
-//    f.skupina.part(i).part('maxim').set(row.maxim);
-//    f.skupina.part(i).part('pocet').set(row.pocet);
-//  }
   # ==> . form
   # tag: n=vytvoření, o=oprava názvů a maxim
   form _tab {
@@ -1837,12 +1824,6 @@ panel TABLE [0,0,500,240] { title:' Organizér tabulky účastníků akce', type
         skup.maxim.init(1);
         skup.pocet.init(1);
       } 
-//      proc onclick() { var last:number
-//        last.set(skupina.add);
-//        skupina.part(last.get).part('nazev').init(1);
-//        skupina.part(last.get).part('maxim').init(1);
-//        skupina.part(last.get).part('pocet').init(1);
-//      } 
     }
     label [160,20,100,] { title:'název skupiny' }
     label [270,20,50,] { title:'maximum' }
@@ -1854,7 +1835,13 @@ panel TABLE [0,0,500,240] { title:' Organizér tabulky účastníků akce', type
       field stary // starý název
     }
     label [10,30,140,220] { title:'odebrat skupinu lze zapsáním maximum=0' }
-    # ==> .. tlačítka
+    # ==> .. seznam hostitelů
+    button [10,70,,] { tag:'n', title:'známí hostitelé ...', 
+      func onclick() { 
+        EDITOR.Clanek(11);
+      } 
+    }
+    # ==> .. save/quit
     button sav [-78,0,,] { title:'[fa-save] Uložit', help:'vytvořit tabulku'
       func onclick() { var ret:object, values:object
         values= object(); copy_by_name(skupina,values);
@@ -1866,18 +1853,14 @@ panel TABLE [0,0,500,240] { title:' Organizér tabulky účastníků akce', type
         alert(ret.msg);
         panel.hide(0);
       }
-//      proc onclick() { var ret:object, values:object
-//        values.set(object()); copy_by_name(skupina,values);
-//        { nova.get; ret.set(ask('table_create',cid.get,values))
-//        | ret.set(ask('table_change',cid.get,values))
-//        };
-//        p.refresh;
-//        alert(ret.msg);
-//        panel.hide(0);
-//      }
     }
     button [-20,0,,] { title:'[fa-undo] Zpět', help:'ukončit bez vytvoření tabulky'
       func onclick() { panel.hide(0); } }
+  }
+  panel HOSTS [0,0,500,500] { title:' Seznam hostitelů', type:'popup', css:'dialog'
+    use f: form [0,0,500,500] {
+      field seznam [0,0,500,240] 
+    }
   }
 }
 # ----------------------------------------------------------------------------==> tabulky
