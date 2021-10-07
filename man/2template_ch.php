@@ -1121,10 +1121,12 @@ __EOD;
         <div class='box_text'>text</div>
         <div class='box_ok'><button onclick="box_off();">OK</button></div>
       </div>
-      <div id='prompt' class='box' style="display:none">
-        <div class='box_title'>Doplň příjmení: Richard ...</div>
+      <div id='prompt' class='box' style="display:none;width:200px">
+        <div class='box_title'>TEST - doplň příjmení spisovatele</div>
         <div class='box_input'>
-          <input type='text' title='místo pro test' onchange="_table_test(this.value);">
+          <span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Richard</span>
+          <input type='text' title='místo pro test' style="width:80px" 
+            onchange="_table_test(this.value);">
         </div>
       </div>
 __EOD;
