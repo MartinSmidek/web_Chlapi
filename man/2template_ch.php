@@ -1263,7 +1263,7 @@ function zapis_xakce($ida) {
 # zobraz tabulku - idc určuje pozvánku
 # pokud je akce v archivu, vynuť zobrazení tabulky jako abstraktu, pokud na ni uživatel neklikne
 function table_show($ida,$idc) { 
-  global $fe_user, $fe_host, $currpage;
+  global $currpage;
   $skup= $tab= array();  // tab: [skup][poradi] poradi=0 => max, poradi>0 => jméno
   list($skupiny,$skupina,$ids)= explode('!',$currpage);
   $ids= explode(',',$ids);
@@ -1284,18 +1284,25 @@ function table_show($ida,$idc) {
   // zjistíme datum ukončení akce
   $day= select('datum_do','xakce',"id_xakce=$ida");
   $dnes= date('Y-m-d');
+  $test1= $_SESSION['web']['username'] 
+      ? "" 
+      : "(protože nejsi na web přihlášen tak nejprve projdi krátkým testem)";
+  $test2= $_SESSION['web']['username'] 
+      ? "potvrď nebo uprav" 
+      : "napiš";
   $h.=$day>=$dnes  
     ? ( count($tab)==1
       ? "<h3>Přihlašovací tabulka</h3>
          Pokud se chceš zúčastnit tohoto setkání, klikni na <big><b>+</b></big> za názvem místa 
-         (případně vyplň krátký test) a potom přidej svoje jméno a příjmení ukončené Enter. 
+         $test1 a potom pod názvem místa $test2 svoje <b>jméno a příjmení</b> a ukonči Enter. 
          Pokud bys s tím měl problémy, pošli mi SMS na 603150565 se svým jménem
          (ale napřed to zkus tady a teď). Pokud potřebuješ svoji účast zrušit, 
          napiš znovu svoje jméno jako poprvé, bude vyjmuto."
       : "<h3>Přihlašovací tabulka</h3>
-         Na tomto setkání se sejdeme v jednom čase na níže uvedených místech. Pokud se chceš zúčastnit,
-         klikni na <big><b>+</b></big> za názvem skupiny (případně vyplň krátký test) a potom přidej svoje jméno a příjmení
-         ukončené Enter. Pokud bys s tím měl problémy, pošli SMS na 603150565 se svým jménem a názvem skupiny
+         Na tomto setkání se sejdeme v jednom čase na níže uvedených místech. 
+         Pokud se chceš zúčastnit tohoto setkání, klikni na <big><b>+</b></big> za názvem místa 
+         $test1 a potom pod názvem místa $test2 svoje <b>jméno a příjmení</b> a ukonči Enter. 
+         Pokud bys s tím měl problémy, pošli SMS na 603150565 se svým jménem a názvem skupiny
          (ale napřed to zkus tady a teď). Pokud se chceš přeřadit do jiné skupiny, napiš svoje jméno do ní (z té původní se
          vyjme samo).<br>"
       )
