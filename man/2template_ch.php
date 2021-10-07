@@ -1286,7 +1286,7 @@ function table_show($ida,$idc) {
   $dnes= date('Y-m-d');
   $test1= $_SESSION['web']['username'] 
       ? "" 
-      : "(protože nejsi na web přihlášen tak nejprve projdi krátkým testem)";
+      : "(případně nejprve projdi krátkým testem po kterém znovu klikni na <big><b>+</b></big>)";
   $test2= $_SESSION['web']['username'] 
       ? "potvrď nebo uprav" 
       : "napiš";

@@ -573,7 +573,7 @@ a.home table.skupiny input,
 #skup0 table.skupiny input,
 #skup1 table.skupiny input,
 #skup2 table.skupiny input {
-  width: 100%;
+  width: calc(100% - 8px);
 }
 div.neodkaz {
   position: fixed;
