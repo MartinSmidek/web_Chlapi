@@ -97,11 +97,11 @@ function change_info() {
 }
 // ========================================================================================> COOKIES
 // -------------------------------------------------------------------------------------- set cookie
-function set_cookie(name,value,days) {
+function set_cookie(name,value,hours) {
     var expires = "";
-    if (days) {
+    if (hours) {
         var date = new Date();
-        date.setTime(date.getTime() + (days*24*60*60*1000));
+        date.setTime(date.getTime() + (hours*60*60*1000));
         expires = "; expires=" + date.toUTCString();
     }
     document.cookie = name + "=" + (value || "")  + expires + "; path=/";
@@ -131,9 +131,6 @@ function _be_logout(y) {
 }
 // -----------------------------------------------------------------------------------==> . me login
 function me_login(page) {
-//  me_ip({run:me_login_,page:page});
-//}
-//function me_login_(page,myip) {
   var mail= jQuery('#mail').val(), pin= jQuery('#pin').val();
   ask({cmd:'me_login',mail:mail,pin:pin,page:page,web:'chlapi.cz'},me_login__);
 }
@@ -142,16 +139,20 @@ function me_login__(y) {
   if ( y && y.txt ) {
     txt.html(y.txt);
     jQuery('#pin').focus();
+    jQuery('#prihlasit2').css({display:'inline-block'});
   }
   if ( y && y.msg ) {
-//    jQuery('#user_mail').html(y.msg);
     alert(y.msg);
   }
   if (y && y.state=='ok') {
-    set_cookie('email',jQuery('#mail').val(),30);
+    set_cookie('email',jQuery('#mail').val(),30*24);
+    set_cookie('pin',jQuery('#pin').val(),20);
     if ( !y.txt ) 
       txt.html("<br>Jsi přihlášen, tento PIN platí 24 hodin<br><br>");
     if ( y && y.redakce ) {
+      jQuery('#prihlasit1').css({display:'none'});
+      jQuery('#prihlasit2').css({display:'none'});
+      jQuery('#prihlasit3').css({display:'none'});
       jQuery('a.noedit').css({display:'inline-block'});
     }
     else {
@@ -160,15 +161,10 @@ function me_login__(y) {
   }
 }
 function me_noedit(no) {
-//  jQuery('#user_mail').fadeOut(1000,function(){
-    me_noedit_(no);
-//  });
+  me_noedit_(no);
 }
 function me_noedit_(no) {
   ask({cmd:'me_noedit',noedit:no},me_noedit__);
-//  if ( !no ) {
-//    refresh();
-//  }
 }
 function me_noedit__(y) {
   refresh();

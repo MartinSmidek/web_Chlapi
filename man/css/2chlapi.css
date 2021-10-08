@@ -391,8 +391,8 @@ a.home#user_mail,
   max-width: 29em;
   padding: 0;
   position: absolute;
-  right: -1em;
-  top: 2em;
+  right: 0em;
+  top: 1.5em;
   z-index: 2;
 }
 div.home#user_mail span#user_mail_head,
@@ -433,7 +433,7 @@ a.home#user_mail div #mail,
 #skup1#user_mail div #mail,
 #skup2#user_mail div #mail {
   left: 4em;
-  width: 80%;
+  width: 75%;
 }
 div.home#user_mail div #pin,
 a.home#user_mail div #pin,

@@ -15,13 +15,19 @@
     $_SERVER["SERVER_NAME"]=='chlapi.doma'       ? 3 : (         // Synology - DOMA   = modré logo
     $_SERVER["SERVER_NAME"]=='chlapi.ben'        ? 4 : -1)))))); // 4:lokální - ben   = oranžové logo
 
+  // verze js + css
+  $v_app= '';
+  if (file_exists("man/version.php")) {
+    require "man/version.php";
+    $v_app= "?v=$version";
+  }
   // parametry aplikace MAN
   $app_name=  "chlapi.cz";
   $app_root=  'man';
-  $app_js=    array("/man/2chlapi.js", "/man/man.js", 
-                    "/man/fotorama/fotorama.js");
-  $app_css=   array("/man/css/mini.css","/man/css/2chlapi.css","/man/css/edit.css",
-                    "/man/fotorama/fotorama.css");
+  $app_js=    array("/man/2chlapi.js$v_app", "/man/man.js$v_app", 
+                    "/man/fotorama/fotorama.js$v_app");
+  $app_css=   array("/man/css/mini.css$v_app","/man/css/2chlapi.css$v_app","/man/css/edit.css$v_app",
+                    "/man/fotorama/fotorama.css$v_app");
   $skin=      'ck';
   
   // cesty

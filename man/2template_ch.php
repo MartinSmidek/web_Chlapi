@@ -386,7 +386,10 @@ __EOT;
       break;
 
     case 'archiv':  # ----------------------------------------------- . archiv akcí skupiny $id
-      list($ids,$rozbalit)= explode(',',$ids); // pro archiv=x,1 rozbalit první letošní článek
+      // archiv=[x[,y[,z]]] =>
+      //    x/0=skupina, y/0 1 pokud se má první článek rozbalit, 
+      //    z/0=max.počet zobrazených kapitol (0 bez omezení)
+      list($ids,$rozbalit,$next)= explode(',',$ids); 
       list($rok,$ida)= explode(',',$top);
       $letos= date('Y');
       // projdi relevantní roky
@@ -470,6 +473,8 @@ __EOT;
 
     case 'akniha':  # ----------------------------------------------- . kniha
     case 'xkniha':  
+      // ?kniha=idk,ida,[,z]] =>
+      //    z/0=max.počet zobrazených kapitol (0 bez omezení)
       global $backref;
       list($idk,$ida)= explode(',',$top);
       list($exists,$nazev,$xelems,$wskill)= 
@@ -687,7 +692,7 @@ __EOT;
           else 
             $foto_hd= 'checked';
           $foto_on= "onchange=\"set_cookie('fullhd',this.value);setTimeout(function(){"
-              . "alert('$foto_msg')},100);\"";
+              . "alert('$foto_msg')},100*24);\"";
           $details= "
             <div class='detail'>
               <input type='radio' name='hd$fid' value='0' $foto_hd $foto_on><label>HD</label>
@@ -1089,6 +1094,7 @@ __EOD;
       : "href='{$prefix}home'";
 
   $cookie_email= str_replace("'",'',isset($_COOKIE['email']) ? $_COOKIE['email'] : '');  
+  $cookie_pin= str_replace("'",'',isset($_COOKIE['pin']) ? $_COOKIE['pin'] : '');  
   $logo_title= isset($_SESSION['web']['username']) ? " title='{$_SESSION['web']['username']}'" : '';
   
   // informace pro přihlášené = článek NEWS - zobrazí se jen jednou 
@@ -1160,14 +1166,17 @@ __EOD;
         <span id='user_mail_head'>Přihlášení uživatele</span>
         <div>
           <span id="user_mail_txt">
-            Napiš svoji mailovou adresu, na kterou ti dojde mail s PINem,
-            který ti zpřístupní např. fotky z akcí, kterých ses zúčastnil ...
+            Napiš svoji mailovou adresu a požádej o PIN, který ti na ni dojde.
+            Po jeho vložení a přihlášení uvidíš privátní část webu (např. fotky z akcí, 
+            kterých ses zúčastnil ...)
           </span>
           <input id='mail' type='text' placeholder='emailová adresa' value='$cookie_email'>
-          <input id='pin' type='text' placeholder='PIN'>
+          <input id='pin' type='text' placeholder='PIN'  title='$cookie_pin'>
           <br>
-          <a class='jump' onclick="me_login('$currpage');">Přihlásit</a>
-          <a class='jump' onclick="jQuery('#user_mail').hide();">Zpět</a>
+          <a class='jump' id="prihlasit1" onclick="me_login('$currpage');">Požádat o PIN</a>
+          <a class='jump' id="prihlasit2" onclick="me_login('$currpage');" 
+            style="display:none">Přihlásit</a>
+          <a class='jump' id="prihlasit3" onclick="jQuery('#user_mail').hide();">Zpět</a>
           <a class='jump noedit' onclick="me_noedit(1);">chci prohlížet</a>
           <a class='jump noedit' onclick="me_noedit(0);">chci editovat</a>
         </div>
