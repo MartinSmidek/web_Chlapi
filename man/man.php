@@ -53,7 +53,7 @@
 
   // určení uživatele podle session.web.fe_user
   db_connect();
-  $username= select("username","_user","id_user={$_SESSION['web']['user']}");
+  $username= select("username","_user","id_user='{$_SESSION['web']['user']}'");
   if ( $username ) {
     $app_login= "$username/";
     log_login('r'); // (be_)login 
