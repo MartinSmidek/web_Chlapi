@@ -24,7 +24,8 @@ function bib_transform ($html) {
 function bib_ref ($ref) { trace();
   $bib= '';
   $m= null;
-  $ok= preg_match("/(\w+)\s+(\d)+,(\d)+(?:-(\d)+|)/",$ref,$m);
+//  $ok= preg_match("/(\d?[A-zŘŽáéíř]+)\s*(\d)+,(\d)+(?:-(\d)+|)/u",$ref,$m);
+  $ok= preg_match("/(\d?\pL+)(?:\s|&nbsp;)*(\d)+,(\d)+(?:-(\d)+|)/u",$ref,$m);
   if (!$ok) goto end;
   debug($m,$ref);
   $k= $m[1];
