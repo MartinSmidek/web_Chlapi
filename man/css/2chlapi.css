@@ -97,6 +97,9 @@ a.cke_button_off:active {
 .cke_combo_arrow {
   margin: 10px 0 0 !important;
 }
+span.bible {
+  background-color: #E6CF73;
+}
 .jump {
   display: inline-block;
   border-radius: 0.4em;

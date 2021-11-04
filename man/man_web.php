@@ -5,6 +5,39 @@
 // CMS/Ezer                                             (c) 2018 Martin Šmídek <martin@smidek.eu> //
 // ---------------------------------------------------------------------------------------------- //
 
+/** =========================================================================================> BIBLE */
+# ------------------------------------------------------------------------------------ bib transform
+# transformuje text oživením biblických odkazů ozávorkovaných jako <span class='bible>...</span>
+function bib_transform ($html) {
+  $html= preg_replace_callback(
+    "~<span class=\"bible\">(.*)<\/span>~uU",
+    function ($m) {
+      $ref= $m[1];
+      $bib= bib_ref($ref);
+      return "<span class=\"bible\" title='$bib'>$ref</span>";
+    },
+    $html);
+  return $html;
+}
+# ------------------------------------------------------------------------------------------ bib ref
+# vrátí text referovaných veršů
+function bib_ref ($ref) { trace();
+  $bib= '';
+  $m= null;
+  $ok= preg_match("/(\w+)\s+(\d)+,(\d)+(?:-(\d)+|)/",$ref,$m);
+  if (!$ok) goto end;
+  debug($m,$ref);
+  $k= $m[1];
+  $kap= $m[2];
+  $v1= $m[3];
+  $v2= isset($m[4]) ? $m[4] : $v1;
+  $bib= select("GROUP_CONCAT(text SEPARATOR ' ')",'bible',
+      "kniha='$k' AND kapitola=$kap AND vers BETWEEN $v1 AND $v2");
+  $bib.= " [$ref]";
+end:
+  display("$ref=$bib");
+  return $bib;
+}
 /** ==========================================================================================> TEXT */
 # ---------------------------------------------------------------------------------------- x cenzura
 # úprava textu pro nepřihlášené tj. odklonění odkazů se stylem "neodkaz" na informaci o přihlášení

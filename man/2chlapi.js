@@ -146,7 +146,7 @@ function me_login__(y) {
   }
   if (y && y.state=='ok') {
     set_cookie('email',jQuery('#mail').val(),30*24);
-    set_cookie('pin',jQuery('#pin').val(),20);
+    set_cookie('pin',jQuery('#pin').val(),23);
     if ( !y.txt ) 
       txt.html("<br>Jsi přihlášen, tento PIN platí 24 hodin<br><br>");
     if ( y && y.redakce ) {

@@ -1136,6 +1136,11 @@ __EOD;
         </div>
       </div>
 __EOD;
+  // případné vyřešení biblických referencí
+  if (preg_match('~<span class="bible">~',$html)) {
+    $html= bib_transform($html);
+  }
+  // konečná redakce stránky
   $body=  <<<__EOD
     $fb_root
     <div id='page'>
