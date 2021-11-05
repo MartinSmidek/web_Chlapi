@@ -99,6 +99,7 @@ a.cke_button_off:active {
 }
 span.bible {
   background-color: #E6CF73;
+  cursor: help;
 }
 .jump {
   display: inline-block;
