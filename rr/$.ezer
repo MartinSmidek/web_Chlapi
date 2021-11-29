@@ -4,22 +4,22 @@ menu rr { type:'main', active:rr.richard
     panel rohr {type:'right', title:'Rozesílání'
       menu myslenka {type:'left'
         menu ukazat {title:'Zobrazení',type:'group'
-          item dnesni {title:'dnešní myšlenky', par:°{den:0,poslat:0} }
-          item {title:'včerejší myšlenky', par:°{den:-1,poslat:0} }
-          item {title:'zítřejší myšlenky', par:°{den:1,poslat:0} }
+          item dnesni {title:'dnešní myšlenky', par:{den:0,poslat:0} }
+          item {title:'včerejší myšlenky', par:{den:-1,poslat:0} }
+          item {title:'zítřejší myšlenky', par:{den:1,poslat:0} }
         }
         menu poslat {title:'Rozeslání',type:'group'
-          item dnesni {title:'dnešní myšlenky', par:°{den:0,poslat:1,opakovat:0} }
-          item {title:' ... znovu', par:°{den:0,poslat:1,opakovat:1} }
+          item dnesni {title:'dnešní myšlenky', par:{den:0,poslat:1,opakovat:0} }
+          item {title:' ... znovu', par:{den:0,poslat:1,opakovat:1} }
           item {title:' ... na martin@smidek.eu', 
                   par:{den:0,poslat:1,opakovat:0,test:'martin@smidek.eu'}, skill:'m'}
-          item {title:'včerejší myšlenky', par:°{den:-1,poslat:1,opakovat:0} }
-          item {title:' ... znovu', par:°{den:-1,poslat:1,opakovat:1} }
+          item {title:'včerejší myšlenky', par:{den:-1,poslat:1,opakovat:0} }
+          item {title:' ... znovu', par:{den:-1,poslat:1,opakovat:1} }
         }
-        proc onclick (i) {
-          info.fill(conc(i.owner.title,' - ',i.title),' ');
-          info.msg.set('');
-          info.fill('',ask('rr_send',i.par));
+        func onclick (i:ezer) {
+          info.header(i);
+          info.msg= '';
+          info.fill('',php.rr_send(i.par));
         }
       }
       use info: form right [12,4,,]
@@ -31,22 +31,24 @@ menu rr { type:'main', active:rr.richard
       menu nastav {type:'left', format:'f'
         menu obdobi {title:'Opravy',type:'group'
           item od {title:'Nastavení období'
-            proc onclick (i) {
-              f.display(1);
-              g.display(0);
-            }
+            func onclick (i:ezer) { f.display(1); g.display(0); }
           }
+          item {title:'Inicializace období'
+            func onclick (i:ezer) { 
+              f.display(1); g.display(0); 
+              if(confirm("opravdu chceš smazat všechny nastavené datumy a vymazat stav?")) {
+                php.query("UPDATE rr SET datum='0000-00-00',state='' ");
+                f.b.browse_refresh(1);
+              }
+          }}
           item {title:'Oprava překladu'
-            proc onclick (i) {
-              f.display(0);
-              g.display(1);
-            }
+            func onclick (i:ezer) { f.display(0); g.display(1); }
           }
         }
       }
-      proc onfirstfocus() {
-        f.b.browse_load;
-        g.b.browse_load
+      func onfirstfocus() {
+        f.b.browse_load();
+        g.b.browse_load()
       }
       # ---------------------------------------------------------------------------- opravy překladu
       form _g [,,*,100] {
@@ -56,17 +58,18 @@ menu rr { type:'main', active:rr.richard
           show [,,70,] { title:'datum', data:rr.datum, format:'qs' }
           show [,,270,] { title:'název', data:rr.subject, format:'qs' }
           show barva { expr:"IF(errata='',0,1)" }
-          proc onrowclick () { nacti }
-          proc nacti() { g.load(id_rr.get) } }
-        button [725,6,,] { title:'Dnes' proc onclick() {
-          b.browse_seek(conc("datum='",now_sql(),"'"));
-          b.nacti
-        } }
+          func onrowclick () { nacti() }
+          func nacti() { g.load(id_rr) } }
+        button [725,6,,] { title:'Dnes' 
+          func onclick() {
+            b.browse_seek(`datum='${now_sql()}'`);
+            b.nacti()
+        }}
         field czt [0,181,404,] { data:rr.title_cz }
         field ent [422,181,401,] { data:rr.title_en }
-        button [778,6,,] { title:'Uložit' proc onclick() { g.save; g.load } }
-        edit cz [0,209,405,548] { type:'html', data:rr.text_cz, par:°{toolbar:'Minimal'} }
-        edit en [421,209,405,548] { type:'html', data:rr.text_en, par:°{toolbar:'Minimal'} }
+        button [778,6,,] { title:'Uložit' func onclick() { g.save(); g.load() } }
+        edit cz [0,209,405,548] { type:'html', data:rr.text_cz, par:{toolbar:'Minimal'} }
+        edit en [421,209,405,548] { type:'html', data:rr.text_en, par:{toolbar:'Minimal'} }
         label [423,19,,] { title:'Důvod pozměnění překladu' }
         edit errata [421,39,402,131] { data:rr.errata }
       }
@@ -74,34 +77,40 @@ menu rr { type:'main', active:rr.richard
       form _f [,,*,500] {
         browse b [0,0,,] { rows:24, qry_rows:1
           show id_rr { data:rr.id_rr, format:'qs' }
-          show den [,,30,] { title:'pořadí', data:rr.day_n, format:'qs' }
-          show [,,40,] { title:'den', data:rr.day, format:'qs' }
+          show den [,,30,] { title:'pořadí', data:rr.day_n, format:'rqs' }
+          show [,,40,] { title:'den', data:rr.day, format:'rqs' }
           show [,,20,] { title:'ps', data:rr.state, format:'qs' }
-          show datum [,,70,] { title:'datum', data:rr.datum, format:'qs' }
+          show datum [,,70,] { title:'datum', data:rr.datum, format:'rqs' }
           show [,,140,] { title:'název', data:rr.subject, format:'tqs' }
-          proc onsubmit() {
-            form.den.set(den.get); form.datum.set(replace(sql2date(datum.get),' ','')); }
+          func onsubmit() {
+            form.den= den; form.datum= datum; } 
         }
         label [340,10,,] { title:"Nastav pořadové číslo dne, počáteční datum a počet dnů" }
-        field den [340,40,30,] { format:'t' }
-        field datum [380,40,90,] { type:'date', format:'t' }
-        field pocet [480,40,40,] { format:'t' }
+        field den [340,40,30,] { format:'t'}
+        field datum [380,40,90,] { type:'date', format:'rt' }
+        field pocet [480,40,40,] { format:'t', value:'1' }
         button [530,40,,] { title:'nastav'
-          proc onclick() { var ret:object
-            ret.set(ask('rr_nastav',den.get,datum.get,pocet.get));
-            msg.set(ret.msg);
-            datum.set(replace(sql2date(ret.next),' ',''));
-            den.set(sum(den.get,pocet.get));
-            f.b.browse_seek(conc('day_n=',sum(den.get,-1)));
-          }
-        }
+          func onclick() { var ret:object
+            ret= php.rr_nastav(den,datum,pocet);
+            msg= ret.msg;
+            datum= replace(sql2date(ret.next),' ','');
+            den= den + pocet;
+            f.b.browse_seek(`day_n=${den-1}`);
+        }}
         button [582,40,,] { title:'zruš'
-          proc onclick() { 
-            msg.set(ask('rr_zrus',den.get,pocet.get));
+          func onclick() { 
+            msg= php.rr_zrus(den,pocet);
             f.b.browse_refresh();
-          }
+        }}
+        button [366,65,,] { title:'dnes^'
+          func onclick() { datum= now(); datum.change(); }
         }
-        label msg [340,70,300,200]
+        button [418,65,,] { title:'^poslední'
+          func onclick() { 
+            datum= replace(sql2date(php.select('MAX(datum + INTERVAL 1 DAY)','rr')),' ',''); 
+            datum.change(); 
+        }}
+        label msg [340,92,300,200]
       }
     }
   }
@@ -110,7 +119,7 @@ menu rr { type:'main', active:rr.richard
     number id_rr
     number day_n
     text day
-    date datum
+    date datum { sql_pipe:'sql_date1'} 
     text state /* prepared|sent */
     text subject
     text title_cz
@@ -127,8 +136,12 @@ form right [,,*,50] {
   label head [0,0,*,50]  { title:'' }
   label msg  [0,35,*,20] { title:'' }
   label note [0,55,*,550] { title:'' }
-  proc fill(x,y) {
-    [ x; head.set(conc("<div class='karta'>",x,"</div>")) ];
-    [ y; note.set(y) ]
+  func header(i:ezer) { var i_owner:ezer
+    clear(); i_owner= i.owner();
+    head= replace_fa(`<div class='karta'>${i_owner.title} - ${i.title}</div>`);
+  }
+  func fill(x,y) {
+    if (x) head= `<div class='karta'>${replace_fa(x)}</div>`;
+    if (y) note= y
   }
 }
