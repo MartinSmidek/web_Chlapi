@@ -8,7 +8,8 @@
   $ezer_server= 
     $_SERVER["SERVER_NAME"]=='chlapi.bean'      ? 0 : (       // 0:lokální NTB
     $_SERVER["SERVER_NAME"]=='chlapi.cz'        ? 1 : (       // 1:Synology - YMCA
-    $_SERVER["SERVER_NAME"]=='chlapi.doma'      ? 2 : -1));   // 3:Synology - DOMA
+    $_SERVER["SERVER_NAME"]=='192.168.7.111'    ? 1 : (       // 1:Synology - YMCA (pro cron!!!) 
+    $_SERVER["SERVER_NAME"]=='chlapi.doma'      ? 3 : -1))); // Synology - DOMA
 
   $app=      'rr';
   $app_name= 'Myšlenky Richarda Rohra';
@@ -23,19 +24,18 @@
       "C:/Ezer/beans/chlapi.online",
       "/var/services/web/www/chlapi",
       "/var/services/web/www/chlapi",
-      "/var/services/web/www/chlapi",
-      "C:/Ezer/beans/chlapi.online",
+      "/var/services/web/www/chlapi"
     );
   $rel_roots= array(
       "http://chlapi.bean:8080",
       "https://chlapi.cz",
       "https://chlapi.cz",
-      "http://chlapi.doma",
-      "http://chlapi.ben:8080",
+      "http://chlapi.doma"
     );
   
   // (re)definice Ezer.options
-  $favicons= array('chlapi_rr_ico_local.png','chlapi_rr_ico.png','chlapi_rr_ico.png');
+  $favicons= array('chlapi_rr_ico_local.png',
+      'chlapi_rr_ico.png','chlapi_rr_ico.png','chlapi_rr_ico.png');
   $add_pars= array(
     'favicon' => $favicons[$ezer_server]
   );
