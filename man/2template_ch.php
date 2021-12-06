@@ -1298,29 +1298,29 @@ function table_show($ida,$idc) {
   // zjistíme datum ukončení akce
   $day= select('datum_do','xakce',"id_xakce=$ida");
   $dnes= date('Y-m-d');
-  $test1= $_SESSION['web']['username'] 
-      ? "" 
-      : "(případně nejprve projdi krátkým testem po kterém znovu klikni na <big><b>+</b></big>)";
-  $test2= $_SESSION['web']['username'] 
-      ? "potvrď nebo uprav" 
-      : "napiš";
-  $h.=$day>=$dnes  
-    ? ( count($tab)==1
-      ? "<h3>Přihlašovací tabulka</h3>
-         Pokud se chceš zúčastnit tohoto setkání, klikni na <big><b>+</b></big> za názvem místa 
-         $test1 a potom pod názvem místa $test2 svoje <b>jméno a příjmení</b> a ukonči Enter. 
-         Pokud bys s tím měl problémy, pošli mi SMS na 603150565 se svým jménem
-         (ale napřed to zkus tady a teď). Pokud potřebuješ svoji účast zrušit, 
-         napiš znovu svoje jméno jako poprvé, bude vyjmuto."
-      : "<h3>Přihlašovací tabulka</h3>
-         Na tomto setkání se sejdeme v jednom čase na níže uvedených místech. 
-         Pokud se chceš zúčastnit tohoto setkání, klikni na <big><b>+</b></big> za názvem místa 
-         $test1 a potom pod názvem místa $test2 svoje <b>jméno a příjmení</b> a ukonči Enter. 
-         Pokud bys s tím měl problémy, pošli SMS na 603150565 se svým jménem a názvem skupiny
-         (ale napřed to zkus tady a teď). Pokud se chceš přeřadit do jiné skupiny, napiš svoje jméno do ní (z té původní se
-         vyjme samo).<br>"
-      )
-    : "<h3>Tabulka přihlášených</h3>";
+  $mista= count($tab)==1 ? "místa setkání" : "místa, které chceš navštívit";
+  if ($day<$dnes) // pro akci v minulosti
+    $h.= "<h3>Tabulka přihlášených</h3>";
+  elseif ($_SESSION['web']['username']) // pro přihlášené na web
+    $h.= "<h3>Přihlašovací tabulka</h3>
+         Pokud se chceš zúčastnit tohoto setkání, postupuj takto:<ol>
+          <li>klikni na <big><b>+</b></big> za názvem $mista
+          <li>objeví se tvoje <b>jméno a příjmení</b>, klikni na ně a dej Enter.
+          </ol>
+          Pokud bys s tím měl problémy, pošli SMS na 603150565 nebo na 732590331 se svým jménem 
+          (ale napřed to zkus tady a teď). Pokud potřebuješ svoji účast zrušit, postupuj podle 
+          kroků 1 - 2 a znovu napiš svoje jméno jako poprvé. Tvoje účast bude zrušena.";
+  else // pro nepřihlášené na web
+    $h.= "<h3>Přihlašovací tabulka</h3>
+         Pokud se chceš zúčastnit tohoto setkání, postupuj takto:<ol>
+          <li>klikni na <big><b>+</b></big> za názvem $mista
+          <li>objeví se malé okénko, doplň v něm příjmení spisovatele a dej Enter
+          <li>pokud jsi odpověděl správně, znovu klikni na <big><b>+</b></big>, pod názvem místa 
+            se objeví prázdné pole, napiš do něj svoje <b>jméno a příjmení</b> a dej Enter.
+          </ol>
+          Pokud bys s tím měl problémy, pošli SMS na 603150565 nebo na 732590331 se svým jménem 
+          a zvoleným místem (ale napřed to zkus tady a teď). Pokud potřebuješ svoji účast zrušit, 
+          postupuj podle kroků 1 -3 a znovu napiš svoje jméno jako poprvé. Tvoje účast bude zrušena.";
   $h.= "<br><div class='skupiny_container'><table class='skupiny' cellspacing='0' cellpadding='0'><tr>";
   $add= $event= '';
   foreach ($skup as $s) {
