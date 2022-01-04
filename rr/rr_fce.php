@@ -1,4 +1,36 @@
 <?php # (c) 2007-2012 Martin Smidek <martin@smidek.eu>
+# ============================================================================================== CAC
+# ------------------------------------------------------------------------------------- cac get_year
+# $par = {den:ode dneška,poslat: 0/1}
+function cac_get_year($month,$day) {
+  $ret= (object)array('ok'=>0);
+  $cac_month= "https://cac.org/category/daily-meditations";
+  $html= file_get_contents("$cac_month/2022/01/");
+  // rozklad
+  $m= null;
+  $ret->ok= preg_match_all(
+      '~<h2 class="daily-meditations-loop__title">\s*<a href="([^"]+)">([^<]+)</a>~',
+      $html,$m);
+  for ($i= 0; $i<count($m[0]); $i++) {
+    $ret->title= "not yet done";
+    $ret->text= "---";
+    if ($i!=$day-1) continue;
+    $ret->title= $m[2][$i];
+    $href= $m[1][$i];
+    $d= null;
+    preg_match('~.*(\d\d\d\d-\d\d-\d\d)~',$href,$d);
+    $ret->den= sql_date1($d[1]);
+    $html= file_get_contents($href);
+    $p= null;
+    $ret->cut= preg_match(
+        '~<div class="wp-block-gecko-blocks-section">(.*)<p><strong>(Explore) Further~ms',
+        $html,$p);
+    $ret->text= $p[1];
+    break;
+  }
+  // návrat
+  return $ret;
+}
 # =============================================================================================== RR
 # ---------------------------------------------------------------------------------------- rr nastav
 # $par = {den:ode dneška,poslat: 0/1}
