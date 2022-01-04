@@ -62,3 +62,9 @@ div.MenuGroup3.m a { color:orange !important; text-shadow: 1px 1px 2px black; }
 div.MenuGroup3 li.a { color:yellow !important; text-shadow: 1px 1px 2px black; }
 div.MenuGroup3 li.m { color:orange !important; text-shadow: 1px 1px 2px black; }
   
+/* = = = = = = = = = = = = = = = = = = = = = = struktura dat */
+table.struc     { border-collapse:collapse; /*font-size:8pt;*/ max-width:calc(100% - 35px); 
+                  width:unset !important}
+.struc td       { border:1px solid #777; background-color:#fff; padding:0 3px;}
+.struc th       { border:1px solid #777; background-color:#c0cae2; }
+.struc dt       { margin:10px 0 0 0; }

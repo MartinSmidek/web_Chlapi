@@ -114,6 +114,24 @@ menu rr { type:'main', active:rr.richard
       }
     }
   }
+    # ===================================================================================> nastavení
+  tabs sys {title:"[fa-cogs] Nastavení", skill:'m', _sys:'sys',  include:'onclick,ezer2.syst', active:*
+    //panel oso {type:'right', title:'Osobní nastavení', _sys:'*', include:'onclick' }
+    panel oso {type:'right', title:'[fa-user] Osobní nastavení', _sys:'*', include:'onclick,ezer2.pers' }
+    # ===================================================================================== DATABÁZE
+    panel dat {type:'right', title:'[fa-database] Databáze', _sys:'*', include:'onload,ezer3.db', skill:'m'
+      par:{
+        infos: [
+          {title:'[fa-object-group] Schema databáze',
+           html: "zatím je jen jedna tabulka RR"}
+        ],
+        tables: {
+          rr:   "id_rr>*,day_n,day,datum,subject"
+        },
+        css: 'struc' // styl tabulek
+    }}
+  }
+  tabs off  {type:'logoff', title:"[fa-power-off] Odhlásit"}
   # ------------------------------------------------------------------ rr
   table rr {
     number id_rr
