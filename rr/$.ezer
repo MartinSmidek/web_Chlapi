@@ -1,6 +1,6 @@
 menu rr { type:'main', active:rr.richard
+  # =================================================================================== RR
   tabs richard {title:"Myšlenky", _sys:'*', skill:'rr'
-    # =================================================================================== rozesílání
     panel rohr {type:'right', title:'Rozesílání'
       menu myslenka {type:'left'
         menu ukazat {title:'Zobrazení',type:'group'
@@ -24,7 +24,6 @@ menu rr { type:'main', active:rr.richard
       }
       use info: form right [12,4,,]
     }
-    # ======================================================================================= opravy
     panel plan {type:'right', title:'Opravy'
       use f: form _f [12,4,,] { format:'n' }
       use g: form _g [12,4,,] { format:'n' }
@@ -115,43 +114,27 @@ menu rr { type:'main', active:rr.richard
     }
   }
   # ===================================================================================> CAC
-  tabs cac {title:"CAC", _sys:'*', skill:'cac', include:'onload'
-//    panel plan {type:'right', title:'Testy'
-//      use info: form right [12,4,,]
-//      menu cti {type:'left', format:'f'
-//        menu leden {title:'Leden',type:'group'
-//          item {title:'dnes', par:{m:1,d:1} }
-//          item {title:'včera', par:{m:1,d:2} }
-//          item {title:'-3', par:{m:1,d:3} }
-//          item {title:'-4', par:{m:1,d:4} }
-//          item {title:'-5', par:{m:1,d:5} }
-//        }
-//        func onclick (i:ezer) { var den:object
-//          den= php.cac_get_year(i.par.m,i.par.d);
-//          info.fill(den.title,`${den.den}<br>${den.text}`);
-//        }
-//      }
-//    }
-  }
+  tabs uvahy {title:"CAC", _sys:'*', skill:'cac', include:'onload'}
   # ===================================================================================> system
-  tabs sys {title:"[fa-cogs] Nastavení", skill:'m', _sys:'sys',  include:'onclick,ezer2.syst', active:*
+  tabs sys {title:"[fa-cogs] Nastavení", _sys:'sys',  include:'onclick,ezer2.syst', active:*
     //panel oso {type:'right', title:'Osobní nastavení', _sys:'*', include:'onclick' }
     panel oso {type:'right', title:'[fa-user] Osobní nastavení', _sys:'*', include:'onclick,ezer2.pers' }
     # ===================================================================================== DATABÁZE
-    panel dat {type:'right', title:'[fa-database] Databáze', _sys:'*', include:'onload,ezer3.db', skill:'m'
+    panel dat {type:'right', title:'[fa-database] Databáze', _sys:'*', include:'onload,ezer3.db', skill:'a'
       par:{
         infos: [
           {title:'[fa-object-group] Schema databáze',
-           html: "zatím je jen jedna tabulka RR"}
+           html: "tabulky RR a CAC jsou nezávislé"}
         ],
         tables: {
-          rr:   "id_rr>*,day_n,day,datum,subject"
+          rr:   "id_rr>*,day_n,day,datum,subject",
+          cac:  "id_cac>*,day_n,day,datum,subject"
         },
         css: 'struc' // styl tabulek
     }}
   }
   tabs off  {type:'logoff', title:"[fa-power-off] Odhlásit"}
-  # ------------------------------------------------------------------ rr
+  # ------------------------------------------------------------------ tables
   table rr {
     number id_rr
     number day_n
@@ -172,7 +155,7 @@ menu rr { type:'main', active:rr.richard
 form right [,,*,50] { style:'width:calc(100% - 24px)'
   label head [0,0,*,50]  { title:'' }
   label msg  [0,35,*,20] { title:'' }
-  label note [0,55,*,550] { title:'' }
+  label note [0,55,*,] { title:'' }
   func header(i:ezer) { var i_owner:ezer
     clear(); i_owner= i.owner();
     head= replace_fa(`<div class='karta'>${i_owner.title} - ${i.title}</div>`);

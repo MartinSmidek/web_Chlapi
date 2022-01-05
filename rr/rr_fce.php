@@ -1,8 +1,34 @@
 <?php # (c) 2007-2012 Martin Smidek <martin@smidek.eu>
 # ============================================================================================== CAC
-# ------------------------------------------------------------------------------------- cac get_year
-# $par = {den:ode dneška,poslat: 0/1} {r:2021,m:12,d:1} 
-function cac_get_year($par) {
+# ------------------------------------------------------------------------------- cac get_new_medits
+# doplní nové úhay do CAC
+function cac_get_new_medits() {
+  $msg= '';
+  $dnes= date('Y-m-d');
+  $n= 1;
+  $last= select('datum','cac',"1 ORDER BY datum DESC LIMIT 1");
+  if (!$last) $last= '2021-12-31'; // start
+  while ($n>0 && $last<$dnes) {
+    $n--;
+    $date= new DateTime($last);
+    $date->modify('+1 day');
+    $last= $date->format('Y-m-d');
+    // získání úvahy
+    $x= cac_get_medit_from((object)array(
+      'r'=>$date->format('Y'),'m'=>$date->format('n'),'d'=>$date->format('j')));
+    $msg.= "$last: $x->title<br>";
+    // zapsání úvahy do tabulky
+    $tema= pdo_real_escape_string($x->tema);
+    $title= pdo_real_escape_string($x->title);
+    $text= pdo_real_escape_string($x->text);
+    query("INSERT INTO cac (datum,url_theme,url_text,theme,author,title_eng,text_eng) VALUE (
+        '$last','$x->url_tema','$x->url_title','$tema','$x->autor','$title','$text')");
+  }
+  return $msg;
+}
+# ------------------------------------------------------------------------------- cac get_medit_from
+# vrátí meditaci ze dne {r,m,d} jsko objekt {ok,datum,title,url_title,tema,url_tema,autor,text}
+function cac_get_medit_from($par) { debug($par);
   $ret= (object)array('ok'=>0);
   $cac_month= "https://cac.org/category/daily-meditations";
   $year= $par->r;
@@ -18,8 +44,8 @@ function cac_get_year($par) {
       . '\s*<div class="daily-meditations-loop__tags">\s*<small>Tags:<\/small>(?:\s*<a href="[^"]+" class="daily-meditations-loop__tag">[^<]*<\/a>)+\s*<\/div>\s*<div class="daily-meditations-loop__author"><small>Author:<\/small>\s*<strong>([^<]+)<\/strong>\s*<\/div>~',
       $html,$m);
   for ($i= 0; $i<count($m[0]); $i++) {
-    $ret->den= '';
-    if ($i!=$day-1) continue;
+    $ret->date= '';
+//    if ($i!=$day-1) continue;
     // text daného dne
     $ret->title= $m[2][$i];
     $ret->url_title= $m[1][$i];
@@ -28,8 +54,9 @@ function cac_get_year($par) {
     $ret->autor= $m[5][$i];
     $href= $m[1][$i];
     $d= null;
-    preg_match('~.*(\d\d\d\d-\d\d-\d\d)~',$href,$d);
-    $ret->den= sql_date1($d[1]);
+    preg_match('~.*(\d\d\d\d-\d\d-(\d\d))~',$href,$d);
+    if ($d[2]!=$day) continue;
+    $ret->date= sql_date1($d[1]);
     $html= file_get_contents($href);
     $p= null;
     $ret->cut= preg_match(
