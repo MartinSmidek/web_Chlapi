@@ -4,6 +4,7 @@
 # doplní nové úhay do CAC
 function cac_get_new_medits() {
   $msg= '';
+  $ok= 0;
   $dnes= date('Y-m-d');
   $n= 1;
   $last= select('datum','cac',"1 ORDER BY datum DESC LIMIT 1");
@@ -23,8 +24,9 @@ function cac_get_new_medits() {
     $text= pdo_real_escape_string($x->text);
     query("INSERT INTO cac (datum,url_theme,url_text,theme,author,title_eng,text_eng) VALUE (
         '$last','$x->url_tema','$x->url_title','$tema','$x->autor','$title','$text')");
+    $ok= 1;
   }
-  return $msg;
+  return $ok ? $msg : ' novější úvahy CAC zatím nejdou importovat ';
 }
 # ------------------------------------------------------------------------------- cac get_medit_from
 # vrátí meditaci ze dne {r,m,d} jsko objekt {ok,datum,title,url_title,tema,url_tema,autor,text}

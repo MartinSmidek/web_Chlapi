@@ -13,6 +13,7 @@ panel testy {type:'right', title:'Testy'
       item {title:'zobrazit kalendář'
         func onclick(i:ezer) { 
           info.fill(i.title,' '); g.display(1); clear();
+          g.b.browse_refresh();
         }
       }
     }
@@ -37,7 +38,7 @@ panel testy {type:'right', title:'Testy'
             from <a href="${cac.url_tema}" target="CAC">${cac.tema}</a></h2>
             <h3>${cac.autor}</h3>${cac.text}`);
       else
-        info.fill('-',' ')
+        info.fill('-',' novější meditace CAC zatím nejdou importovat ')
     }
   }
   // ==> incializace
