@@ -42,7 +42,7 @@ panel testy {type:'right', title:'Testy'
   }
   // ==> incializace
   func onfirstfocus() {
-    g.b.browse_load()
+    g.b.browse_load(); g.b.nacti();
   }
   # --------------------------------------------------------------------------==> originál a překlad
   form _g [,,*,100] {
