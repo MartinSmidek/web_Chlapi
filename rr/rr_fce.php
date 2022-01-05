@@ -1,21 +1,31 @@
 <?php # (c) 2007-2012 Martin Smidek <martin@smidek.eu>
 # ============================================================================================== CAC
 # ------------------------------------------------------------------------------------- cac get_year
-# $par = {den:ode dneška,poslat: 0/1}
-function cac_get_year($month,$day) {
+# $par = {den:ode dneška,poslat: 0/1} {r:2021,m:12,d:1} 
+function cac_get_year($par) {
   $ret= (object)array('ok'=>0);
   $cac_month= "https://cac.org/category/daily-meditations";
-  $html= file_get_contents("$cac_month/2022/01/");
+  $year= $par->r;
+  $month= str_pad($par->m, 2, '0', STR_PAD_LEFT);
+  $day= $par->d;
+  $html= file_get_contents("$cac_month/$year/$month/");
   // rozklad
   $m= null;
   $ret->ok= preg_match_all(
-      '~<h2 class="daily-meditations-loop__title">\s*<a href="([^"]+)">([^<]+)</a>~',
+      '~<h2 class="daily-meditations-loop__title">\s*<a href="([^"]+)">([^<]+)</a>\s*</h2>\s*'
+      . '<div class="daily-meditations-loop__themes">\s*<small>Theme:</small>\s*'
+      . '<a href="([^"]+)" class="daily-meditations-loop__theme">([^<]+)</a>\s*</div>'
+      . '\s*<div class="daily-meditations-loop__tags">\s*<small>Tags:<\/small>(?:\s*<a href="[^"]+" class="daily-meditations-loop__tag">[^<]*<\/a>)+\s*<\/div>\s*<div class="daily-meditations-loop__author"><small>Author:<\/small>\s*<strong>([^<]+)<\/strong>\s*<\/div>~',
       $html,$m);
   for ($i= 0; $i<count($m[0]); $i++) {
-    $ret->title= "not yet done";
-    $ret->text= "---";
+    $ret->den= '';
     if ($i!=$day-1) continue;
+    // text daného dne
     $ret->title= $m[2][$i];
+    $ret->url_title= $m[1][$i];
+    $ret->tema= $m[4][$i];
+    $ret->url_tema= $m[3][$i];
+    $ret->autor= $m[5][$i];
     $href= $m[1][$i];
     $d= null;
     preg_match('~.*(\d\d\d\d-\d\d-\d\d)~',$href,$d);
@@ -23,9 +33,10 @@ function cac_get_year($month,$day) {
     $html= file_get_contents($href);
     $p= null;
     $ret->cut= preg_match(
-        '~<div class="wp-block-gecko-blocks-section">(.*)<p><strong>(Explore) Further~ms',
+        '~<div class="(?:wp-block-gecko-blocks-section|entry-content article)">(.*)~ms',
         $html,$p);
-    $ret->text= $p[1];
+    $text= preg_split('~<p><strong>(Story|Explore|Breath)~',$p[1]);
+    $ret->text= $text[0];
     break;
   }
   // návrat

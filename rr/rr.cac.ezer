@@ -1,0 +1,24 @@
+panel plan {type:'right', title:'Testy'
+  use info: form right [12,4,,]
+  menu {type:'left', format:'f'
+    menu {title:'Leden 2022',type:'group'
+      item {title:'dnes', par:{r:2022,m:1,d:1} }
+      item {title:'včera', par:{r:2022,m:1,d:2} }
+      item {title:'předvčerem', par:{r:2022,m:1,d:3} }
+    }
+    menu {title:'Prosinec 2021',type:'group'
+      item {title:'29', par:{r:2021,m:12,d:3} }
+      item {title:'30', par:{r:2021,m:12,d:2} }
+      item {title:'31', par:{r:2021,m:12,d:1} }
+    }
+    func onclick (i:ezer) { var cac:object
+      cac= php.cac_get_year(i.par);
+      if (cac.den)
+        info.fill(cac.title,`<h2>${cac.den}: <a href="${cac.url_title}" target="CAC">${cac.title}</a> 
+            from <a href="${cac.url_tema}" target="CAC">${cac.tema}</a></h2>
+            <h3>${cac.autor}</h3>${cac.text}`);
+      else
+        info.fill('-',' ')
+    }
+  }
+}

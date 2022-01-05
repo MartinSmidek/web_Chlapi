@@ -1,5 +1,5 @@
 menu rr { type:'main', active:rr.richard
-  tabs richard {title:"Myšlenky", _sys:'*'
+  tabs richard {title:"Myšlenky", _sys:'*', skill:'rr'
     # =================================================================================== rozesílání
     panel rohr {type:'right', title:'Rozesílání'
       menu myslenka {type:'left'
@@ -115,23 +115,23 @@ menu rr { type:'main', active:rr.richard
     }
   }
   # ===================================================================================> CAC
-  tabs cac {title:"CAC", _sys:'*'
-    panel plan {type:'right', title:'Testy'
-      use info: form right [12,4,,]
-      menu cti {type:'left', format:'f'
-        menu leden {title:'Leden',type:'group'
-          item {title:'dnes', par:{m:1,d:1} }
-          item {title:'včera', par:{m:1,d:2} }
-          item {title:'-3', par:{m:1,d:3} }
-          item {title:'-4', par:{m:1,d:4} }
-          item {title:'-5', par:{m:1,d:5} }
-        }
-        func onclick (i:ezer) { var den:object
-          den= php.cac_get_year(i.par.m,i.par.d);
-          info.fill(den.title,`${den.den}<br>${den.text}`);
-        }
-      }
-    }
+  tabs cac {title:"CAC", _sys:'*', skill:'cac', include:'onload'
+//    panel plan {type:'right', title:'Testy'
+//      use info: form right [12,4,,]
+//      menu cti {type:'left', format:'f'
+//        menu leden {title:'Leden',type:'group'
+//          item {title:'dnes', par:{m:1,d:1} }
+//          item {title:'včera', par:{m:1,d:2} }
+//          item {title:'-3', par:{m:1,d:3} }
+//          item {title:'-4', par:{m:1,d:4} }
+//          item {title:'-5', par:{m:1,d:5} }
+//        }
+//        func onclick (i:ezer) { var den:object
+//          den= php.cac_get_year(i.par.m,i.par.d);
+//          info.fill(den.title,`${den.den}<br>${den.text}`);
+//        }
+//      }
+//    }
   }
   # ===================================================================================> system
   tabs sys {title:"[fa-cogs] Nastavení", skill:'m', _sys:'sys',  include:'onclick,ezer2.syst', active:*
@@ -169,7 +169,7 @@ menu rr { type:'main', active:rr.richard
 }
 // univerzální formulář pro levostranné menu
 # ------------------------------------------------------------------ right
-form right [,,*,50] {
+form right [,,*,50] { style:'width:calc(100% - 24px)'
   label head [0,0,*,50]  { title:'' }
   label msg  [0,35,*,20] { title:'' }
   label note [0,55,*,550] { title:'' }
