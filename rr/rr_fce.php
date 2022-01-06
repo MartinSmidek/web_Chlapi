@@ -6,8 +6,24 @@ function cac_get_new_medits() {
   $msg= '';
   $ok= 0;
   $dnes= date('Y-m-d');
-  $n= 1;
+  // zjištění data za měsíc
+  $date= new DateTime($dnes);
+  $date->modify('+1 month');
+  $za_mesic= $date->format('Y-m-d');
+  // zajisti aby byly prázdné záznamy od posledního až do za měsíc
   $last= select('datum','cac',"1 ORDER BY datum DESC LIMIT 1");
+  if (!$last) $last= '2021-12-31'; // start
+  $date= new DateTime($last);
+  $n= 100; // zarážka
+  while ($n>0 && $last<$za_mesic) {
+    $n--;
+    $date->modify('+1 day');
+    $last= $date->format('Y-m-d');
+    query("INSERT INTO cac (datum) VALUE ('$last')");
+  }
+  // potom doplň z CAC chybějící texty
+  $n= 1;
+  $last= select('datum','cac',"NOT(ISNULL(text_eng)) ORDER BY datum DESC LIMIT 1");
   if (!$last) $last= '2021-12-31'; // start
   while ($n>0 && $last<$dnes) {
     $n--;
@@ -19,11 +35,18 @@ function cac_get_new_medits() {
       'r'=>$date->format('Y'),'m'=>$date->format('n'),'d'=>$date->format('j')));
     $msg.= "$last: $x->title<br>";
     // zapsání úvahy do tabulky
+    $idc= select('id_cac','cac',"datum='$last'");
+    if (!$idc) {
+      query("INSERT INTO cac (datum) VALUE ('$last')");
+      $idc= pdo_insert_id();
+    }
     $tema= pdo_real_escape_string($x->tema);
     $title= pdo_real_escape_string($x->title);
     $text= pdo_real_escape_string($x->text);
-    query("INSERT INTO cac (datum,url_theme,url_text,theme,author,title_eng,text_eng) VALUE (
-        '$last','$x->url_tema','$x->url_title','$tema','$x->autor','$title','$text')");
+    query("UPDATE cac SET 
+        url_theme='$x->url_tema',url_text='$x->url_title',theme_eng='$tema',
+        author='$x->autor',title_eng='$title',text_eng='$text' 
+      WHERE id_cac=$idc");
     $ok= 1;
   }
   return $ok ? $msg : ' novější úvahy CAC zatím nejdou importovat ';
@@ -70,6 +93,24 @@ function cac_get_medit_from($par) { debug($par);
   }
   // návrat
   return $ret;
+}
+# --------------------------------------------------------------------------------- cac change_state
+# změní stav překladu a případně odebere nebo přidá překladatele
+# TODO otestovat, zda existuje překlad
+function cac_change_state($idc,$s) {
+  global $USER;
+  $msg= '';
+  $preklada= select('preklada','cac',"id_cac=$idc");
+  if (!$preklada) {
+    $me= $USER->id_user;
+    if (!$me) fce_error("uživatel není přihlášen, nelze provést změnu stavu");
+    query("UPDATE cac SET preklada=$me,stav=$s WHERE id_cac=$idc");
+  }
+  else {
+    $and= $s==0 ? ", preklada=0" : '';
+    query("UPDATE cac SET stav=$s $and WHERE id_cac=$idc");
+  }
+  return $msg;
 }
 # =============================================================================================== RR
 # ---------------------------------------------------------------------------------------- rr nastav
@@ -185,7 +226,7 @@ function rr_send_mail($subject,$html,$from='',$to='',$fromname='') { trace();
   $mail->SMTPAuth= 1;
   $mail->SMTPSecure= "ssl";
   $mail->Username= "answer@setkani.org";
-  $mail->Password= "answer2017";
+  $mail->Password= "NaSe_PoStA_MMCCII";
 //  $mail->AddAddress("martin@smidek.eu");
   
   

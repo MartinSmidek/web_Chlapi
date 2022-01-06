@@ -670,7 +670,7 @@ function mail_send($reply_to,$address,$subject,$body) { trace();
 //    $mail->Password= "nesmer2004";
   // Answer
   $mail->Username= "answer@setkani.org";
-  $mail->Password= "answer2017";
+  $mail->Password= "NaSe_PoStA_MMCCII";
   // další nastavení
   $mail->CharSet= "utf-8";
   $mail->From= 'www.chlapi.cz@gmail.com';

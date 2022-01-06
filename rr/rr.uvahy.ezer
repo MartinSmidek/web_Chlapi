@@ -1,16 +1,9 @@
-panel testy {type:'right', title:'Testy'
+panel testy {type:'right', title:'Úvahy a meditace'
   use info: form right [12,4,,]
-  use g: form _g [12,40,,] { format:'n' }
-  menu {type:'left', format:'f'
-    menu {title:'Tabulka CAC',type:'group'
-      item {title:'doplnit nové úvahy', active:no
-        func onclick(i:ezer) { var msg:text
-          info.fill(i.title,' '); g.display(0); clear();
-          msg= php.cac_get_new_medits();
-          info.fill('',msg);
-        }
-      }
-      item {title:'zobrazit kalendář'
+  use g: form _g [12,38,,] { format:'n' }
+  menu m {type:'left', format:'f'
+    menu p {title:'Překládání úvah CAC',type:'group'
+      item k {title:'Plánovací kalendář'
         func onclick(i:ezer) { 
           info.fill(i.title,' '); g.display(1); clear();
           g.b.browse_refresh();
@@ -31,57 +24,128 @@ panel testy {type:'right', title:'Testy'
       item {title:'31', par:{r:2021,m:12,d:31} }
     }
     func onclick (i:ezer) { var cac:object
-      g.display(0); clear();
+      g.display(0); clear(); info.header(i);
       cac= php.cac_get_medit_from(i.par);
       if (cac.date)
-        info.fill(cac.title,`<h2>${cac.date}: <a href="${cac.url_title}" target="CAC">${cac.title}</a> 
+        info.append(`<h2>${cac.date}: <a href="${cac.url_title}" target="CAC">${cac.title}</a> 
             from <a href="${cac.url_tema}" target="CAC">${cac.tema}</a></h2>
             <h3>${cac.autor}</h3>${cac.text}`);
       else
-        info.fill('-',' novější meditace CAC zatím nejdou importovat ')
+        info.append(' novější meditace CAC zatím nejdou importovat ')
     }
   }
   // ==> incializace
   func onfirstfocus() {
     g.b.browse_load(); g.b.nacti();
+    m.p.k.click();
   }
   # --------------------------------------------------------------------------==> originál a překlad
   form _g [,,*,100] {
-    browse b [0,0,,] { rows:7, qry_rows:1, css_rows:'barva,1:yellow'
-      show id_cac { data:cac.id_cac }
-      show [,,70,] { title:'datum', data:cac.datum, format:'rqs' }
-      show [,,270,] { title:'název', data:cac.title_eng, format:'qs' }
-      show [,,50,] { title:'překládá', data:cac.preklada, format:'qs' }
-      show barva { expr:"IF(errata='',0,1)" }
+    const top=24
+    view c: table cac
+    view u: table _user { join_type:'LEFT', join:"ON u.id_user=c.preklada" }
+    label [91,2,210,16] { 
+      title:" <span class='blue'>rezervováno</span> 
+              <span class='yellow'>překládáno</span> 
+              <span class='green'>je na webu</span>" }
+    browse b [0,top,,] { rows:7, qry_rows:1, css_rows:'barva,1:blue,2:yellow,3:green'
+      show id_cac { data:c.id_cac }
+      show { data:u.id_user }
+      show url_text { data:c.url_text }
+      show url_theme { data:c.url_theme }
+      show [,,70,] { title:'datum', data:c.datum, format:'rqs+' }
+      show [,,50,] { title:'téma', data:c.theme_eng, format:'tqs' }
+      show [,,215,] { title:'název', data:c.title_eng, format:'tqs' }
+      show [,,40,] { title:'překládá', data:u.username, format:'qs' }
+      show barva { data:c.stav }
       func onrowclick () { nacti() }
-      func nacti() { g.load(id_cac) } }
-    button [725,6,,] { title:'Dnes' 
-      func onclick() {
-        b.browse_seek(`datum='${now_sql()}'`);
-        b.nacti()
+      func nacti() { 
+        g.load(id_cac); 
+        ref_tema= `<a href="${url_theme}" target="cac"><i class='fa fa-share'></i> CAC</a>`; 
+        ref_text= `<a href="${url_text}" target="cac"><i class='fa fa-share'></i> CAC</a>`; 
+      } 
+      menu { type:'context'
+        item { title:'tento text chci překládat'    func onclick() { zmena_stavu(1) } }
+        item { title:'... pracuji na překladu'      func onclick() { zmena_stavu(2) } }
+        item { title:'hotovo: možno dát na web'     func onclick() { zmena_stavu(3) } }
+        item { title:'-odvolávám a uvolňuji jinému' func onclick() { zmena_stavu(0) } }
+      }
+      func zmena_stavu(s) {
+        if (form.same()) { 
+          php.cac_change_state(id_cac,s); b.browse_row();
+        }
+        else warning(`nejprve proveď [Uložení změn] nebo [Vrácení změn]`)
+      }
+    }
+    // ==> popis
+    label [421,0,269,40] { css:'work', style:'padding:5px', title:
+        "Tady bude popsané, jak s tím zacházet ... 
+        <br>Zatím alespoň: [+] načte novou úvahu a doplní 
+        <br>30 dnů pro rezervace"}
+    label [650,34,50,16] { title:'&nbsp;... více', 
+      style:"background:#365faf;color:#ffffff;cursor:pointer" 
+      func onclick() { vysvetli.popup() }
+    }
+    // #==> funkce
+    button [0,0,,] { title:'[fa-plus]' 
+      func onclick() { 
+        alert(php.cac_get_new_medits()); 
+        g.b.browse_refresh();
     }}
-    field czt [0,181,404,] { data:cac.title_cz }
-    field ent [422,181,401,] { data:cac.title_eng }
-    button [778,6,,] { title:'Uložit' func onclick() { g.save(); g.load() } }
-    edit cz [0,209,405,548] { type:'html', data:cac.text_cz, par:{toolbar:'Minimal'} }
-    edit en [421,209,405,548] { type:'html', data:cac.text_eng, par:{toolbar:'Minimal'} }
-    label [423,19,,] { title:'Důvod pozměnění překladu' }
-    edit errata [421,39,402,131] { data:cac.errata }
+    button [24,0,,] { title:'[fa-calendar-check-o] Dnes' 
+      func onclick() { b.browse_seek(`datum='${now_sql()}'`); b.nacti() }
+    }
+    button [315,0,,] { title:'[fa-shopping-basket] Rezervace', func onclick() { rezervuj.modal() }}
+    label [710,0,114,57] { css:'parm' }
+    button [718,8,,] { title:'[fa-save] Uložení změn', func onclick() { g.save(); g.load() } }
+    button [719,31,,] { title:'[fa-undo] Vrácení změn', func onclick() { g.load() } }
+    // ==> editační pole CZ
+    field [0,top+181,399,] { data:c.theme_cz }
+    field [0,top+208,399,] { data:c.title_cz }
+    edit [0,top+237,405,548] { type:'html', data:c.text_cz, par:{toolbar:'Minimal'} }
+    // ==> editační pole ENG
+    field [422,top+181,344,] { data:c.theme_eng }
+    field [422,top+208,344,] { data:c.title_eng }
+    label ref_tema [780,top+184,46,16] { style:'cursor:pointer' }
+    label ref_text [780,top+211,46,16] { style:'cursor:pointer' }
+    edit [421,top+236,405,548] { type:'html', data:c.text_eng, par:{toolbar:'Minimal'} }
+    // ==> pole pro revize překladu
+    edit [421,top+44,402,126] { data:c.errata, title:'^Důvod revize překladu (s podpisem prosím)' }
+  }
+  // ==> rezervační formulář
+  panel rezervuj [0,0,200,100] { type:'popup'
+    use r: form {
+      label { title:"tady bude možné si hromadně zarezervovat termíny,
+          podobně jako je v kalendářích např. každé uterý, nebo příští týden ...
+          Zatím lze rezervat kontextovým menu v seznamu." }      
+    }
+  }
+  // ==> podrobný návod k použití 
+  panel vysvetli [0,0,400,200] { type:'popup'
+    use r: form {
+      label { title:"tady bude podrobný způsob použití, například bude vysvětlono, že na řádek
+          seznamu úvah lze kliknout pravým tlačítkem myši a změnit stav ..." }      
+    }
   }
   // ==> tabulka CAC
   table cac {
     number id_cac
     date datum { sql_pipe:'sql_date1'} 
-    text state // volné, rezervace, hotové
+    text stav // volné, rezervace, hotové
     text errata
-    text theme
     text url_theme
     text url_text
     text author
     text preklada
+    text theme_cz
     text title_cz
     text text_cz
+    text theme_eng
     text title_eng
     text text_eng
+  }
+  table _user {
+    number id_user
+    text username
   }
 }

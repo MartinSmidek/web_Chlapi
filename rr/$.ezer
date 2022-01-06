@@ -164,4 +164,7 @@ form right [,,*,50] { style:'width:calc(100% - 24px)'
     if (x) head= `<div class='karta'>${replace_fa(x)}</div>`;
     if (y) note= y
   }
+  func append(y) {
+    if (y) note= conc(note,y)
+  }
 }
