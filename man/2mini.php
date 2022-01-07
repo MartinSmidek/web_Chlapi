@@ -648,6 +648,7 @@ function emailIsValid($email,&$reason) {
 # odešle mail
 # k posílání přes GMail viz http://phpmailer.worxware.com/?pg=examplebgmail
 function mail_send($reply_to,$address,$subject,$body) { trace(); 
+  global $api_gmail_user, $api_gmail_pass, $chlapi_gmail_user;
   $ret= (object)array('msg'=>'');
   $TEST= 0;
 //  $TEST= 1;
@@ -665,15 +666,12 @@ function mail_send($reply_to,$address,$subject,$body) { trace();
   $mail->Port= 465; // set the SMTP port for the GMAIL server
   $mail->SMTPAuth = 1; // enable SMTP authentication
   $mail->SMTPSecure= "ssl"; // sets the prefix to the server
-  // účet www.chlapi.cz
-//    $mail->Username= "www.chlapi.cz@gmail.com";
-//    $mail->Password= "nesmer2004";
   // Answer
-  $mail->Username= "answer@setkani.org";
-  $mail->Password= "NaSe_PoStA_MMCCII";
+  $mail->Username= $api_gmail_user;
+  $mail->Password= $api_gmail_pass;
   // další nastavení
   $mail->CharSet= "utf-8";
-  $mail->From= 'www.chlapi.cz@gmail.com';
+  $mail->From= $chlapi_gmail_user;
   $mail->FromName= 'chlapi.cz';
   $mail->AddAddress($address);
   $mail->Subject= $subject;

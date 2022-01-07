@@ -207,7 +207,7 @@ function rr_send($par) {
 # pošle systémový mail, pokud není určen adresát či odesílatel jde o mail správci aplikace
 # $to může být seznam adres oddělený čárkou
 function rr_send_mail($subject,$html,$from='',$to='',$fromname='') { trace();
-  global $ezer_path_serv, $ezer_root, $EZER;
+  global $ezer_path_serv, $ezer_root, $EZER, $api_gmail_user, $api_gmail_pass;
 //  $from= $from ? $from : ($EZER->smtp->from ? $EZER->smtp->from : $EZER->options->mail);
 //  $fromname= $fromname ? $fromname : $ezer_root;
   $to= $to ? $to : $EZER->options->mail;
@@ -225,8 +225,8 @@ function rr_send_mail($subject,$html,$from='',$to='',$fromname='') { trace();
   $mail->Port= 465;
   $mail->SMTPAuth= 1;
   $mail->SMTPSecure= "ssl";
-  $mail->Username= "answer@setkani.org";
-  $mail->Password= "NaSe_PoStA_MMCCII";
+  $mail->Username= $api_gmail_user;
+  $mail->Password= $api_gmail_pass;
 //  $mail->AddAddress("martin@smidek.eu");
   
   
