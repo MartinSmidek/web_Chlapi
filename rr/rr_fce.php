@@ -22,7 +22,7 @@ function cac_get_new_medits() {
     query("INSERT INTO cac (datum) VALUE ('$last')");
   }
   // potom doplň z CAC chybějící texty
-  $n= 1;
+  $n= 3;
   $last= select('datum','cac',"NOT(ISNULL(text_eng)) ORDER BY datum DESC LIMIT 1");
   if (!$last) $last= '2021-12-31'; // start
   while ($n>0 && $last<$dnes) {

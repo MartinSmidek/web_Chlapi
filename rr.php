@@ -59,11 +59,15 @@
     switch ($_GET['batch']) {
     case 'rr-today':
       $html= rr_send((object)array('den'=>'','poslat'=>1,'opakovat'=>0));
-      echo "rr_send=$html";
+      echo "rr_send/sent=$html";
+      $html= cac_get_new_medits();
+      echo "<hr><h2>Daily Meditations from CAC</h2><br>$html";
       break;
     case 'rr-test':
       $html= rr_send((object)array('den'=>'','poslat'=>0,'opakovat'=>0));
-      echo "rr_send=$html";
+      echo "rr_send/test=$html";
+      $html= cac_get_new_medits();
+      echo "<hr><h2>Daily Meditations from CAC</h2><br>$html";
       break;
     }
   }
