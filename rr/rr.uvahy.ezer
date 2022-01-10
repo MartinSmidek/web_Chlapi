@@ -10,29 +10,6 @@ panel testy {type:'right', title:'Úvahy a meditace'
         }
       }
     }
-    menu {title:'Leden 2022',type:'group'
-      item {title:'6', par:{r:2022,m:1,d:6} }
-      item {title:'5', par:{r:2022,m:1,d:5} }
-      item {title:'4', par:{r:2022,m:1,d:4} }
-      item {title:'3', par:{r:2022,m:1,d:3} }
-      item {title:'2', par:{r:2022,m:1,d:2} }
-      item {title:'1', par:{r:2022,m:1,d:1} }
-    }
-    menu {title:'Prosinec 2021',type:'group'
-      item {title:'29', par:{r:2021,m:12,d:29} }
-      item {title:'30', par:{r:2021,m:12,d:30} }
-      item {title:'31', par:{r:2021,m:12,d:31} }
-    }
-    func onclick (i:ezer) { var cac:object
-      g.display(0); clear(); info.header(i);
-      cac= php.cac_get_medit_from(i.par);
-      if (cac.date)
-        info.append(`<h2>${cac.date}: <a href="${cac.url_title}" target="CAC">${cac.title}</a> 
-            from <a href="${cac.url_tema}" target="CAC">${cac.tema}</a></h2>
-            <h3>${cac.autor}</h3>${cac.text}`);
-      else
-        info.append(' novější meditace CAC zatím nejdou importovat ')
-    }
   }
   // ==> incializace
   func onfirstfocus() {
@@ -53,9 +30,9 @@ panel testy {type:'right', title:'Úvahy a meditace'
       show { data:u.id_user }
       show url_text { data:c.url_text }
       show url_theme { data:c.url_theme }
-      show [,,70,] { title:'datum', data:c.datum, format:'rqs+' }
+      show [,,90,] { title:'datum', data:c.datum, format:'rqs+' }
       show [,,50,] { title:'téma', data:c.theme_eng, format:'tqs' }
-      show [,,215,] { title:'název', data:c.title_eng, format:'tqs' }
+      show [,,195,] { title:'název', data:c.title_eng, format:'tqs' }
       show [,,40,] { title:'překládá', data:u.username, format:'qs' }
       show barva { data:c.stav }
       func onrowclick () { nacti() }
@@ -130,7 +107,7 @@ panel testy {type:'right', title:'Úvahy a meditace'
   // ==> tabulka CAC
   table cac {
     number id_cac
-    date datum { sql_pipe:'sql_date1'} 
+    date datum { sql_pipe:'sql_date'} 
     text stav // volné, rezervace, hotové
     text errata
     text url_theme
