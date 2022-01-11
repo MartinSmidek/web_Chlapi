@@ -2,6 +2,11 @@
 # ============================================================================================== CAC
 # ------------------------------------------------------------------------------- cac get_new_medits
 # doplní nové úhay do CAC
+function cac_through_DeepL($idc) {
+//  query("UPDATE cac SET text_cz=text_eng,title_cz=title_eng,theme_cz=theme_eng WHERE id_cac=$idc");
+}
+# ------------------------------------------------------------------------------- cac get_new_medits
+# doplní nové úhay do CAC
 function cac_get_new_medits() {
   $msg= '';
   $ok= 0;
@@ -14,9 +19,9 @@ function cac_get_new_medits() {
   $last= select('datum','cac',"1 ORDER BY datum DESC LIMIT 1");
   if (!$last) $last= '2021-12-31'; // start
   $date= new DateTime($last);
-  $n= 100; // zarážka
-  while ($n>0 && $last<$za_mesic) {
-    $n--;
+  $z= 100; // zarážka
+  while ($z>0 && $last<$za_mesic) {
+    $z--;
     $date->modify('+1 day');
     $last= $date->format('Y-m-d');
     query("INSERT INTO cac (datum) VALUE ('$last')");
@@ -59,7 +64,8 @@ function cac_get_medit_from($par) { debug($par);
   $year= $par->r;
   $month= str_pad($par->m, 2, '0', STR_PAD_LEFT);
   $day= $par->d;
-  $html= file_get_contents("$cac_month/$year/$month/");
+  $cac_month= "$cac_month/$year/$month/";
+  $html= file_get_contents($cac_month);
   // rozklad
   $m= null;
   $ret->ok= preg_match_all(
@@ -68,6 +74,7 @@ function cac_get_medit_from($par) { debug($par);
       . '<a href="([^"]+)" class="daily-meditations-loop__theme">([^<]+)</a>\s*</div>'
       . '\s*<div class="daily-meditations-loop__tags">\s*<small>Tags:<\/small>(?:\s*<a href="[^"]+" class="daily-meditations-loop__tag">[^<]*<\/a>)+\s*<\/div>\s*<div class="daily-meditations-loop__author"><small>Author:<\/small>\s*<strong>([^<]+)<\/strong>\s*<\/div>~',
       $html,$m);
+  display("načtení měsíce: $ret->ok úvah ($cac_month)");
   for ($i= 0; $i<count($m[0]); $i++) {
     $ret->date= '';
 //    if ($i!=$day-1) continue;
@@ -77,16 +84,17 @@ function cac_get_medit_from($par) { debug($par);
     $ret->tema= $m[4][$i];
     $ret->url_tema= $m[3][$i];
     $ret->autor= $m[5][$i];
-    $href= $m[1][$i];
+    $cac_day= $m[1][$i];
     $d= null;
-    preg_match('~.*(\d\d\d\d-\d\d-(\d\d))~',$href,$d);
+    preg_match('~.*(\d\d\d\d-\d\d-(\d\d))~',$cac_day,$d);
     if ($d[2]!=$day) continue;
     $ret->date= sql_date1($d[1]);
-    $html= file_get_contents($href);
+    $html= file_get_contents($cac_day);
     $p= null;
     $ret->cut= preg_match(
         '~<div class="(?:wp-block-gecko-blocks-section|entry-content article)">(.*)~ms',
         $html,$p);
+    display("načtení dne: $ret->ok ($cac_day)");
     $text= preg_split('~<p><strong>(Story|Explore|Breath)~',$p[1]);
     $ret->text= $text[0];
     break;

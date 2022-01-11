@@ -120,7 +120,7 @@ menu rr { type:'main', active:rr.richard
     //panel oso {type:'right', title:'Osobní nastavení', _sys:'*', include:'onclick' }
     panel oso {type:'right', title:'[fa-user] Osobní nastavení', _sys:'*', include:'onclick,ezer2.pers' }
     # ===================================================================================== DATABÁZE
-    panel dat {type:'right', title:'[fa-database] Databáze', _sys:'*', include:'onload,ezer3.db', skill:'a'
+    panel db1 {type:'right', title:'[fa-database] Databáze', _sys:'*', include:'onload,ezer3.db', skill:'a'
       par:{
         infos: [
           {title:'[fa-object-group] Schema databáze',
@@ -132,6 +132,35 @@ menu rr { type:'main', active:rr.richard
         },
         css: 'struc' // styl tabulek
     }}
+    panel db2 {type:'right', title:'[fa-download] Backup', _sys:'str', skill:'m'
+      menu m {type:'left', format:'f+'
+        menu { title:'Backup databáze',type:'group',skill:'m'
+          item { title:"[fa-question] přehled záloh"                par:{typ:'download'}}
+          item { title:"[fa-upload] zálohuj teď"                    par:{typ:'special'}}
+          item { title:"[fa-download] obnova ze zálohy (jen local)" par:{typ:'restore'}}
+          proc onclick(i) { 
+            info.fill(conc(i.owner.title,' - ',i.title),' ');
+            { eq(i.par.typ,'download'); 
+              info.append("<i>zobrazené zálohy lze stáhnout kliknutím (nelze 'Stahnout jako ...')</i><br>");
+              info.append(ask('sys_backup_make',i.par)) 
+            | eq(i.par.typ,'special'); 
+              [ confirm('Pokračovat?'); info.append(ask('sys_backup_make',i.par)) ]
+            | eq(i.par.typ,'restore'); 
+              // test na lokální běh na NTB 
+              { eq(sys('ezer','server'),0); 
+                [ confirm('Opravdu mám lokální databázi přepsat tou, kterou teď vybereš? 
+                        Máš ji uschovanou? Po výběru se již rozběhne proces obnovy ...'); 
+                  // načti obnovu
+                  info.append(ask('sys_backup_make',i.par));
+                ]
+              | alert('obnovu ze zálohy nelze provádět na ostrém serveru');
+              }
+            }
+          }
+        }
+      }
+      use info: form right [12,4,,]     { tag:'i' }
+    }
   }
   tabs off  {type:'logoff', title:"[fa-power-off] Odhlásit"}
   # ------------------------------------------------------------------ tables
