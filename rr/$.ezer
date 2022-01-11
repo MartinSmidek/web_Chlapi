@@ -134,7 +134,7 @@ menu rr { type:'main', active:rr.richard
     }}
     panel db2 {type:'right', title:'[fa-download] Backup', _sys:'str', skill:'m'
       menu m {type:'left', format:'f+'
-        menu { title:'Backup databáze',type:'group',skill:'m'
+        menu { title:'Backup databáze',type:'group',skill:'m', active:no
           item { title:"[fa-question] přehled záloh"                par:{typ:'download'}}
           item { title:"[fa-upload] zálohuj teď"                    par:{typ:'special'}}
           item { title:"[fa-download] obnova ze zálohy (jen local)" par:{typ:'restore'}}
