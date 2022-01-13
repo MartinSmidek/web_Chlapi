@@ -11,14 +11,14 @@ panel testy {type:'right', title:'Úvahy a meditace'
       }
     }
     menu {title:'Testy',type:'group', active:no, skill:'m'
-      item {title:'10/1', par:{r:2022,m:1,d:10} }
-      item {title:'11/1', par:{r:2022,m:1,d:11} }
+      item {title:'10/1', par:{date:'2022-01-10'} }
+      item {title:'11/1', par:{date:'2022-01-11'} }
     }
     func onclick (i:ezer) { var cac:object
       g.display(0); clear(); info.header(i);
-      cac= php.cac_get_medit_from(i.par);
+      cac= php.cac_get_medit_from(i.par.date);
       if (cac.date)
-        info.append(`<h2>${cac.date}: <a href="${cac.url_title}" target="CAC">${cac.title}</a> 
+        info.fill('',`<h2>${cac.date}: <a href="${cac.url_title}" target="CAC">${cac.title}</a> 
             from <a href="${cac.url_tema}" target="CAC">${cac.tema}</a></h2>
             <h3>${cac.autor}</h3>${cac.text}`);
       else
@@ -28,7 +28,7 @@ panel testy {type:'right', title:'Úvahy a meditace'
   // ==> incializace
   func onfirstfocus() {
     g.b.browse_load(); g.b.nacti();
-    m.p.k.click();
+    m.p.k.click(); g.b.nejnovejsi();
   }
   # --------------------------------------------------------------------------==> originál a překlad
   form _g [,,*,100] {
@@ -44,7 +44,7 @@ panel testy {type:'right', title:'Úvahy a meditace'
       show { data:u.id_user }
       show url_text { data:c.url_text }
       show url_theme { data:c.url_theme }
-      show [,,90,] { title:'datum', data:c.datum, format:'rqs+' }
+      show datum [,,90,] { title:'datum', data:c.datum, format:'rqs+' }
       show [,,50,] { title:'téma', data:c.theme_eng, format:'tqs' }
       show [,,195,] { title:'název', data:c.title_eng, format:'tqs' }
       show [,,40,] { title:'překládá', data:u.username, format:'qs' }
@@ -64,8 +64,19 @@ panel testy {type:'right', title:'Úvahy a meditace'
         item { title:'... pracuji na překladu'      func onclick() { zmena_stavu(2) } }
         item { title:'hotovo: možno dát na web'     func onclick() { zmena_stavu(3) } }
         item { title:'-odvolávám a uvolňuji jinému' func onclick() { zmena_stavu(0) } }
-        item { title:'=smazat tento text' skill:'m' func onclick() { cac.delete_record(`id_cac=${id_cac}`); nejnovejsi() } }
-        item { title:'přeložit DeepL'     skill:'m' func onclick() { php.cac_through_DeepL(id_cac); b.browse_row() } }
+        item { title:'=vymazat originál i překlad' skill:'m' func onclick() { var msg:text
+            msg= php.cac_make_free(id_cac); 
+            if (msg) alert(msg);
+            b.browse_row(); nacti()
+        } }
+        item { title:'znovu načíst den bez překladu' skill:'m' func onclick() { 
+            clear(); php.cac_save_medit_from(date2sql(datum)); b.browse_row(); nacti() 
+        } }
+        item { title:'přeložit den pomocí DeepL'     skill:'m' func onclick() { 
+            clear(); 
+            if (!text_cz || confirm("opravdu přepsat přeložený text?")) { 
+              php.cac_through_DeepL(id_cac); b.browse_row(); nacti() 
+        } } }
       }
       func zmena_stavu(s) {
         if (form.same()) { 
@@ -97,7 +108,7 @@ panel testy {type:'right', title:'Úvahy a meditace'
     // ==> editační pole CZ
     field [0,top+181,399,] { data:c.theme_cz }
     field [0,top+208,399,] { data:c.title_cz }
-    edit [0,top+237,405,548] { type:'html', data:c.text_cz, par:{toolbar:'Minimal'} }
+    edit text_cz [0,top+237,405,548] { type:'html', data:c.text_cz, par:{toolbar:'Minimal'} }
     // ==> editační pole ENG
     field [422,top+181,344,] { data:c.theme_eng }
     field [422,top+208,344,] { data:c.title_eng }

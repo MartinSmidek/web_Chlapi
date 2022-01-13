@@ -1,9 +1,67 @@
 <?php # (c) 2007-2012 Martin Smidek <martin@smidek.eu>
 # ============================================================================================== CAC
+# ------------------------------------------------------------------------------------ cac make_free
+# uvolní datum ale pokud
+#  je na webu => vrátí upozornění
+#  překládáno => vrátí na rezervováno, smaže texty
+#  rezervováno => smaže texty
+function cac_make_free($idc) {
+  $msg= '';
+  $stav= select('stav','cac',"id_cac=$idc");
+  if ($stav!=3) {
+    if ($stav==2) $stav= 1;
+    query("UPDATE cac SET stav=$stav,
+      text_eng='',title_eng='',theme_eng='',url_theme='',url_text='',author='',
+      text_cz='',title_cz='',theme_cz='' WHERE id_cac=$idc");
+  }
+  else {
+    $msg= 'publikovaný text nelze zrušit';
+  }
+  return $msg;
+}
 # ------------------------------------------------------------------------------- cac get_new_medits
-# doplní nové úhay do CAC
+# doplní nové úvahy do CAC
 function cac_through_DeepL($idc) {
-//  query("UPDATE cac SET text_cz=text_eng,title_cz=title_eng,theme_cz=theme_eng WHERE id_cac=$idc");
+  list($theme_eng,$title_eng,$text_eng)= select('theme_eng,title_eng,text_eng','cac',"id_cac=$idc");
+//  $text_eng= "<p>Testing <em>this</em> awesome <b>translator.</b></p>";
+  $theme_cz= cac_deepl_en2cs($theme_eng);
+  $title_cz= cac_deepl_en2cs($title_eng);
+  $text_cz= cac_deepl_en2cs($text_eng);
+  query("UPDATE cac SET 
+    text_cz=\"$text_cz\",title_cz=\"$title_cz\",theme_cz=\"$theme_cz\" WHERE id_cac=$idc");
+  return $title_cz;
+}
+# ---------------------------------------------------------------------------------- cac deepl_en2cs
+# překlad anglického textu pomocí DeepL
+function cac_deepl_en2cs($eng) {
+  global $deepl_auth_key;
+  $cz= '';
+  $options= array(
+    CURLOPT_URL => 'https://api-free.deepl.com/v2/translate',
+    CURLOPT_SSL_VERIFYPEER => false,
+    CURLOPT_RETURNTRANSFER => 1,
+    CURLOPT_POST => 1,
+    CURLOPT_POSTFIELDS => http_build_query(array(
+      'auth_key' => $deepl_auth_key,
+      'text' => $eng, 'source_lang' => 'EN', 'target_lang' => 'CS'
+    )), 
+    CURLOPT_HTTPHEADER => array('Content-Type: application/x-www-form-urlencoded')
+  );
+  $ch= curl_init();
+  curl_setopt_array($ch, $options);
+  $result= curl_exec($ch);
+  if (curl_errno($ch)) { 
+    $err= 'Error:' . curl_error($ch);
+    fce_warning($err);
+    goto end;
+  }
+  // extrakce textu
+  $translatedWords= json_decode($result, true); // Decode the word
+  $cz= $translatedWords['translations'][0]['text']; // Search the word
+  $cz= pdo_real_escape_string($cz);
+end:  
+  curl_close($ch);
+  return $cz;
 }
 # ------------------------------------------------------------------------------- cac get_new_medits
 # doplní nové úhay do CAC
@@ -28,42 +86,50 @@ function cac_get_new_medits() {
   }
   // potom doplň z CAC chybějící texty
   $n= 3;
-  $last= select('datum','cac',"NOT(ISNULL(text_eng)) ORDER BY datum DESC LIMIT 1");
+  $last= select('datum','cac',"IFNULL(text_eng,'')!='' ORDER BY datum DESC LIMIT 1");
   if (!$last) $last= '2021-12-31'; // start
   while ($n>0 && $last<$dnes) {
     $n--;
     $date= new DateTime($last);
     $date->modify('+1 day');
     $last= $date->format('Y-m-d');
-    // získání úvahy
-    $x= cac_get_medit_from((object)array(
-      'r'=>$date->format('Y'),'m'=>$date->format('n'),'d'=>$date->format('j')));
-    $msg.= "$last: $x->title<br>";
-    // zapsání úvahy do tabulky
-    $idc= select('id_cac','cac',"datum='$last'");
-    if (!$idc) {
-      query("INSERT INTO cac (datum) VALUE ('$last')");
-      $idc= pdo_insert_id();
-    }
-    $tema= pdo_real_escape_string($x->tema);
-    $title= pdo_real_escape_string($x->title);
-    $text= pdo_real_escape_string($x->text);
-    query("UPDATE cac SET 
-        url_theme='$x->url_tema',url_text='$x->url_title',theme_eng='$tema',
-        author='$x->autor',title_eng='$title',text_eng='$text' 
-      WHERE id_cac=$idc");
+    // získání a zápis úvahy
+    $x= cac_save_medit_from($last);
+    $title_cz= cac_through_DeepL($x->idc);
+    $msg.= "$last: $x->title ... $title_cz<br>";
     $ok= 1;
   }
   return $ok ? $msg : ' novější úvahy CAC zatím nejdou importovat ';
 }
+# ------------------------------------------------------------------------------ cac save_medit_from
+# uloží do daného dne danou meditaci
+function cac_save_medit_from($last) { trace();
+  // načtení úvahy
+  $x= cac_get_medit_from($last);
+  // zapsání úvahy do tabulky
+  $x->idc= select('id_cac','cac',"datum='$last'");
+  if (!$x->idc) {
+    query("INSERT INTO cac (datum) VALUE ('$last')");
+    $x->idc= pdo_insert_id();
+  }
+  $tema= pdo_real_escape_string($x->tema);
+  $title= pdo_real_escape_string($x->title);
+  $text= pdo_real_escape_string($x->text);
+  query("UPDATE cac SET 
+      url_theme='$x->url_tema',url_text='$x->url_title',theme_eng='$tema',
+      author='$x->autor',title_eng='$title',text_eng='$text' 
+    WHERE id_cac=$x->idc");
+  return $x;
+}
 # ------------------------------------------------------------------------------- cac get_medit_from
-# vrátí meditaci ze dne {r,m,d} jsko objekt {ok,datum,title,url_title,tema,url_tema,autor,text}
-function cac_get_medit_from($par) { debug($par);
+# vrátí meditaci ze dne {r,m,d} jako objekt {ok,datum,title,url_title,tema,url_tema,autor,text}
+function cac_get_medit_from($ymd) { 
   $ret= (object)array('ok'=>0);
   $cac_month= "https://cac.org/category/daily-meditations";
-  $year= $par->r;
-  $month= str_pad($par->m, 2, '0', STR_PAD_LEFT);
-  $day= $par->d;
+  list($year,$month,$day)= explode('-',$ymd);
+//  $year= $par->r;
+//  $month= str_pad($par->m, 2, '0', STR_PAD_LEFT);
+//  $day= $par->d;
   $cac_month= "$cac_month/$year/$month/";
   $html= file_get_contents($cac_month);
   // rozklad

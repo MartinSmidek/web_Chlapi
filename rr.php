@@ -12,7 +12,7 @@
     $_SERVER["SERVER_NAME"]=='chlapi.doma'      ? 3 : -1))); // Synology - DOMA
 
   $app=      'rr';
-  $app_name= 'Myšlenky Richarda Rohra & Úvahy CAC';
+  $app_name= 'Myšlenky Richarda Rohra / CAC';
   $app_root=  'rr';
   $app_js=    array();
   $app_css=   array("rr/rr.css");
