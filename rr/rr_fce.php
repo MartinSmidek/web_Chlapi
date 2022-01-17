@@ -22,8 +22,10 @@ function cac_make_free($idc) {
 # ------------------------------------------------------------------------------- cac get_new_medits
 # doplní nové úvahy do CAC
 function cac_through_DeepL($idc) {
+  global $ezer_server;
   list($theme_eng,$title_eng,$text_eng)= select('theme_eng,title_eng,text_eng','cac',"id_cac=$idc");
-  $text_eng= "<p>Testing <em>this</em> awesome <b>translator.</b></p>";
+  if ($ezer_server==0) // v lokálu neplýtváme :-)
+    $text_eng= "<p>Testing <em>this</em> awesome <b>translator.</b></p>";
   $theme_cz= cac_deepl_en2cs($theme_eng);
   $title_cz= cac_deepl_en2cs($title_eng);
   $text_cz= cac_deepl_en2cs($text_eng);
@@ -115,9 +117,10 @@ function cac_save_medit_from($last) { trace();
   $tema= pdo_real_escape_string($x->tema);
   $title= pdo_real_escape_string($x->title);
   $text= pdo_real_escape_string($x->text);
+  $reference= pdo_real_escape_string($x->reference);
   query("UPDATE cac SET 
       url_theme='$x->url_tema',url_text='$x->url_title',theme_eng='$tema',
-      author='$x->autor',reference='$x->reference',title_eng='$title',text_eng='$text' 
+      author='$x->autor',reference='$reference',title_eng='$title',text_eng='$text' 
     WHERE id_cac=$x->idc");
   return $x;
 }
