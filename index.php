@@ -23,7 +23,8 @@ ini_set('display_errors', 'On');
 require_once("man/man_web.php");
 require_once("man/2template_ch.php");
 // pro testovací GETs
-$_SESSION['web']['GET']= $_GET;
+$_SESSION['web']['GET']= isset($_SESSION['web']['GET']) 
+    ? array_merge($_SESSION['web']['GET'],$_GET) : $_GET;
 // databáze
 $deep_root= "../files/chlapi";
 require_once("$deep_root/man.dbs.php");

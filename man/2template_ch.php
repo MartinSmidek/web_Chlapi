@@ -534,7 +534,7 @@ __EOT;
       break;
     
     case 'cac':     # ----------------------------------------------- . daily meditation CAC
-      if (!isset($_SESSION[$app]['GET']['cac'])) break;
+      if (!isset($_SESSION['web']['GET']['cac'])) break;
       global $backref;
       $obsah= cac_meditace();
       $plny= $top==$id;
