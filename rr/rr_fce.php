@@ -23,7 +23,7 @@ function cac_make_free($idc) {
 # doplní nové úvahy do CAC
 function cac_through_DeepL($idc) {
   list($theme_eng,$title_eng,$text_eng)= select('theme_eng,title_eng,text_eng','cac',"id_cac=$idc");
-//  $text_eng= "<p>Testing <em>this</em> awesome <b>translator.</b></p>";
+  $text_eng= "<p>Testing <em>this</em> awesome <b>translator.</b></p>";
   $theme_cz= cac_deepl_en2cs($theme_eng);
   $title_cz= cac_deepl_en2cs($title_eng);
   $text_cz= cac_deepl_en2cs($text_eng);
@@ -117,7 +117,7 @@ function cac_save_medit_from($last) { trace();
   $text= pdo_real_escape_string($x->text);
   query("UPDATE cac SET 
       url_theme='$x->url_tema',url_text='$x->url_title',theme_eng='$tema',
-      author='$x->autor',title_eng='$title',text_eng='$text' 
+      author='$x->autor',reference='$x->reference',title_eng='$title',text_eng='$text' 
     WHERE id_cac=$x->idc");
   return $x;
 }
@@ -127,9 +127,6 @@ function cac_get_medit_from($ymd) {
   $ret= (object)array('ok'=>0);
   $cac_month= "https://cac.org/category/daily-meditations";
   list($year,$month,$day)= explode('-',$ymd);
-//  $year= $par->r;
-//  $month= str_pad($par->m, 2, '0', STR_PAD_LEFT);
-//  $day= $par->d;
   $cac_month= "$cac_month/$year/$month/";
   $html= file_get_contents($cac_month);
   // rozklad
@@ -143,7 +140,6 @@ function cac_get_medit_from($ymd) {
   display("načtení měsíce: $ret->ok úvah ($cac_month)");
   for ($i= 0; $i<count($m[0]); $i++) {
     $ret->date= '';
-//    if ($i!=$day-1) continue;
     // text daného dne
     $ret->title= $m[2][$i];
     $ret->url_title= $m[1][$i];
@@ -161,8 +157,15 @@ function cac_get_medit_from($ymd) {
         '~<div class="(?:wp-block-gecko-blocks-section|entry-content article)">(.*)~ms',
         $html,$p);
     display("načtení dne: $ret->ok ($cac_day)");
-    $text= preg_split('~<p><strong>(Story|Explore|Breath)~',$p[1]);
+    $text= preg_split('~<p><strong>(Story|References|Explore|Breath)~',$p[1],-1,PREG_SPLIT_DELIM_CAPTURE);
     $ret->text= $text[0];
+    $ret->reference= '';
+    for ($i= 1; $i<count($text); $i+= 2) {
+      if (substr($text[$i],0,3)=='Ref') {
+        $ref= null;
+        $ret->reference= "<strong>Odkazy{$text[$i+1]}";
+      }
+    }
     break;
   }
   // návrat

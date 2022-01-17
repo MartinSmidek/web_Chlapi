@@ -149,7 +149,7 @@ function closetags($html) {
   }
   return $html;
 }
-# ------------------------------------------------------------------------------------------ rr send
+# -------------------------------------------------------------------------------------- rr myslenka
 # $par = {den:ode dneška dnes=0,poslat: 0/1}
 function rr_myslenka() {
   $dnes= date('j/n/Y',mktime(0,0,0,date('n'),date('j'),date('Y')));
@@ -182,6 +182,36 @@ function rr_myslenka() {
     $body.= "</tr></table>";
     $html= "<h1>$subj</h1>$body";
   }
+  return $html;
+}
+# ------------------------------------------------------------------------------------- cac meditace
+# $par = {den:ode dneška dnes=0,poslat: 0/1}
+function cac_meditace() {
+  $dny= array('z neděle','z pondělí','z úterý','ze středy','ze čtvrtka','z pátku','ze soboty');
+  $x= select_object('*','cac',"stav=3 ORDER BY datum DESC LIMIT 1",'ezertask');
+  $w= $dny[(int)date("W",strtotime($x->datum))];
+  $z_data= $w.' '.sql_date1($x->datum,0,'. ');
+  // prefix
+  $prefix= "";
+  // přeložený text
+  $preklad= $x->preklada ? $x->preklada : 'DeepL';
+  $body= "<table cellpadding='10'><tr>";
+  $body.= "<td valign='top' width='50%'><b>$x->title_cz</b><br>$x->text_cz
+    <div align='right'><i>$x->author<br>přeložil $preklad</i></div></td>";
+  $body.= "<td valign='top' width='50%'><a href='$x->url_text' target='cac'><b>$x->title_eng</b></a>
+    <br>$x->text_eng
+    <div align='right'><i>$x->author</i></div></td>";
+  $body.= "</tr></table>";
+  // patička a redakce
+  $postfix= "Zde se nacházejí překlady <b>Daily Meditations</b>, jejichž anglické originály 
+    se nacházejí na webu <a href='https://cac.org/' target='cac'>CAC</a>. 
+    Pokud vládneš dobrou angličtinou, přihlas se asi přímo u zdroje těchto úvah, tedy na webu CAC. 
+    Budeš je pak do své mailové schránky dostávat již k ranní kávě. 
+    Ve výšeuvedeném dvojjazyčném provedení je nalezneš pochopitelně s určitým časovým skluzem.  -mš-";
+  $html= "<h1>Překlad meditace CAC $z_data <br>na téma: 
+      <a href='$x->url_theme' target='cac'>$x->theme_cz</a></h1>
+      $prefix $body $x->reference
+      <hr><i>$postfix</i>";
   return $html;
 }
 ?>

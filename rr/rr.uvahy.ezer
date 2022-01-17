@@ -32,14 +32,14 @@ panel testy {type:'right', title:'Úvahy a meditace'
   }
   # --------------------------------------------------------------------------==> originál a překlad
   form _g [,,*,100] {
-    const top=24
+    const top=110
     view c: table cac
     view u: table _user { join_type:'LEFT', join:"ON u.id_user=c.preklada" }
     label [91,2,210,16] { 
       title:" <span class='blue'>rezervováno</span> 
               <span class='yellow'>překládáno</span> 
               <span class='green'>je na webu</span>" }
-    browse b [0,top,,] { rows:7, qry_rows:1, css_rows:'barva,1:blue,2:yellow,3:green'
+    browse b [0,24,,] { rows:7, qry_rows:1, css_rows:'barva,1:blue,2:yellow,3:green'
       show id_cac { data:c.id_cac }
       show { data:u.id_user }
       show url_text { data:c.url_text }
@@ -105,18 +105,20 @@ panel testy {type:'right', title:'Úvahy a meditace'
     label [710,0,114,57] { css:'parm' }
     button [718,8,,] { title:'[fa-save] Uložení změn', func onclick() { g.save(); g.load() } }
     button [719,31,,] { title:'[fa-undo] Vrácení změn', func onclick() { g.load() } }
+    // ==> pole pro revize překladu a pro literaturu
+    edit [0,220,402,60] { data:c.errata, title:'^Důvod revize překladu (s podpisem prosím)' }
+    edit [421,60,402,190] { type:'html', data:c.reference, title:'^Reference', par:{toolbar:'Cac'} }
     // ==> editační pole CZ
     field [0,top+181,399,] { data:c.theme_cz }
     field [0,top+208,399,] { data:c.title_cz }
-    edit text_cz [0,top+237,405,548] { type:'html', data:c.text_cz, par:{toolbar:'Minimal'} }
+    edit text_cz [0,top+237,405,548] { type:'html', data:c.text_cz, par:{toolbar:'Cac'} }
     // ==> editační pole ENG
+    field [422,top+154,344,] { data:c.author }
     field [422,top+181,344,] { data:c.theme_eng }
     field [422,top+208,344,] { data:c.title_eng }
     label ref_tema [780,top+184,46,16] { style:'cursor:pointer' }
     label ref_text [780,top+211,46,16] { style:'cursor:pointer' }
-    edit [421,top+236,405,548] { type:'html', data:c.text_eng, par:{toolbar:'Minimal'} }
-    // ==> pole pro revize překladu
-    edit [421,top+44,402,126] { data:c.errata, title:'^Důvod revize překladu (s podpisem prosím)' }
+    edit [421,top+236,405,548] { type:'html', data:c.text_eng, par:{toolbar:'Cac'} }
   }
   // ==> rezervační formulář
   panel rezervuj [0,0,200,100] { type:'popup'
@@ -129,7 +131,7 @@ panel testy {type:'right', title:'Úvahy a meditace'
   // ==> podrobný návod k použití 
   panel vysvetli [0,0,400,200] { type:'popup'
     use r: form {
-      label { title:"tady bude podrobný způsob použití, například bude vysvětlono, že na řádek
+      label { title:"tady bude podrobný způsob použití, například bude vysvětleno, že na řádek
           seznamu úvah lze kliknout pravým tlačítkem myši a změnit stav ..." }      
     }
   }
@@ -142,6 +144,7 @@ panel testy {type:'right', title:'Úvahy a meditace'
     text url_theme
     text url_text
     text author
+    text reference
     text preklada
     text theme_cz
     text title_cz

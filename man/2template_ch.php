@@ -533,6 +533,35 @@ __EOT;
       $html.= "<div style='background:white;color:black;text-align:center'>POZNAMKA</div>";
       break;
     
+    case 'cac':     # ----------------------------------------------- . daily meditation CAC
+      if (!isset($_SESSION[$app]['GET']['cac'])) break;
+      global $backref;
+      $obsah= cac_meditace();
+      $plny= $top==$id;
+      if ( $plny ) {
+        // zobrazit jako plný článek
+        $html.= "
+          <div class='back' $menu>
+            <div id='fokus_part' class='home'>
+              $obsah
+            </div>
+          </div>";
+      }
+      else {
+        // zobrazit jako abstrakt
+        $obsah= x_shorting($obsah);
+        $styl= 'aclanek';
+        $jmp= str_replace('*',$id,$backref);
+        $html.= "
+          <div class='back'>
+            <a class='$styl home' $jmp>
+              <img src='/man/img/cac_logo.jpg' style='width:80px;margin-right:40px;float:right;'>
+              $obsah
+            </a>
+          </div>";
+      }
+      break;
+    
     case 'myslenka':# ----------------------------------------------- . myšlenka
       global $backref;
       $obsah= rr_myslenka();

@@ -37,7 +37,11 @@
   $favicons= array('chlapi_rr_ico_local.png',
       'chlapi_rr_ico.png','chlapi_rr_ico.png','chlapi_rr_ico.png');
   $add_pars= array(
-    'favicon' => $favicons[$ezer_server]
+    'favicon' => $favicons[$ezer_server],
+    'CKEditor' => "{
+      version:'4.6',
+      Cac:{toolbar:[['Bold','Italic','-','Outdent','Indent','-','Source']]}
+    }"
   );
 
   if ( isset($_GET['batch']) && $_GET['batch'] ) {
