@@ -80,7 +80,7 @@ panel testy {type:'right', title:'Úvahy a meditace'
       }
       func zmena_stavu(s) {
         if (form.same()) { 
-          php.cac_change_state(id_cac,s); b.browse_row();
+          php.cac_change_state(b.id_cac,s); b.browse_row();
         }
         else warning(`nejprve proveď [Uložení změn] nebo [Vrácení změn]`)
       }

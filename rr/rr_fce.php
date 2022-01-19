@@ -11,7 +11,7 @@ function cac_make_free($idc) {
   if ($stav!=3) {
     if ($stav==2) $stav= 1;
     query("UPDATE cac SET stav=$stav,
-      text_eng='',title_eng='',theme_eng='',url_theme='',url_text='',author='',
+      text_eng='',title_eng='',theme_eng='',url_theme='',url_text='',author='',reference='',
       text_cz='',title_cz='',theme_cz='' WHERE id_cac=$idc");
   }
   else {
@@ -97,14 +97,19 @@ function cac_get_new_medits() {
     $last= $date->format('Y-m-d');
     // získání a zápis úvahy
     $x= cac_save_medit_from($last);
-    $title_cz= cac_through_DeepL($x->idc);
-    $msg.= "$last: $x->title ... $title_cz<br>";
+    if ($x->idc) {
+      $title_cz= cac_through_DeepL($x->idc);
+      $msg.= "$last: $x->title ... $title_cz<br>";
+    }
+    else {
+      $msg.= "SELHALO";
+    }
     $ok= 1;
   }
   return $ok ? $msg : ' novější úvahy CAC zatím nejdou importovat ';
 }
 # ------------------------------------------------------------------------------ cac save_medit_from
-# uloží do daného dne danou meditaci
+# uloží do daného dne danou meditaci - pokud je úspěšně načtená
 function cac_save_medit_from($last) { trace();
   // načtení úvahy
   $x= cac_get_medit_from($last);
@@ -118,10 +123,12 @@ function cac_save_medit_from($last) { trace();
   $title= pdo_real_escape_string($x->title);
   $text= pdo_real_escape_string($x->text);
   $reference= pdo_real_escape_string($x->reference);
-  query("UPDATE cac SET 
-      url_theme='$x->url_tema',url_text='$x->url_title',theme_eng='$tema',
-      author='$x->autor',reference='$reference',title_eng='$title',text_eng='$text' 
-    WHERE id_cac=$x->idc");
+  if ($text) {
+    query("UPDATE cac SET 
+        url_theme='$x->url_tema',url_text='$x->url_title',theme_eng='$tema',
+        author='$x->autor',reference='$reference',title_eng='$title',text_eng='$text' 
+        WHERE id_cac=$x->idc");
+  }
   return $x;
 }
 # ------------------------------------------------------------------------------- cac get_medit_from

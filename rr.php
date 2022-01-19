@@ -73,6 +73,10 @@
       $html= cac_get_new_medits();
       echo "<hr><h2>Daily Meditations from CAC</h2><br>$html";
       break;
+    case 'rr-cac':
+      $html= cac_get_new_medits();
+      echo "<hr><h2>Daily Meditations from CAC</h2><br>$html";
+      break;
     }
   }
   else {
