@@ -11,8 +11,8 @@ function cac_make_free($idc) {
   if ($stav!=3) {
     if ($stav==2) $stav= 1;
     query("UPDATE cac SET stav=$stav,
-      text_eng='',title_eng='',theme_eng='',url_theme='',url_text='',author='',reference='',
-      text_cz='',title_cz='',theme_cz='' WHERE id_cac=$idc");
+      text_eng='',title_eng='',theme_eng='',imported_eng='',url_theme='',url_text='',author='',reference='',
+      text_cz='',title_cz='',theme_cz='',changed_cz='' WHERE id_cac=$idc");
   }
   else {
     $msg= 'publikovaný text nelze zrušit';
@@ -29,7 +29,8 @@ function cac_through_DeepL($idc) {
   $theme_cz= cac_deepl_en2cs($theme_eng);
   $title_cz= cac_deepl_en2cs($title_eng);
   $text_cz= cac_deepl_en2cs($text_eng);
-  query("UPDATE cac SET 
+  $dt= date('Y-m-d H:i:s');
+  query("UPDATE cac SET changed_cz='$dt',
     text_cz=\"$text_cz\",title_cz=\"$title_cz\",theme_cz=\"$theme_cz\" WHERE id_cac=$idc");
   return $title_cz;
 }
@@ -71,7 +72,10 @@ function cac_get_new_medits() {
   $msg= '';
   $ok= 0;
   $dnes= date('Y-m-d');
-  // zjištění data za měsíc
+  // nejprve zjisti, jestli už jsme dnešní den neimportovali
+  $mame= select('datum','cac',"datum='$dnes' AND text_eng!='' ");
+  if ($mame) { $ok= 1; $msg= "dnešní meditaci už máme"; goto end; }
+  // zajištění naplnění prázdnými záznamy na měsíc dopředu
   $date= new DateTime($dnes);
   $date->modify('+1 month');
   $za_mesic= $date->format('Y-m-d');
@@ -106,7 +110,9 @@ function cac_get_new_medits() {
     }
     $ok= 1;
   }
-  return $ok ? $msg : ' novější úvahy CAC zatím nejdou importovat ';
+  $msg=  $ok ? $msg : ' novější úvahy CAC zatím nejdou importovat ';
+end:  
+  return $msg;
 }
 # ------------------------------------------------------------------------------ cac save_medit_from
 # uloží do daného dne danou meditaci - pokud je úspěšně načtená
@@ -123,9 +129,10 @@ function cac_save_medit_from($last) { trace();
   $title= pdo_real_escape_string($x->title);
   $text= pdo_real_escape_string($x->text);
   $reference= pdo_real_escape_string($x->reference);
+  $dt= date('Y-m-d H:i:s');
   if ($text) {
     query("UPDATE cac SET 
-        url_theme='$x->url_tema',url_text='$x->url_title',theme_eng='$tema',
+        url_theme='$x->url_tema',url_text='$x->url_title',theme_eng='$tema',imported_eng='$dt',
         author='$x->autor',reference='$reference',title_eng='$title',text_eng='$text' 
         WHERE id_cac=$x->idc");
   }
@@ -188,6 +195,7 @@ function cac_change_state($idc,$s) {
   global $USER;
   $msg= '';
   $preklada= select('preklada','cac',"id_cac=$idc");
+  $dt= date('Y-m-d H:i:s');
   if (!$preklada) {
     $me= $USER->id_user;
     if (!$me) fce_error("uživatel není přihlášen, nelze provést změnu stavu");
@@ -195,7 +203,7 @@ function cac_change_state($idc,$s) {
   }
   else {
     $and= $s==0 ? ", preklada=0" : '';
-    query("UPDATE cac SET stav=$s $and WHERE id_cac=$idc");
+    query("UPDATE cac SET changed_cz='$dt',stav=$s $and WHERE id_cac=$idc");
   }
   return $msg;
 }

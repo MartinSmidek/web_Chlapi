@@ -45,15 +45,24 @@ panel testy {type:'right', title:'Úvahy a meditace'
       show url_text { data:c.url_text }
       show url_theme { data:c.url_theme }
       show datum [,,90,] { title:'datum', data:c.datum, format:'rqs+' }
-      show [,,50,] { title:'téma', data:c.theme_eng, format:'tqs' }
-      show [,,195,] { title:'název', data:c.title_eng, format:'tqs' }
-      show [,,40,] { title:'překládá', data:u.username, format:'qs' }
+      show tema [,,60,] { title:'téma', data:c.theme_eng, format:'tqs' }
+      show [,,185,] { title:'název', data:c.title_eng, format:'tqs' }
+      show preklad [,,40,] { title:'překládá', data:u.username, format:'qs' }
+      show import [,,0,] { title:'načteno z CAC', data:c.imported_eng, format:'qs' }
       show barva { data:c.stav }
       func onrowclick () { nacti() }
-      func nacti() { 
+      func onclick() { 
+        if (import.width()) { 
+          import.width(0); tema.width(60); preklad.width(40) }
+        else {
+          import.width(101); tema.width(0); preklad.width(0) }
+      }
+      func nacti() {
+        js.waiting(1);
         g.load(id_cac); 
         ref_tema= `<a href="${url_theme}" target="cac"><i class='fa fa-share'></i> CAC</a>`; 
         ref_text= `<a href="${url_text}" target="cac"><i class='fa fa-share'></i> CAC</a>`; 
+        js.waiting(0);
       } 
       func nejnovejsi() { var idc:number
         idc= php.select('id_cac','cac',"title_eng!='' ORDER BY datum DESC LIMIT 1");
@@ -103,7 +112,10 @@ panel testy {type:'right', title:'Úvahy a meditace'
     button [24,0,,] { title:'[fa-calendar-check-o] Dnes' func onclick() { b.nejnovejsi() }}
     button [315,0,,] { title:'[fa-shopping-basket] Rezervace', func onclick() { rezervuj.modal() }}
     label [710,0,114,57] { css:'parm' }
-    button [718,8,,] { title:'[fa-save] Uložení změn', func onclick() { g.save(); g.load() } }
+    button [718,8,,] { title:'[fa-save] Uložení změn', func onclick() { 
+      changed_cz= fdate('Y-m-d H:i:s'); changed_cz.change();
+      g.save(); g.load() 
+    } }
     button [719,31,,] { title:'[fa-undo] Vrácení změn', func onclick() { g.load() } }
     // ==> pole pro revize překladu a pro literaturu
     edit [0,220,402,60] { data:c.errata, title:'^Důvod revize překladu (s podpisem prosím)' }
@@ -112,6 +124,7 @@ panel testy {type:'right', title:'Úvahy a meditace'
     field [0,top+181,399,] { data:c.theme_cz }
     field [0,top+208,399,] { data:c.title_cz }
     edit text_cz [0,top+237,405,548] { type:'html', data:c.text_cz, par:{toolbar:'Cac'} }
+    field changed_cz { data:c.changed_cz }
     // ==> editační pole ENG
     field [422,top+154,344,] { data:c.author }
     field [422,top+181,344,] { data:c.theme_eng }
@@ -146,12 +159,14 @@ panel testy {type:'right', title:'Úvahy a meditace'
     text author
     text reference
     text preklada
-    text theme_cz
-    text title_cz
-    text text_cz
     text theme_eng
     text title_eng
     text text_eng
+    date imported_eng
+    text theme_cz
+    text title_cz
+    text text_cz
+    date changed_cz
   }
   table _user {
     number id_user
