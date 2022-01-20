@@ -10,13 +10,22 @@ panel testy {type:'right', title:'Úvahy a meditace'
         }
       }
     }
+    menu {title:'Log file',type:'group', skill:'a'
+      item {title:'[fa-question] pokus o stažení Meditace', par:{typ:'cac'} }
+      item {title:'[fa-question] odeslání Myšlenek',        par:{typ:'rr'} }
+      item {title:'[fa-question] odeslání mailu Pokladna',  par:{typ:'mail',subj:'pokladna'} }
+      func onclick (i:ezer) { var cac:object
+        clear(); info.header(i); g.display(0); 
+        info.fill('',php.stamp_show('cac'));
+      }
+    }
     menu {title:'Testy',type:'group', active:no, skill:'m'
       item {title:'10/1', par:{date:'2022-01-10'} }
       item {title:'11/1', par:{date:'2022-01-11'} }
     }
     func onclick (i:ezer) { var cac:object
       g.display(0); clear(); info.header(i);
-      cac= php.cac_get_medit_from(i.par.date);
+      cac= php.cac_read_medit('MENU',i.par.date);
       if (cac.date)
         info.fill('',`<h2>${cac.date}: <a href="${cac.url_title}" target="CAC">${cac.title}</a> 
             from <a href="${cac.url_tema}" target="CAC">${cac.tema}</a></h2>
@@ -79,7 +88,7 @@ panel testy {type:'right', title:'Úvahy a meditace'
             b.browse_row(); nacti()
         } }
         item { title:'znovu načíst den bez překladu' skill:'m' func onclick() { 
-            clear(); php.cac_save_medit_from(date2sql(datum)); b.browse_row(); nacti() 
+            clear(); php.cac_save_medit_from('AGAIN',date2sql(datum)); b.browse_row(); nacti() 
         } }
         item { title:'přeložit den pomocí DeepL'     skill:'m' func onclick() { 
             clear(); 
@@ -106,7 +115,7 @@ panel testy {type:'right', title:'Úvahy a meditace'
     // #==> funkce
     button [0,0,,] { title:'[fa-plus]' 
       func onclick() { 
-        alert(php.cac_get_new_medits()); 
+        alert(php.cac_read_medits('USER')); 
         g.b.browse_refresh();
     }}
     button [24,0,,] { title:'[fa-calendar-check-o] Dnes' func onclick() { b.nejnovejsi() }}

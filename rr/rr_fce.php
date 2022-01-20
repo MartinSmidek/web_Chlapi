@@ -1,4 +1,17 @@
 <?php # (c) 2007-2012 Martin Smidek <martin@smidek.eu>
+# ============================================================================================ STAMP
+# --------------------------------------------------------------------------------------- stamp show
+# zobrazí časová razítka
+function stamp_show($typ,$subj='') {
+  $html= '<dl>';
+  ezer_connect("ezertask");
+  $rs= pdo_qry("SELECT kdy,pozn FROM stamp WHERE typ='$typ' ORDER BY kdy DESC LIMIT 24");
+  while ( $rs && (list($kdy,$pozn)= pdo_fetch_row($rs)) ) {
+    $html.= "<dt>$kdy</dt><dd>$pozn</dd>";
+  }
+  $html.= "</dl>";
+  return $html;
+}
 # ============================================================================================== CAC
 # ------------------------------------------------------------------------------------ cac make_free
 # uvolní datum ale pokud
@@ -66,15 +79,22 @@ end:
   curl_close($ch);
   return $cz;
 }
-# ------------------------------------------------------------------------------- cac get_new_medits
-# doplní nové úhay do CAC
-function cac_get_new_medits() {
+# ---------------------------------------------------------------------------------- cac read_medits
+# doplní nové úvahy do CAC 
+#   $dueto=AUTO|TEST|USER|MENU
+function cac_read_medits($dueto) {
   $msg= '';
   $ok= 0;
   $dnes= date('Y-m-d');
   // nejprve zjisti, jestli už jsme dnešní den neimportovali
   $mame= select('datum','cac',"datum='$dnes' AND text_eng!='' ");
-  if ($mame) { $ok= 1; $msg= "dnešní meditaci už máme"; goto end; }
+  if ($mame) { 
+    $ok= 1; $msg= "dnešní meditaci už máme"; 
+    // zápis do stamp
+    $dt= date('Y-m-d H:i:s');
+    query("INSERT INTO stamp (typ,kdy,pozn) VALUES ('cac','$dt','$dueto READ: already exists')");
+    goto end; 
+  }
   // zajištění naplnění prázdnými záznamy na měsíc dopředu
   $date= new DateTime($dnes);
   $date->modify('+1 month');
@@ -100,7 +120,7 @@ function cac_get_new_medits() {
     $date->modify('+1 day');
     $last= $date->format('Y-m-d');
     // získání a zápis úvahy
-    $x= cac_save_medit_from($last);
+    $x= cac_save_medit($dueto,$last);
     if ($x->idc) {
       $title_cz= cac_through_DeepL($x->idc);
       $msg.= "$last: $x->title ... $title_cz<br>";
@@ -114,11 +134,11 @@ function cac_get_new_medits() {
 end:  
   return $msg;
 }
-# ------------------------------------------------------------------------------ cac save_medit_from
+# ----------------------------------------------------------------------------------- cac save_medit
 # uloží do daného dne danou meditaci - pokud je úspěšně načtená
-function cac_save_medit_from($last) { trace();
+function cac_save_medit($dueto,$last) { trace();
   // načtení úvahy
-  $x= cac_get_medit_from($last);
+  $x= cac_read_medit($dueto,$last);
   // zapsání úvahy do tabulky
   $x->idc= select('id_cac','cac',"datum='$last'");
   if (!$x->idc) {
@@ -138,10 +158,10 @@ function cac_save_medit_from($last) { trace();
   }
   return $x;
 }
-# ------------------------------------------------------------------------------- cac get_medit_from
+# ----------------------------------------------------------------------------------- cac read_medit
 # vrátí meditaci ze dne {r,m,d} jako objekt {ok,datum,title,url_title,tema,url_tema,autor,text}
-function cac_get_medit_from($ymd) { 
-  $ret= (object)array('ok'=>0);
+function cac_read_medit($dueto,$ymd) { 
+  $ret= (object)array('ok'=>0,'stamp'=>"$dueto READ: ");
   $cac_month= "https://cac.org/category/daily-meditations";
   list($year,$month,$day)= explode('-',$ymd);
   $cac_month= "$cac_month/$year/$month/";
@@ -154,11 +174,13 @@ function cac_get_medit_from($ymd) {
       . '<a href="([^"]+)" class="daily-meditations-loop__theme">([^<]+)</a>\s*</div>'
       . '\s*<div class="daily-meditations-loop__tags">\s*<small>Tags:<\/small>(?:\s*<a href="[^"]+" class="daily-meditations-loop__tag">[^<]*<\/a>)+\s*<\/div>\s*<div class="daily-meditations-loop__author"><small>Author:<\/small>\s*<strong>([^<]+)<\/strong>\s*<\/div>~',
       $html,$m);
+  $ret->stamp.= "match1={$ret->ok}; ";
   display("načtení měsíce: $ret->ok úvah ($cac_month)");
   for ($i= 0; $i<count($m[0]); $i++) {
     $ret->date= '';
     // text daného dne
     $ret->title= $m[2][$i];
+    $ret->stamp.= "title={$ret->title}; ";
     $ret->url_title= $m[1][$i];
     $ret->tema= $m[4][$i];
     $ret->url_tema= $m[3][$i];
@@ -173,6 +195,7 @@ function cac_get_medit_from($ymd) {
     $ret->cut= preg_match(
         '~<div class="(?:wp-block-gecko-blocks-section|entry-content article)">(.*)~ms',
         $html,$p);
+    $ret->stamp.= "match2={$ret->cut}; ";
     display("načtení dne: $ret->ok ($cac_day)");
     $text= preg_split('~<p><strong>(Story|References|Explore|Breath)~',$p[1],-1,PREG_SPLIT_DELIM_CAPTURE);
     $ret->text= $text[0];
@@ -185,6 +208,9 @@ function cac_get_medit_from($ymd) {
     }
     break;
   }
+  // zápis do stamp
+  $dt= date('Y-m-d H:i:s');
+  query("INSERT INTO stamp (typ,kdy,pozn) VALUES ('cac','$dt','$ret->stamp')");
   // návrat
   return $ret;
 }
