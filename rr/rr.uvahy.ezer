@@ -45,10 +45,10 @@ panel testy {type:'right', title:'Úvahy a meditace'
       show url_text { data:c.url_text }
       show url_theme { data:c.url_theme }
       show datum [,,90,] { title:'datum', data:c.datum, format:'rqs+' }
-      show tema [,,60,] { title:'téma', data:c.theme_eng, format:'tqs' }
-      show [,,185,] { title:'název', data:c.title_eng, format:'tqs' }
-      show preklad [,,40,] { title:'překládá', data:u.username, format:'qs' }
-      show import [,,0,] { title:'načteno z CAC', data:c.imported_eng, format:'qs' }
+      show tema [,,60,] { title:'téma', data:c.theme_eng, format:'tq' }
+      show [,,185,] { title:'název', data:c.title_eng, format:'tq' }
+      show preklad [,,40,] { title:'překládá', data:u.username, format:'q' }
+      show import [,,0,] { title:'načteno z CAC', data:c.imported_eng, format:'q' }
       show barva { data:c.stav }
       func onrowclick () { nacti() }
       func onclick() { 
@@ -58,11 +58,11 @@ panel testy {type:'right', title:'Úvahy a meditace'
           import.width(101); tema.width(0); preklad.width(0) }
       }
       func nacti() {
-        js.waiting(1);
+//        js.waiting(1);
         g.load(id_cac); 
         ref_tema= `<a href="${url_theme}" target="cac"><i class='fa fa-share'></i> CAC</a>`; 
         ref_text= `<a href="${url_text}" target="cac"><i class='fa fa-share'></i> CAC</a>`; 
-        js.waiting(0);
+//        js.waiting(0);
       } 
       func nejnovejsi() { var idc:number
         idc= php.select('id_cac','cac',"title_eng!='' ORDER BY datum DESC LIMIT 1");
@@ -124,6 +124,7 @@ panel testy {type:'right', title:'Úvahy a meditace'
     field [0,top+181,399,] { data:c.theme_cz }
     field [0,top+208,399,] { data:c.title_cz }
     edit text_cz [0,top+237,405,548] { type:'html', data:c.text_cz, par:{toolbar:'Cac'} }
+//    field text_cz [0,top+237,405,548] { data:c.text_cz, par:{toolbar:'Cac'} }
     field changed_cz { data:c.changed_cz }
     // ==> editační pole ENG
     field [422,top+154,344,] { data:c.author }
@@ -131,7 +132,8 @@ panel testy {type:'right', title:'Úvahy a meditace'
     field [422,top+208,344,] { data:c.title_eng }
     label ref_tema [780,top+184,46,16] { style:'cursor:pointer' }
     label ref_text [780,top+211,46,16] { style:'cursor:pointer' }
-    edit [421,top+236,405,548] { type:'html', data:c.text_eng, par:{toolbar:'Cac'} }
+    edit text_eng [421,top+236,405,548] { type:'html', data:c.text_eng, par:{toolbar:'Cac'} }
+//    field text_eng [421,top+236,405,548] { data:c.text_eng, par:{toolbar:'Cac'} }
   }
   // ==> rezervační formulář
   panel rezervuj [0,0,200,100] { type:'popup'
