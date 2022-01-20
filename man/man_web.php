@@ -185,16 +185,17 @@ function rr_myslenka() {
   return $html;
 }
 # ------------------------------------------------------------------------------------- cac meditace
-# $par = {den:ode dneška dnes=0,poslat: 0/1}
-function cac_meditace() {
+# $par: 1=publikované, 2=přeložené i když nepublikované
+function cac_meditace($par=1) {
   $dny= array('z neděle','z pondělí','z úterý','ze středy','ze čtvrtka','z pátku','ze soboty');
-  $x= select_object('*','cac',"stav=3 ORDER BY datum DESC LIMIT 1",'ezertask');
+  $cond= $par==1 ? "stav=3" : "text_cz!=''";
+  $x= select_object('*','cac',"$cond ORDER BY datum DESC LIMIT 1",'ezertask');
   $w= $dny[(int)date("W",strtotime($x->datum))];
   $z_data= $w.' '.sql_date1($x->datum,0,'. ');
   // prefix
   $prefix= "";
   // přeložený text
-  $preklad= $x->preklada ? $x->preklada : 'DeepL';
+  $preklad= $x->preklada ? select('forename','_user',"id_user='$x->preklada'",'ezertask') : 'DeepL';
   $body= "<table cellpadding='10'><tr>";
   $body.= "<td valign='top' width='50%'><b>$x->title_cz</b><br>$x->text_cz
     <div align='right'><i>$x->author<br>přeložil $preklad</i></div></td>";

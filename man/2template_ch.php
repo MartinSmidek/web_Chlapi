@@ -536,7 +536,7 @@ __EOT;
     case 'cac':     # ----------------------------------------------- . daily meditation CAC
       if (!isset($_SESSION['web']['GET']['cac'])) break;
       global $backref;
-      $obsah= cac_meditace();
+      $obsah= cac_meditace($_SESSION['web']['GET']['cac']?:1); // 1=publikované, 2=už přeložené
       $plny= $top==$id;
       if ( $plny ) {
         // zobrazit jako plný článek
