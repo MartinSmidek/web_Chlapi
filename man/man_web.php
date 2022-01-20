@@ -195,10 +195,12 @@ function cac_meditace($par=1) {
   // prefix
   $prefix= "";
   // přeložený text
-  $preklad= $x->preklada ? select('forename','_user',"id_user='$x->preklada'",'ezertask') : 'DeepL';
+  $preklad= $x->preklada 
+      ? "přeložil ".select('forename','_user',"id_user='$x->preklada'",'ezertask') 
+      : "přeloženo aplikací DeepL";
   $body= "<table cellpadding='10'><tr>";
   $body.= "<td valign='top' width='50%'><b>$x->title_cz</b><br>$x->text_cz
-    <div align='right'><i>$x->author<br>přeložil $preklad</i></div></td>";
+    <div align='right'><i>$x->author<br>$preklad</i></div></td>";
   $body.= "<td valign='top' width='50%'><a href='$x->url_text' target='cac'><b>$x->title_eng</b></a>
     <br>$x->text_eng
     <div align='right'><i>$x->author</i></div></td>";
