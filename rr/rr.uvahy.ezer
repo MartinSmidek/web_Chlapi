@@ -104,13 +104,14 @@ panel testy {type:'right', title:'Úvahy a meditace'
       }
     }
     // ==> popis
-    label [421,0,269,40] { css:'work', style:'padding:5px', title:
-        "Tady bude popsané, jak s tím zacházet ... 
-        <br>Zatím alespoň: [+] načte novou úvahu a doplní 
-        <br>30 dnů pro rezervace"}
-    label [650,34,50,16] { title:'&nbsp;... více', 
-      style:"background:#365faf;color:#ffffff;cursor:pointer" 
-      func onclick() { vysvetli.popup() }
+    label [421,0,272,40] { css:'work', style:'padding:5px', title:
+        "<b>Stručný popis:</b> pod seznamem můžeš upravit překlad, pak ulož změnu a uprav stav 
+        (barvu) v kontextovém menu seznamu (pravý klik myší)" 
+        }
+    label [674,34,29,16] { title:
+      "<a href='https://notability.com/n/VXEqiurh5_dKdZ5fcna5a' target='pdf' 
+        style='background:#365faf;color:#ffffff;cursor:pointer'>&nbsp;více&nbsp;</a>", 
+//      func onclick() { vysvetli.popup() }
     }
     // #==> funkce
     button [0,0,,] { title:'[fa-plus]' 

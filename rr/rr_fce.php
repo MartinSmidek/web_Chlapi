@@ -5,9 +5,10 @@
 function stamp_show($typ,$subj='') {
   $html= '<dl>';
   ezer_connect("ezertask");
-  $rs= pdo_qry("SELECT kdy,pozn FROM stamp WHERE typ='$typ' ORDER BY kdy DESC LIMIT 24");
-  while ( $rs && (list($kdy,$pozn)= pdo_fetch_row($rs)) ) {
-    $html.= "<dt>$kdy</dt><dd>$pozn</dd>";
+  $rs= pdo_qry("SELECT kdy,GROUP_CONCAT(TIME(kdy)),pozn  
+    FROM stamp WHERE typ='$typ' GROUP BY CONCAT(DATE(kdy),pozn) ORDER BY kdy DESC LIMIT 24");
+  while ( $rs && (list($den,$cas,$pozn)= pdo_fetch_row($rs)) ) {
+    $html.= "<dt>$den $cas</dt><dd>$pozn</dd>";
   }
   $html.= "</dl>";
   return $html;
@@ -180,7 +181,6 @@ function cac_read_medit($dueto,$ymd) {
     $ret->date= '';
     // text daného dne
     $ret->title= $m[2][$i];
-    $ret->stamp.= "title={$ret->title}; ";
     $ret->url_title= $m[1][$i];
     $ret->tema= $m[4][$i];
     $ret->url_tema= $m[3][$i];
@@ -189,6 +189,7 @@ function cac_read_medit($dueto,$ymd) {
     $d= null;
     preg_match('~.*(\d\d\d\d-\d\d-(\d\d))~',$cac_day,$d);
     if ($d[2]!=$day) continue;
+    $ret->stamp.= "title={$ret->title}; ";
     $ret->date= sql_date1($d[1]);
     $html= file_get_contents($cac_day);
     $p= null;
