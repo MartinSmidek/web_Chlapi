@@ -186,18 +186,23 @@ function rr_myslenka() {
 }
 # ------------------------------------------------------------------------------------- cac meditace
 # $par: 1=publikované, 2=přeložené i když nepublikované
-function cac_meditace($par=1) {
+function cac_meditace($ymd,$jmp,$plny,$par=1) {
   $dny= array('z neděle','z pondělí','z úterý','ze středy','ze čtvrtka','z pátku','ze soboty');
   $cond= $par==1 ? "stav=3" : "text_cz!=''";
-  $x= select_object('*','cac',"$cond ORDER BY datum DESC LIMIT 1",'ezertask');
-  $w= $dny[(int)date("W",strtotime($x->datum))];
+  if ($ymd) 
+    $x= select_object('*','cac',"$cond AND datum='$ymd' ORDER BY datum DESC LIMIT 1",'ezertask');
+  if (!$ymd || !isset($x->datum)) {
+    $x= select_object('*','cac',"$cond ORDER BY datum DESC LIMIT 1",'ezertask');
+    $ymd= $x->datum;
+  }
+  $w= $dny[(int)date("w",strtotime($x->datum))];
   $z_data= $w.' '.sql_date1($x->datum,0,'. ');
   // prefix
   $prefix= "";
   // přeložený text
   $preklad= $x->preklada 
       ? "přeložil ".select('forename','_user',"id_user='$x->preklada'",'ezertask') 
-      : "přeloženo aplikací DeepL";
+      : "přeloženo DeepL";
   $body= "<table cellpadding='10'><tr>";
   $body.= "<td valign='top' width='50%'><b>$x->title_cz</b><br>$x->text_cz
     <div align='right'><i>$x->author<br>$preklad</i></div></td>";
@@ -205,13 +210,25 @@ function cac_meditace($par=1) {
     <br>$x->text_eng
     <div align='right'><i>$x->author</i></div></td>";
   $body.= "</tr></table>";
+  // starší a novější myšlenka
+  $go=  select('datum','cac',"$cond AND datum<'$ymd' ORDER BY datum DESC LIMIT 1",'ezertask');
+  $dalsi= $go
+      ? "<a class='jump' href='$jmp,$go'>starší</a>"
+      : "<span class='neodkaz'><a class='jump'>starší</a></span>";
+  $go= select('datum','cac',"$cond AND datum>'$ymd' ORDER BY datum ASC LIMIT 1",'ezertask');
+  $dalsi.= $go
+      ? "<a class='jump' href='$jmp,$go'>novější</a>"
+      : "<span class='neodkaz'><a class='jump'>novější</a></span>";
   // patička a redakce
   $postfix= "Zde se nacházejí překlady <b>Daily Meditations</b>, jejichž anglické originály 
     se nacházejí na webu <a href='https://cac.org/' target='cac'>CAC</a>. 
     Pokud vládneš dobrou angličtinou, přihlas se asi přímo u zdroje těchto úvah, tedy na webu CAC. 
     Budeš je pak do své mailové schránky dostávat již k ranní kávě. 
     Ve výšeuvedeném dvojjazyčném provedení je nalezneš pochopitelně s určitým časovým skluzem.  -mš-";
-  $html= "<h1>Překlad meditace CAC $z_data <br>na téma: 
+  $odkazy= $plny
+      ? "<div style='float:right;text-align:right'>$dalsi<br>$preklad</div>"
+      : '';
+  $html= "$odkazy<h1>Překlad meditace CAC $z_data <br>na téma: 
       <a href='$x->url_theme' target='cac'>$x->theme_cz</a></h1>
       $prefix $body $x->reference
       <hr><i>$postfix</i>";

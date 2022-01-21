@@ -102,7 +102,7 @@ function read_menu() {
 # path = [ mid, ...]
 function eval_menu($path) { 
   global $REDAKCE, $currpage, $tm_active, $ezer_server;
-  global  $menu, $amenu, $submenu_shift, $elem, $curr_menu, $backref, $top;
+  global  $menu, $amenu, $submenu_shift, $elem, $curr_menu, $backref, $backhref, $top;
   global $prefix, $href, $input;
   $prefix= get_prefix();
   $currpage= implode('!',$path);
@@ -138,6 +138,7 @@ function eval_menu($path) {
         $curr_menu= $m;
 //        $top= array_pop($path);
         $tm_active= " class='active'";
+        $backhref= $href;
         $backref= $REDAKCE 
           ? "onclick=\"go(arguments[0],'page=$href!*','{$prefix}$href!*','$input',0);\""
           : "href='{$prefix}$href!*'";
@@ -156,6 +157,7 @@ function eval_menu($path) {
         $active= $m->has_subs ? ' active subs' : ' active';
         $elem= $m->elem;
         $curr_menu= $m;
+        $backhref= $href;
         $backref= $REDAKCE 
           ? "onclick=\"go(arguments[0],'page=$href!*','{$prefix}$href!*','$input',0);\""
           : "href='{$prefix}$href!*'";
@@ -173,6 +175,7 @@ function eval_menu($path) {
           $active= ' active';
           $elem= $m->elem;
           $curr_menu= $m;
+          $backhref= $href;
           $backref= $REDAKCE 
             ? "onclick=\"go(arguments[0],'page=$href!*','{$prefix}$href!*','$input',0);\""
             : "href='{$prefix}$href!*'";
@@ -535,9 +538,10 @@ __EOT;
     
     case 'cac':     # ----------------------------------------------- . daily meditation CAC
       if (!isset($_SESSION['web']['GET']['cac']) || !$_SESSION['web']['GET']['cac']) break;
-      global $backref;
-      $obsah= cac_meditace($_SESSION['web']['GET']['cac']?:1); // 1=publikované, 2=už přeložené
-      $plny= $top==$id;
+      global $backhref;
+      list($dva,$ymd)= explode(',',$top);
+      $plny= $dva==$id;
+      $obsah= cac_meditace($ymd,"$backhref!$id",$plny,$_SESSION['web']['GET']['cac']?:1); // 1=publikované, 2=už přeložené
       if ( $plny ) {
         // zobrazit jako plný článek
         $html.= "
@@ -550,8 +554,8 @@ __EOT;
       else {
         // zobrazit jako abstrakt
         $obsah= x_shorting($obsah);
-        $styl= 'aclanek';
         $jmp= str_replace('*',$id,$backref);
+        $styl= 'aclanek';
         $html.= "
           <div class='back'>
             <a class='$styl home' $jmp>
