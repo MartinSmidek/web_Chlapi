@@ -93,7 +93,7 @@ function cac_read_medits($dueto) {
     $ok= 1; $msg= "dnešní meditaci už máme"; 
     // zápis do stamp
     $dt= date('Y-m-d H:i:s');
-    query("INSERT INTO stamp (typ,kdy,pozn) VALUES ('cac','$dt','$dueto READ: already exists')");
+    query("INSERT INTO stamp (typ,kdy,pozn) VALUES ('cac','$dt','$dueto READ: $dnes already exists')");
     goto end; 
   }
   // zajištění naplnění prázdnými záznamy na měsíc dopředu
