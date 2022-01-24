@@ -201,7 +201,7 @@ function cac_meditace($ymd,$jmp,$plny,$par=1) {
   $prefix= "";
   // přeložený text
   $preklad= $x->preklada 
-      ? "přeložil ".select('forename','_user',"id_user='$x->preklada'",'ezertask') 
+      ? "po DeepL upravil ".select('forename','_user',"id_user='$x->preklada'",'ezertask') 
       : "přeloženo DeepL";
   $body= "<table cellpadding='10'><tr>";
   $body.= "<td valign='top' width='50%'><b>$x->title_cz</b><br>$x->text_cz
