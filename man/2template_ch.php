@@ -537,11 +537,12 @@ __EOT;
       break;
     
     case 'cac':     # ----------------------------------------------- . daily meditation CAC
-      if (!isset($_SESSION['web']['GET']['cac']) || !$_SESSION['web']['GET']['cac']) break;
+//      if (!isset($_SESSION['web']['GET']['cac']) || !$_SESSION['web']['GET']['cac']) break;
       global $backhref;
       list($dva,$ymd)= explode(',',$top);
       $plny= $dva==$id;
-      $obsah= cac_meditace($ymd,"$backhref!$id",$plny,$_SESSION['web']['GET']['cac']?:1); // 1=publikované, 2=už přeložené
+      $obsah= cac_meditace($ymd,"$backhref!$id",$plny,2); // 1=publikované, 2=už přeložené
+//      $obsah= cac_meditace($ymd,"$backhref!$id",$plny,$_SESSION['web']['GET']['cac']?:1); // 1=publikované, 2=už přeložené
       if ( $plny ) {
         // zobrazit jako plný článek
         $html.= "
