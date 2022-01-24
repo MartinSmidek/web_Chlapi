@@ -190,9 +190,11 @@ function cac_meditace($ymd,$jmp,$plny,$par=1) {
   $dny= array('z neděle','z pondělí','z úterý','ze středy','ze čtvrtka','z pátku','ze soboty');
   $cond= $par==1 ? "stav=3" : "text_cz!=''";
   if ($ymd) 
-    $x= select_object('*','cac',"$cond AND datum='$ymd' ORDER BY datum DESC LIMIT 1",'ezertask');
+    $x= select_object('*','cac LEFT JOIN cactheme USING (id_cactheme)',
+        "$cond AND datum='$ymd' ORDER BY datum DESC LIMIT 1",'ezertask');
   if (!$ymd || !isset($x->datum)) {
-    $x= select_object('*','cac',"$cond ORDER BY datum DESC LIMIT 1",'ezertask');
+    $x= select_object('*','cac LEFT JOIN cactheme USING (id_cactheme)',
+        "$cond ORDER BY datum DESC LIMIT 1",'ezertask');
     $ymd= $x->datum;
   }
   $w= $dny[(int)date("w",strtotime($x->datum))];

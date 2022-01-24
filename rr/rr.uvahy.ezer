@@ -43,6 +43,7 @@ panel testy {type:'right', title:'Úvahy a meditace'
   form _g [,,*,100] {
     const top=110
     view c: table cac
+    view t: table cactheme { join_type:'LEFT', join:"USING (id_cactheme)" }
     view u: table _user { join_type:'LEFT', join:"ON u.id_user=c.preklada" }
     label [91,2,210,16] { 
       title:" <span class='blue'>rezervováno</span> 
@@ -50,11 +51,12 @@ panel testy {type:'right', title:'Úvahy a meditace'
               <span class='green'>je na webu</span>" }
     browse b [0,24,,] { rows:7, qry_rows:1, css_rows:'barva,1:blue,2:yellow,3:green'
       show id_cac { data:c.id_cac }
+      show id_cactheme { data:t.id_cactheme }
       show { data:u.id_user }
       show url_text { data:c.url_text }
-      show url_theme { data:c.url_theme }
+      show url_theme { data:t.url_theme }
       show datum [,,90,] { title:'datum', data:c.datum, format:'rqs+' }
-      show tema [,,60,] { title:'téma', data:c.theme_eng, format:'tq' }
+      show tema [,,60,] { title:'téma', data:t.theme_eng, format:'tq' }
       show [,,185,] { title:'název', data:c.title_eng, format:'tq' }
       show preklad [,,40,] { title:'překládá', data:u.username, format:'q' }
       show import [,,0,] { title:'načteno z CAC', data:c.imported_eng, format:'q' }
@@ -68,7 +70,7 @@ panel testy {type:'right', title:'Úvahy a meditace'
       }
       func nacti() {
 //        js.waiting(1);
-        g.load(id_cac); 
+        g.load(id_cac); t.load(id_cactheme); 
         ref_tema= `<a href="${url_theme}" target="cac"><i class='fa fa-share'></i> CAC</a>`; 
         ref_text= `<a href="${url_text}" target="cac"><i class='fa fa-share'></i> CAC</a>`; 
 //        js.waiting(0);
@@ -123,22 +125,30 @@ panel testy {type:'right', title:'Úvahy a meditace'
     button [315,0,,] { title:'[fa-shopping-basket] Rezervace', func onclick() { rezervuj.modal() }}
     label [710,0,114,57] { css:'parm' }
     button [718,8,,] { title:'[fa-save] Uložení změn', func onclick() { 
-      changed_cz= fdate('Y-m-d H:i:s'); changed_cz.change();
-      g.save(); g.load() 
+      // případná změna téma
+      if (theme_cz.changed()) {
+        t.save(); t.load(); b.browse_seek()
+      }
+      if (!g.same()) {
+        changed_cz= fdate('Y-m-d H:i:s'); changed_cz.change();
+        g.save(); g.load() 
+      }
     } }
     button [719,31,,] { title:'[fa-undo] Vrácení změn', func onclick() { g.load() } }
+    field id_cac { data:c.id_cac }
+    field id_cactheme { data:t.id_cactheme }
     // ==> pole pro revize překladu a pro literaturu
     edit [0,220,402,60] { data:c.errata, title:'^Důvod revize překladu (s podpisem prosím)' }
     edit [421,60,402,190] { type:'html', data:c.reference, title:'^Reference', par:{toolbar:'Cac'} }
     // ==> editační pole CZ
-    field [0,top+181,399,] { data:c.theme_cz }
+    field theme_cz [0,top+181,399,] { data:t.theme_cz }
     field [0,top+208,399,] { data:c.title_cz }
     edit text_cz [0,top+237,405,548] { type:'html', data:c.text_cz, par:{toolbar:'Cac'} }
 //    field text_cz [0,top+237,405,548] { data:c.text_cz, par:{toolbar:'Cac'} }
     field changed_cz { data:c.changed_cz }
     // ==> editační pole ENG
     field [422,top+154,344,] { data:c.author }
-    field [422,top+181,344,] { data:c.theme_eng }
+    field [422,top+181,344,] { data:t.theme_eng }
     field [422,top+208,344,] { data:c.title_eng }
     label ref_tema [780,top+184,46,16] { style:'cursor:pointer' }
     label ref_text [780,top+211,46,16] { style:'cursor:pointer' }
@@ -160,9 +170,10 @@ panel testy {type:'right', title:'Úvahy a meditace'
           seznamu úvah lze kliknout pravým tlačítkem myši a změnit stav ..." }      
     }
   }
-  // ==> tabulka CAC
-  table cac {
+  // ==> tabulky CAC
+  table cac { key_id:'id_cac'
     number id_cac
+    number id_cactheme
     date datum { sql_pipe:'sql_date'} 
     text stav // volné, rezervace, hotové
     text errata
@@ -179,6 +190,12 @@ panel testy {type:'right', title:'Úvahy a meditace'
     text title_cz
     text text_cz
     date changed_cz
+  }
+  table cactheme { key_id:'id_cactheme'
+    number id_cactheme
+    text url_theme
+    text theme_eng
+    text theme_cz
   }
   table _user {
     number id_user

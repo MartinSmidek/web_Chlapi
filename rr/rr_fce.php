@@ -24,9 +24,9 @@ function cac_make_free($idc) {
   $stav= select('stav','cac',"id_cac=$idc");
   if ($stav!=3) {
     if ($stav==2) $stav= 1;
-    query("UPDATE cac SET stav=$stav,
-      text_eng='',title_eng='',theme_eng='',imported_eng='',url_theme='',url_text='',author='',reference='',
-      text_cz='',title_cz='',theme_cz='',changed_cz='' WHERE id_cac=$idc");
+    query("UPDATE cac SET stav=$stav,id_cactheme=0,
+      text_eng='',title_eng='',imported_eng='',url_text='',author='',reference='',
+      text_cz='',title_cz='',changed_cz='' WHERE id_cac=$idc");
   }
   else {
     $msg= 'publikovaný text nelze zrušit';
@@ -37,15 +37,22 @@ function cac_make_free($idc) {
 # doplní nové úvahy do CAC
 function cac_through_DeepL($idc) {
   global $ezer_server;
-  list($theme_eng,$title_eng,$text_eng)= select('theme_eng,title_eng,text_eng','cac',"id_cac=$idc");
+  list($idt,$theme_eng,$theme_cz,$title_eng,$text_eng)= 
+      select('id_cactheme,theme_eng,theme_cz,title_eng,text_eng',
+          'cac LEFT JOIN cactheme USING (id_cactheme)',"id_cac=$idc");
+  // překlad téma, není-li
+  if ($idt && !$theme_cz) {
+    $theme_cz= cac_deepl_en2cs($theme_eng);
+    query("UPDATE cactheme SET theme_cz=\"$theme_cz\" WHERE id_cactheme=$idt");
+  }
+  // překlad textu
   if ($ezer_server==0) // v lokálu neplýtváme :-)
     $text_eng= "<p>Testing <em>this</em> awesome <b>translator.</b></p>";
-  $theme_cz= cac_deepl_en2cs($theme_eng);
   $title_cz= cac_deepl_en2cs($title_eng);
   $text_cz= cac_deepl_en2cs($text_eng);
   $dt= date('Y-m-d H:i:s');
   query("UPDATE cac SET changed_cz='$dt',
-    text_cz=\"$text_cz\",title_cz=\"$title_cz\",theme_cz=\"$theme_cz\" WHERE id_cac=$idc");
+    text_cz=\"$text_cz\",title_cz=\"$title_cz\" WHERE id_cac=$idc");
   return $title_cz;
 }
 # ---------------------------------------------------------------------------------- cac deepl_en2cs
@@ -147,13 +154,19 @@ function cac_save_medit($dueto,$last) { trace();
     $x->idc= pdo_insert_id();
   }
   $tema= pdo_real_escape_string($x->tema);
+  // test, jestli nejde o nové téma
+  $idt= select('id_cactheme','cactheme',"theme_eng='$tema' ");
+  if (!$idt) {
+    query("INSERT INTO cactheme SET theme_eng='$tema',url_theme='$x->url_tema' ");
+    $idt= pdo_insert_id();
+  }
   $title= pdo_real_escape_string($x->title);
   $text= pdo_real_escape_string($x->text);
   $reference= pdo_real_escape_string($x->reference);
   $dt= date('Y-m-d H:i:s');
   if ($text) {
     query("UPDATE cac SET 
-        url_theme='$x->url_tema',url_text='$x->url_title',theme_eng='$tema',imported_eng='$dt',
+        id_cactheme='$idt',url_text='$x->url_title',imported_eng='$dt',
         author='$x->autor',reference='$reference',title_eng='$title',text_eng='$text' 
         WHERE id_cac=$x->idc");
   }
