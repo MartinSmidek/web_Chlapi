@@ -40,7 +40,13 @@
     'favicon' => $favicons[$ezer_server],
     'CKEditor' => "{
       version:'4.6',
-      Cac:{toolbar:[['Bold','Italic','-','Outdent','Indent','-','Source']]}
+      Cac:{toolbar:[['Styles','-','Bold','Italic','-','Outdent','Indent','-','Source']],
+        stylesSet:[
+          {name:'odstavec',  element:'p'},
+          {name:'bible',     element:'span', attributes:{'class':'bible'}}
+        ],
+        contentsCss:'man/css/edit.css'
+      }
     }"
   );
 
