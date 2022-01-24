@@ -188,7 +188,7 @@ function rr_myslenka() {
 # $par: 1=publikované, 2=přeložené i když nepublikované
 function cac_meditace($ymd,$jmp,$plny,$par=1) {
   $dny= array('z neděle','z pondělí','z úterý','ze středy','ze čtvrtka','z pátku','ze soboty');
-  $cond= $par==1 ? "stav=3" : "text_cz!=''";
+  $cond= $par==1 ? "stav IN (3,4)" : "text_cz!=''";  // upraveno nebo přeloženo
   if ($ymd) 
     $x= select_object('*','cac LEFT JOIN cactheme USING (id_cactheme)',
         "$cond AND datum='$ymd' ORDER BY datum DESC LIMIT 1",'ezertask');
@@ -203,7 +203,8 @@ function cac_meditace($ymd,$jmp,$plny,$par=1) {
   $prefix= "";
   // přeložený text
   $preklad= $x->preklada 
-      ? "po DeepL upravil ".select('forename','_user',"id_user='$x->preklada'",'ezertask') 
+      ? ( $x->stav==4 ? "přeložil " : "po DeepL upravil ")
+        .select('forename','_user',"id_user='$x->preklada'",'ezertask') 
       : "přeloženo DeepL";
   $body= "<table cellpadding='10'><tr>";
   $body.= "<td valign='top' width='50%'><b>$x->title_cz</b><br>$x->text_cz

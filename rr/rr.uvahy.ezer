@@ -1,11 +1,18 @@
 panel testy {type:'right', title:'Úvahy a meditace'
   use info: form right [12,4,,]
   use g: form _g [12,38,,] { format:'n' }
+  use h: form _h [12,38,,] { format:'n' }
   menu m {type:'left', format:'f-'
     menu p {title:'Překládání úvah CAC',type:'group'
       item k {title:'[fa-calendar-check-o] Plánovací kalendář'
         func onclick(i:ezer) { 
-          info.fill(i.title,' '); g.display(1); clear();
+          info.header(i);g.display(1); h.display(0); clear();
+          g.b.browse_refresh();
+        }
+      }
+      item {title:'[fa-cutlery] Přehled témat'
+        func onclick(i:ezer) { 
+          info.header(i);g.display(0); h.display(1); clear();
           g.b.browse_refresh();
         }
       }
@@ -15,29 +22,41 @@ panel testy {type:'right', title:'Úvahy a meditace'
       item {title:'[fa-question] odeslání Myšlenek',        par:{typ:'rr'} }
       item {title:'[fa-question] odeslání mailu Pokladna',  par:{typ:'mail',subj:'pokladna'} }
       func onclick (i:ezer) { var cac:object
-        clear(); info.header(i); g.display(0); 
-        info.fill('',php.stamp_show('cac'));
+        clear(); info.header(i); g.display(0); h.display(0); 
+        info.fill('',php.stamp_show(i.par.typ,i.par.subj));
       }
     }
-    menu {title:'Testy',type:'group', active:no, skill:'m'
-      item {title:'10/1', par:{date:'2022-01-10'} }
-      item {title:'11/1', par:{date:'2022-01-11'} }
-    }
-    func onclick (i:ezer) { var cac:object
-      g.display(0); clear(); info.header(i);
-      cac= php.cac_read_medit('MENU',i.par.date);
-      if (cac.date)
-        info.fill('',`<h2>${cac.date}: <a href="${cac.url_title}" target="CAC">${cac.title}</a> 
-            from <a href="${cac.url_tema}" target="CAC">${cac.tema}</a></h2>
-            <h3>${cac.autor}</h3>${cac.text}`);
-      else
-        info.append(' novější meditace CAC zatím nejdou importovat ')
-    }
+//    menu {title:'Testy',type:'group', active:no, skill:'m'
+//      item {title:'10/1', par:{date:'2022-01-10'} }
+//      item {title:'11/1', par:{date:'2022-01-11'} }
+//    }
+//    func onclick (i:ezer) { var cac:object
+//      g.display(0); h.display(0); clear(); info.header(i);
+//      cac= php.cac_read_medit('MENU',i.par.date);
+//      if (cac.date)
+//        info.fill('',`<h2>${cac.date}: <a href="${cac.url_title}" target="CAC">${cac.title}</a> 
+//            from <a href="${cac.url_tema}" target="CAC">${cac.tema}</a></h2>
+//            <h3>${cac.autor}</h3>${cac.text}`);
+//      else
+//        info.append(' novější meditace CAC zatím nejdou importovat ')
+//    }
   }
   // ==> incializace
   func onfirstfocus() {
-    g.b.browse_load(); g.b.nacti();
+    g.b.browse_load(); g.b.nacti(); h.b.nacti();
     m.p.k.click(); g.b.nejnovejsi();
+  }
+  # --------------------------------------------------------------------------==> přehled témat
+  form _h [,,*,100] {
+    view t: table cactheme
+    view c: table cac { join_type:'LEFT', join:"USING (id_cactheme)" }
+    browse b [0,0,,] { rows:20, qry_rows:1, group_by:'theme_eng'
+      show [,,250,] { title:'originál', data:t.theme_eng, format:'qs' }
+      show [,,250,] { title:'překlad', data:t.theme_cz, format:'qs' }
+      show od [,,90,] { title:'od', expr:"MIN(c.datum)", sql_pipe:'sql_date', format:'rqs-' }
+      show do [,,90,] { title:'do', expr:"MAX(c.datum)", sql_pipe:'sql_date', format:'rqs' }
+      func nacti() { b.browse_load() }
+    }    
   }
   # --------------------------------------------------------------------------==> originál a překlad
   form _g [,,*,100] {
@@ -45,11 +64,12 @@ panel testy {type:'right', title:'Úvahy a meditace'
     view c: table cac
     view t: table cactheme { join_type:'LEFT', join:"USING (id_cactheme)" }
     view u: table _user { join_type:'LEFT', join:"ON u.id_user=c.preklada" }
-    label [91,2,210,16] { 
+    label [91,2,300,16] { 
       title:" <span class='blue'>rezervováno</span> 
               <span class='yellow'>překládáno</span> 
-              <span class='green'>je na webu</span>" }
-    browse b [0,24,,] { rows:7, qry_rows:1, css_rows:'barva,1:blue,2:yellow,3:green'
+              <span class='green'>upraveno</span>
+              <span class='green2'>přeloženo</span>" }
+    browse b [0,24,,] { rows:7, qry_rows:1, css_rows:'barva,1:blue,2:yellow,3:green,4:green2'
       show id_cac { data:c.id_cac }
       show id_cactheme { data:t.id_cactheme }
       show { data:u.id_user }
@@ -82,7 +102,8 @@ panel testy {type:'right', title:'Úvahy a meditace'
       menu { type:'context'
         item { title:'tento text chci překládat'    func onclick() { zmena_stavu(1) } }
         item { title:'... pracuji na překladu'      func onclick() { zmena_stavu(2) } }
-        item { title:'hotovo: možno dát na web'     func onclick() { zmena_stavu(3) } }
+        item { title:'hotovo: upraveno po DeepL'    func onclick() { zmena_stavu(3) } }
+        item { title:'hotovo: přeloženo'            func onclick() { zmena_stavu(4) } }
         item { title:'-odvolávám a uvolňuji jinému' func onclick() { zmena_stavu(0) } }
         item { title:'=vymazat originál i překlad' skill:'m' func onclick() { var msg:text
             msg= php.cac_make_free(id_cac); 
@@ -122,7 +143,7 @@ panel testy {type:'right', title:'Úvahy a meditace'
         g.b.browse_refresh();
     }}
     button [24,0,,] { title:'[fa-calendar-check-o] Dnes' func onclick() { b.nejnovejsi() }}
-    button [315,0,,] { title:'[fa-shopping-basket] Rezervace', func onclick() { rezervuj.modal() }}
+//    button [315,0,,] { title:'[fa-shopping-basket] Rezervace', func onclick() { rezervuj.modal() }}
     label [710,0,114,57] { css:'parm' }
     button [718,8,,] { title:'[fa-save] Uložení změn', func onclick() { 
       // případná změna téma
@@ -156,13 +177,13 @@ panel testy {type:'right', title:'Úvahy a meditace'
 //    field text_eng [421,top+236,405,548] { data:c.text_eng, par:{toolbar:'Cac'} }
   }
   // ==> rezervační formulář
-  panel rezervuj [0,0,200,100] { type:'popup'
-    use r: form {
-      label { title:"tady bude možné si hromadně zarezervovat termíny,
-          podobně jako je v kalendářích např. každé uterý, nebo příští týden ...
-          Zatím lze rezervat kontextovým menu v seznamu." }      
-    }
-  }
+//  panel rezervuj [0,0,200,100] { type:'popup'
+//    use r: form {
+//      label { title:"tady bude možné si hromadně zarezervovat termíny,
+//          podobně jako je v kalendářích např. každé uterý, nebo příští týden ...
+//          Zatím lze rezervat kontextovým menu v seznamu." }      
+//    }
+//  }
   // ==> podrobný návod k použití 
   panel vysvetli [0,0,400,200] { type:'popup'
     use r: form {
@@ -175,7 +196,7 @@ panel testy {type:'right', title:'Úvahy a meditace'
     number id_cac
     number id_cactheme
     date datum { sql_pipe:'sql_date'} 
-    text stav // volné, rezervace, hotové
+    text stav // volné, rezervace, upravené, přeložené
     text errata
     text url_theme
     text url_text

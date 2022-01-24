@@ -162,6 +162,7 @@ menu rr { type:'main', active:rr.richard
       use info: form right [12,4,,]     { tag:'i' }
     }
   }
+  tabs doc  {title:"Nápověda", _sys:'*',  include:'onclick,ezer2.help' active:*, skill:'a' }
   tabs off  {type:'logoff', title:"[fa-power-off] Odhlásit"}
   # ------------------------------------------------------------------ tables
   table rr {
@@ -187,6 +188,7 @@ form right [,,*,50] { style:'width:calc(100% - 24px)'
   label note [0,55,*,] { title:'' }
   func header(i:ezer) { var i_owner:ezer
     clear(); i_owner= i.owner();
+    msg= ''; note= '';
     head= replace_fa(`<div class='karta'>${i_owner.title} - ${i.title}</div>`);
   }
   func fill(x,y) {
