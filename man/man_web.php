@@ -225,9 +225,11 @@ function cac_meditace($ymd,$jmp,$plny,$par=1) {
   // patička a redakce
   $postfix= "Zde se nacházejí překlady <b>Daily Meditations</b>, jejichž anglické originály 
     se nacházejí na webu <a href='https://cac.org/' target='cac'>CAC</a>. 
-    Pokud vládneš dobrou angličtinou, přihlas se asi přímo u zdroje těchto úvah, tedy na webu CAC. 
-    Budeš je pak do své mailové schránky dostávat již k ranní kávě. 
-    Ve výšeuvedeném dvojjazyčném provedení je nalezneš pochopitelně s určitým časovým skluzem.  -mš-";
+    V den jejich vydání je zde nalezneš přeložené strojově pomocí DeepL, 
+    zpravidla do druhého dne pak projdou jazykovou úpravou někým z týmu překladatelů :-)  
+    Pokud vládneš dobrou angličtinou, přihlas se asi raději přímo u zdroje těchto úvah, 
+    tedy na webu CAC. Budeš je pak do své mailové schránky dostávat již k ranní kávě. 
+    -mš-";
   $odkazy= $plny
       ? "<div style='float:right;text-align:right'>$dalsi<br>$preklad</div>"
       : '';

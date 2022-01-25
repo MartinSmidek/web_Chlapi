@@ -211,7 +211,7 @@ function cac_read_medit($dueto,$ymd) {
         $html,$p);
     $ret->stamp.= "match2={$ret->cut}; ";
     display("načtení dne: $ret->ok ($cac_day)");
-    $text= preg_split('~<p><strong>(Story|References|Explore|Breath)~',$p[1],-1,PREG_SPLIT_DELIM_CAPTURE);
+    $text= preg_split('~<p><strong>(Story|Reference|Explore|Breath)~',$p[1],-1,PREG_SPLIT_DELIM_CAPTURE);
     $ret->text= $text[0];
     $ret->reference= '';
     for ($i= 1; $i<count($text); $i+= 2) {
