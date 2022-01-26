@@ -4,7 +4,8 @@
 # --------------------------------------------------------------------------------- bib save_aliases
 # aktualizuje aliasy dané knihy
 function bib_save_aliases($kniha,$aliasy,$nazev,$poradi) {
-  $as= select('GROUP_CONCAT(alias)','bible_kniha',"kniha='$kniha' ",'setkani');
+  list($as,$poradi)= 
+      select('GROUP_CONCAT(alias),MIN(poradi)','bible_kniha',"kniha='$kniha' ",'setkani');
   $old= preg_split("~\s*,\s*~",$as);
   $new= preg_split("~\s*,\s*~",$aliasy);
   // přidáme chybějící
@@ -23,7 +24,7 @@ function bib_save_aliases($kniha,$aliasy,$nazev,$poradi) {
   }
   // případně upravíme název
   if ($nazev) {
-    query("UPDATE bible_kniha SET nazev='$nazev' WHERE kniha='$kniha' AND alias='$kniha' ",'setkani');
+    query("UPDATE bible_kniha SET nazev='$nazev',poradi=$poradi WHERE kniha='$kniha' AND alias='$kniha' ",'setkani');
   }
   // případně upravíme pořadí
   if ($poradi) {

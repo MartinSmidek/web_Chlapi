@@ -66,7 +66,7 @@ panel testy {type:'right', title:'Úvahy a meditace'
     }    
     field kniha [412,33,30,] { title:'^pro knihu', format:'d' }
     field nazev [460,33,181,] { format:'' }
-    field poradi [660,33,30,] { title:'^No. ', format:'rf' }
+    field poradi [660,33,30,] { title:'^No. ', format:'nrf' }
     field aliasy [412,73,230,] { title:'^rozeznáváme jako aliasy ' }
     label [412,104,300,30] { title:"tento čárkami oddělený seznam alternativních názvů 
         <br>lze po úvaze změnit a poté uložit (také název)" 
