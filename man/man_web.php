@@ -31,8 +31,8 @@ function bib_ref ($ref) { trace();
   $kap= $m[2];
   $v1= $m[3];
   $v2= isset($m[4]) ? $m[4] : $v1;
-  $bib= select("GROUP_CONCAT(text SEPARATOR ' ')",'bible',
-      "kniha='$k' AND kapitola=$kap AND vers BETWEEN $v1 AND $v2");
+  $bib= select("GROUP_CONCAT(text SEPARATOR ' ')",'bible JOIN bible_kniha USING (kniha)',
+      "alias='$k' AND kapitola=$kap AND vers BETWEEN $v1 AND $v2");
   $bib.= " [$ref]";
 end:
   display("$ref=$bib");

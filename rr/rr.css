@@ -10,10 +10,16 @@
 .orange { background-color:#fa0 !important; }
 .white  { background-color:#fff !important; }
 .grey   { background-color:#aaa !important; }
+.silver { background-color:#eee !important; }
 
 .red_text   { color:#f00 !important; }
 .green_text { color:#0f0 !important; }
 .blue_text  { color:#00f !important; }
+
+/* zmenšení toolbar v CKEditoru */
+
+.default { cursor:default }
+.pointer { cursor:pointer }
 
 /* zmenšení toolbar v CKEditoru */
 

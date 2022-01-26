@@ -1,19 +1,26 @@
 panel testy {type:'right', title:'Úvahy a meditace'
   use info: form right [12,4,,]
-  use g: form _g [12,38,,] { format:'n' }
-  use h: form _h [12,38,,] { format:'n' }
-  menu m {type:'left', format:'f-'
+  use g: form _g [12,38,,] { tag:'g', format:'n' }
+  use h: form _h [12,38,,] { tag:'h', format:'n' }
+  use b: form _b [12,38,,] { tag:'b', format:'n' }
+  menu m {type:'left', format:'f'
     menu p {title:'Překládání úvah CAC',type:'group'
       item k {title:'[fa-calendar-check-o] Plánovací kalendář'
         func onclick(i:ezer) { 
-          info.header(i);g.display(1); h.display(0); clear();
+          info.header(i); panel.display(2,'g'); clear();
           g.b.browse_refresh();
         }
       }
       item {title:'[fa-cutlery] Přehled témat'
         func onclick(i:ezer) { 
-          info.header(i);g.display(0); h.display(1); clear();
+          info.header(i); panel.display(2,'h'); clear();
           g.b.browse_refresh();
+        }
+      }
+      item {title:'[fa-book] Názvy biblických knih'
+        func onclick(i:ezer) { 
+          info.header(i); panel.display(2,'b'); clear();
+          b.b.browse_refresh();
         }
       }
     }
@@ -26,25 +33,55 @@ panel testy {type:'right', title:'Úvahy a meditace'
         info.fill('',php.stamp_show(i.par.typ,i.par.subj));
       }
     }
-//    menu {title:'Testy',type:'group', active:no, skill:'m'
-//      item {title:'10/1', par:{date:'2022-01-10'} }
-//      item {title:'11/1', par:{date:'2022-01-11'} }
-//    }
-//    func onclick (i:ezer) { var cac:object
-//      g.display(0); h.display(0); clear(); info.header(i);
-//      cac= php.cac_read_medit('MENU',i.par.date);
-//      if (cac.date)
-//        info.fill('',`<h2>${cac.date}: <a href="${cac.url_title}" target="CAC">${cac.title}</a> 
-//            from <a href="${cac.url_tema}" target="CAC">${cac.tema}</a></h2>
-//            <h3>${cac.autor}</h3>${cac.text}`);
-//      else
-//        info.append(' novější meditace CAC zatím nejdou importovat ')
-//    }
   }
   // ==> incializace
   func onfirstfocus() {
-    g.b.browse_load(); g.b.nacti(); h.b.nacti();
-    m.p.k.click(); g.b.nejnovejsi();
+    g.b.browse_load(); g.b.nacti(); g.b.nejnovejsi(); h.b.nacti(); b.b.nacti();
+//    m.p.k.click(); 
+  }
+  # --------------------------------------------------------------------------==> biblické knihy
+  form _b [,,*,100] {
+    view k: table bible_kniha
+    browse b [0,0,,] { rows:20, qry_rows:1, group_by:'kniha'
+      show { data:k.id_bible_kniha }
+      show nazev [,,150,] { title:'kniha', expr:"MAX(k.nazev)", format:'tq*s'  }
+      show kniha [,,50,] { title:'zkratka', data:k.kniha, format:'q*s' }
+      show aliasy [,,171,] { title:'aliasy', expr:"GROUP_CONCAT(k.alias)", format:'tq*s' }
+      show poradi [,,0,] { title:'No.', expr:"MAX(k.poradi)", format:'rq*s+' }
+      func nacti() { b.browse_load(`k.bible=1 AND k.poradi<999`) }
+      func onrowclick() { var i:number, v:text
+        copy_by_name(b,form);
+        v= `<h3>${nazev} - začátek první kapitoly</h3>`;
+        for (i=1; i<=5; i++) {
+          v= conc(`${v} <sup>${i}</sup>`,
+              php.select('text','bible',`kniha='${kniha}' AND kapitola=1 AND vers=${i}`,'setkani'));
+        }
+        vv= v;
+      }
+      func onclick() { 
+        if (poradi.width()) { poradi.width(0); aliasy.width(171); }
+        else { poradi.width(30); aliasy.width(140); }
+        form.poradi.display(poradi.width()?1:0);
+      }
+    }    
+    field kniha [412,33,30,] { title:'^pro knihu', format:'d' }
+    field nazev [460,33,181,] { format:'' }
+    field poradi [660,33,30,] { title:'^No. ', format:'rf' }
+    field aliasy [412,73,230,] { title:'^rozeznáváme jako aliasy ' }
+    label [412,104,300,30] { title:"tento čárkami oddělený seznam alternativních názvů 
+        <br>lze po úvaze změnit a poté uložit (také název)" 
+    }
+    // ==> . tlačítka
+    label [412,142,130,34] { css:'parm' }
+    button [421,150,,] { title:'[fa-save] Uložit'
+      func onclick() { 
+        php.bib_save_aliases(kniha,aliasy,nazev.changed()?nazev:'',poradi.changed()?poradi:0); 
+        b.browse_row(); b.onrowclick() 
+    }}
+    button [485,150,,] { title:'[fa-undo] Zpět'
+      func onclick() { b.onrowclick() }}
+    // ==> . ukázka textu
+    label vv [412,180,420,194] 
   }
   # --------------------------------------------------------------------------==> přehled témat
   form _h [,,*,100] {
@@ -64,11 +101,16 @@ panel testy {type:'right', title:'Úvahy a meditace'
     view c: table cac
     view t: table cactheme { join_type:'LEFT', join:"USING (id_cactheme)" }
     view u: table _user { join_type:'LEFT', join:"ON u.id_user=c.preklada" }
-    label [91,2,300,16] { 
-      title:" <span class='blue'>rezervováno</span> 
-              <span class='yellow'>překládáno</span> 
-              <span class='green'>upraveno</span>
-              <span class='green2'>přeloženo</span>" }
+    label [90,2,42,16] { title:" <span class='silver pointer'>volné</span>"       
+      func onclick() { zmena_stavu(0) }}
+    label [127,2,67,16] { title:" <span class='blue pointer'>rezervováno</span>"  
+      func onclick() { zmena_stavu(1) }}
+    label [204,2,66,16] { title:" <span class='yellow pointer'>překládáno</span>" 
+      func onclick() { zmena_stavu(2) }}
+    label [281,2,55,16] { title:" <span class='green pointer'>upraveno</span>"    
+      func onclick() { zmena_stavu(3) }}
+    label [348,2,59,16] { title:" <span class='green2 pointer'>přeloženo</span>"  
+      func onclick() { zmena_stavu(4) }}
     browse b [0,24,,] { rows:7, qry_rows:1, css_rows:'barva,1:blue,2:yellow,3:green,4:green2'
       show id_cac { data:c.id_cac }
       show id_cactheme { data:t.id_cactheme }
@@ -89,11 +131,9 @@ panel testy {type:'right', title:'Úvahy a meditace'
           import.width(101); tema.width(0); preklad.width(0) }
       }
       func nacti() {
-//        js.waiting(1);
         g.load(id_cac); t.load(id_cactheme); 
         ref_tema= `<a href="${url_theme}" target="cac"><i class='fa fa-share'></i> CAC</a>`; 
         ref_text= `<a href="${url_text}" target="cac"><i class='fa fa-share'></i> CAC</a>`; 
-//        js.waiting(0);
       } 
       func nejnovejsi() { var idc:number
         idc= php.select('id_cac','cac',"title_eng!='' ORDER BY datum DESC LIMIT 1");
@@ -119,31 +159,29 @@ panel testy {type:'right', title:'Úvahy a meditace'
               php.cac_through_DeepL(id_cac); b.browse_row(); nacti() 
         } } }
       }
-      func zmena_stavu(s) {
-        if (form.same()) { 
-          php.cac_change_state(b.id_cac,s); b.browse_row();
-        }
-        else warning(`nejprve proveď [Uložení změn] nebo [Vrácení změn]`)
-      }
     }
     // ==> popis
     label [421,0,272,40] { css:'work', style:'padding:5px', title:
         "<b>Stručný popis:</b> pod seznamem můžeš upravit překlad, pak ulož změnu a uprav stav 
-        (barvu) v kontextovém menu seznamu (pravý klik myší)" 
+          kliknutím na barvu nad seznamem" 
         }
     label [674,34,29,16] { title:
       "<a href='https://notability.com/n/VXEqiurh5_dKdZ5fcna5a' target='pdf' 
         style='background:#365faf;color:#ffffff;cursor:pointer'>&nbsp;více&nbsp;</a>", 
-//      func onclick() { vysvetli.popup() }
     }
     // #==> funkce
+    func zmena_stavu(s) {
+      if (form.same()) { 
+        php.cac_change_state(b.id_cac,s); b.browse_row();
+      }
+      else warning(`nejprve proveď [Uložení změn] nebo [Vrácení změn]`)
+    }
     button [0,0,,] { title:'[fa-plus]' 
       func onclick() { 
         alert(php.cac_read_medits('USER')); 
         g.b.browse_refresh();
     }}
     button [24,0,,] { title:'[fa-calendar-check-o] Dnes' func onclick() { b.nejnovejsi() }}
-//    button [315,0,,] { title:'[fa-shopping-basket] Rezervace', func onclick() { rezervuj.modal() }}
     label [710,0,114,57] { css:'parm' }
     button [718,8,,] { title:'[fa-save] Uložení změn', func onclick() { 
       // případná změna téma
@@ -165,7 +203,6 @@ panel testy {type:'right', title:'Úvahy a meditace'
     field theme_cz [0,top+181,399,] { data:t.theme_cz }
     field [0,top+208,399,] { data:c.title_cz }
     edit text_cz [0,top+237,405,548] { type:'html', data:c.text_cz, par:{toolbar:'Cac'} }
-//    field text_cz [0,top+237,405,548] { data:c.text_cz, par:{toolbar:'Cac'} }
     field changed_cz { data:c.changed_cz }
     // ==> editační pole ENG
     field [422,top+154,344,] { data:c.author }
@@ -174,16 +211,7 @@ panel testy {type:'right', title:'Úvahy a meditace'
     label ref_tema [780,top+184,46,16] { style:'cursor:pointer' }
     label ref_text [780,top+211,46,16] { style:'cursor:pointer' }
     edit text_eng [421,top+236,405,548] { type:'html', data:c.text_eng, par:{toolbar:'Cac'} }
-//    field text_eng [421,top+236,405,548] { data:c.text_eng, par:{toolbar:'Cac'} }
   }
-  // ==> rezervační formulář
-//  panel rezervuj [0,0,200,100] { type:'popup'
-//    use r: form {
-//      label { title:"tady bude možné si hromadně zarezervovat termíny,
-//          podobně jako je v kalendářích např. každé uterý, nebo příští týden ...
-//          Zatím lze rezervat kontextovým menu v seznamu." }      
-//    }
-//  }
   // ==> podrobný návod k použití 
   panel vysvetli [0,0,400,200] { type:'popup'
     use r: form {
@@ -192,6 +220,19 @@ panel testy {type:'right', title:'Úvahy a meditace'
     }
   }
   // ==> tabulky CAC
+  table bible_kniha { key_id:'id_bible_kniha', db:'setkani'
+    number id_bible_kniha
+    text kniha
+    text nazev
+    text alias
+  }
+  table bible { key_id:'id_bible', db:'setkani'
+    number id_bible
+    text kniha
+    text kapitola
+    text vers
+    text text
+  }
   table cac { key_id:'id_cac'
     number id_cac
     number id_cactheme

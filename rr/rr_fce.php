@@ -1,4 +1,35 @@
 <?php # (c) 2007-2012 Martin Smidek <martin@smidek.eu>
+
+# ============================================================================================ BBILE
+# --------------------------------------------------------------------------------- bib save_aliases
+# aktualizuje aliasy dané knihy
+function bib_save_aliases($kniha,$aliasy,$nazev,$poradi) {
+  $as= select('GROUP_CONCAT(alias)','bible_kniha',"kniha='$kniha' ",'setkani');
+  $old= preg_split("~\s*,\s*~",$as);
+  $new= preg_split("~\s*,\s*~",$aliasy);
+  // přidáme chybějící
+  $xs= array_diff($new,$old);
+  foreach ($xs as $x) {
+    if ($x!=$kniha) { // knihu přidat nesmíme
+      query("INSERT INTO bible_kniha (kniha,alias,bible) VALUES ('$kniha','$x',1)",'setkani');
+    }
+  }
+  // odebereme přebývající
+  $xs= array_diff($old,$new);
+  foreach ($xs as $x) {
+    if ($x!=$kniha) { // knihu odebrat nesmíme
+      query("DELETE FROM bible_kniha WHERE kniha='$kniha' AND alias='$x' ",'setkani');
+    }
+  }
+  // případně upravíme název
+  if ($nazev) {
+    query("UPDATE bible_kniha SET nazev='$nazev' WHERE kniha='$kniha' AND alias='$kniha' ",'setkani');
+  }
+  // případně upravíme pořadí
+  if ($poradi) {
+    query("UPDATE bible_kniha SET poradi='$poradi' WHERE kniha='$kniha' AND alias='$kniha' ",'setkani');
+  }
+}
 # ============================================================================================ STAMP
 # --------------------------------------------------------------------------------------- stamp show
 # zobrazí časová razítka
