@@ -40,7 +40,7 @@ function stamp_show($typ,$subj='') {
   $rs= pdo_qry("SELECT kdy,GROUP_CONCAT(TIME(kdy)),pozn  
     FROM stamp WHERE typ='$typ' GROUP BY CONCAT(DATE(kdy),pozn) ORDER BY kdy DESC LIMIT 24");
   while ( $rs && (list($den,$cas,$pozn)= pdo_fetch_row($rs)) ) {
-    $html.= "<dt>$den $cas</dt><dd>$pozn</dd>";
+    $html.= "<dt>$den $cas</dt><dd>$pozn $subj</dd>";
   }
   $html.= "</dl>";
   return $html;
@@ -248,7 +248,6 @@ function cac_read_medit($dueto,$ymd) {
     $ret->reference= '';
     for ($i= 1; $i<count($text); $i+= 2) {
       if (substr($text[$i],0,3)=='Ref') {
-        $ref= null;
         $ret->reference= "<strong>Odkazy{$text[$i+1]}";
       }
     }
@@ -304,7 +303,6 @@ function rr_zrus($den,$pocet) {  trace();
   $zruseno= 0;
   for ($d= 0; $d<$pocet; $d++) {
     $day_n= $den+$d;
-    $ndatum= date('Y-m-d',$ndat0+$d*60*60*24);
     $zruseno+= query("UPDATE rr SET datum='0000-00-00',state='unasigned' WHERE day_n=$day_n");
   }
   $msg= "zrušeno $zruseno předchozích nastavení";
@@ -313,22 +311,16 @@ function rr_zrus($den,$pocet) {  trace();
 # ------------------------------------------------------------------------------------------ rr send
 # $par = {den:ode dneška,poslat: 0/1}
 function rr_send($par) {
-  global $EZER;
   $offset= $par->den<0 ? "-INTERVAL ".abs($par->den)." DAY" : ($par->den>0 ? "+INTERVAL {$par->den} DAY" : '');
   $plus= $par->den ? $par->den : 0;
   $dnes= date('j/n/Y',mktime(0,0,0,date('n'),date('j')+$plus,date('Y')));
   $html= "neni pro $dnes nastaveno! ($offset)";
-  //return $html;
   ezer_connect("ezertask");
   $qry= "SELECT * FROM rr WHERE datum=curdate()$offset ";
   $res= pdo_qry($qry);
-//                                                $html.= "<br>$res=$qry";
   while ( $res && ($o= pdo_fetch_object($res)) ) {
-//     $html= $o->text_cz;
     $day_n= $o->day_n;
-    $day= $o->day;
     $subject= $o->subject;
-    $datum= $o->datum;
     $state= $o->state;
     $title_cz= $o->title_cz;
     $text_cz= $o->text_cz;
@@ -357,8 +349,6 @@ function rr_send($par) {
             : ($_GET['email'] ? $_GET['email'] : 'chlapi-myslenky@googlegroups.com');
         $html.= "<hr/>zaslání na <i>$email</i> skončilo se stavem ";
         $ok= rr_send_mail($subj,$body,'martin.smidek@setkani.org',$email,'Richard Rohr');
-//        $ok= send_mail($subj,$body,'smidek@proglas.cz',$email,'Richard Rohr');
-//        $ok= send_mail($subj,$body,'smidek@proglas.cz','martin@smidek.eu','Richard Rohr');
         $html.= $ok;
         //$html.= $mail->sendHtmlMail('smidek@proglas.cz',$email,'','',$subj,$body,'Richard Rohr');
         if ( $ok && !isset($_GET['email']) ) {
@@ -373,10 +363,8 @@ function rr_send($par) {
 # ---------------------------------------------------------------------------------------- send mail
 # pošle systémový mail, pokud není určen adresát či odesílatel jde o mail správci aplikace
 # $to může být seznam adres oddělený čárkou
-function rr_send_mail($subject,$html,$from='',$to='',$fromname='') { trace();
-  global $ezer_path_serv, $ezer_root, $EZER, $api_gmail_user, $api_gmail_pass;
-//  $from= $from ? $from : ($EZER->smtp->from ? $EZER->smtp->from : $EZER->options->mail);
-//  $fromname= $fromname ? $fromname : $ezer_root;
+function rr_send_mail($subject,$html,$from='',$to='',$fromname='') { //trace();
+  global $ezer_path_serv, $EZER, $api_gmail_user, $api_gmail_pass;
   $to= $to ? $to : $EZER->options->mail;
   // poslání mailu
   $phpmailer_path= "$ezer_path_serv/licensed/phpmailer";
@@ -394,12 +382,6 @@ function rr_send_mail($subject,$html,$from='',$to='',$fromname='') { trace();
   $mail->SMTPSecure= "ssl";
   $mail->Username= $api_gmail_user;
   $mail->Password= $api_gmail_pass;
-//  $mail->AddAddress("martin@smidek.eu");
-  
-  
-//  $mail->IsSMTP();
-//  $mail->Host= isset($EZER->smtp->host) ? $EZER->smtp->host : "192.168.1.1";
-//  $mail->Port= isset($EZER->smtp->port) ? $EZER->smtp->port : 25;
   $mail->CharSet = "utf-8";
   $mail->From= $from;
   $mail->FromName= $fromname;
@@ -409,15 +391,14 @@ function rr_send_mail($subject,$html,$from='',$to='',$fromname='') { trace();
   $mail->Subject= $subject;
   $mail->Body= $html;
   $mail->IsHTML(true);
-//   $mail->Mailer= "smtp";
   // pošli
   $ok= $mail->Send();
-//                                                display("send_mail=$ok,".$mail->ErrorInfo);
   if ( !$ok )
     fce_warning("Selhalo odeslání mailu: $mail->ErrorInfo");
   else {
-//                                                $mail->Subject= $mail->Body= $mail->language= "---";
-//                                                debug($mail,"send_mail(..,..,$from,$to)=$ok");
+    // zápis do stamp
+    $dt= date('Y-m-d H:i:s');
+    query("INSERT INTO stamp (typ,kdy,pozn) VALUES ('rr','$dt','$subject')");
   }
   return $ok;
 }
