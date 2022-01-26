@@ -185,18 +185,24 @@ function rr_myslenka() {
   return $html;
 }
 # ------------------------------------------------------------------------------------- cac meditace
-# $par: 1=publikované, 2=přeložené i když nepublikované
-function cac_meditace($ymd,$jmp,$plny,$par=1) {
+# $par: 1=jen upravené nebo přeložené, 
+#       2=přeložené i bez kontroly ale nikoliv překládané  ... DEFAULT
+#       3=přeložené bez omezení 
+function cac_meditace($ymd,$jmp,$plny,$par=2) {
   $dny= array('z neděle','z pondělí','z úterý','ze středy','ze čtvrtka','z pátku','ze soboty');
-  $cond= $par==1 ? "stav IN (3,4)" : "text_cz!=''";  // upraveno nebo přeloženo
-  if ($ymd) 
+  $cond= 
+      $par==1 ? "stav IN (3,4)" : (     // upraveno nebo přeloženo
+      $par==2 ? "stav IN (0,1,3,4)"     // upraveno nebo přeloženo ale nepřekládáno
+              : "1" );                  // vždy když existuje nějaký překlad
+  if ($ymd) {
     $x= select_object('*','cac LEFT JOIN cactheme USING (id_cactheme)',
-        "$cond AND datum='$ymd' ORDER BY datum DESC LIMIT 1",'ezertask');
+        "text_cz!='' AND $cond AND datum<='$ymd' ORDER BY datum DESC LIMIT 1",'ezertask');
+  }
   if (!$ymd || !isset($x->datum)) {
     $x= select_object('*','cac LEFT JOIN cactheme USING (id_cactheme)',
-        "$cond ORDER BY datum DESC LIMIT 1",'ezertask');
-    $ymd= $x->datum;
+        "text_cz!='' AND $cond ORDER BY datum DESC LIMIT 1",'ezertask');
   }
+  $ymd= $x->datum;
   $w= $dny[(int)date("w",strtotime($x->datum))];
   $z_data= $w.' '.sql_date1($x->datum,0,'. ');
   // prefix
@@ -214,11 +220,13 @@ function cac_meditace($ymd,$jmp,$plny,$par=1) {
     <div align='right'><i>$x->author</i></div></td>";
   $body.= "</tr></table>";
   // starší a novější myšlenka
-  $go=  select('datum','cac',"$cond AND datum<'$ymd' ORDER BY datum DESC LIMIT 1",'ezertask');
+  $go=  select('datum','cac',
+      "text_cz!='' AND $cond AND datum<'$ymd' ORDER BY datum DESC LIMIT 1",'ezertask');
   $dalsi= $go
       ? "<a class='jump' href='$jmp,$go'>starší</a>"
       : "<span class='neodkaz'><a class='jump'>starší</a></span>";
-  $go= select('datum','cac',"$cond AND datum>'$ymd' ORDER BY datum ASC LIMIT 1",'ezertask');
+  $go= select('datum','cac',
+      "text_cz!='' AND $cond AND datum>'$ymd' ORDER BY datum ASC LIMIT 1",'ezertask');
   $dalsi.= $go
       ? "<a class='jump' href='$jmp,$go'>novější</a>"
       : "<span class='neodkaz'><a class='jump'>novější</a></span>";

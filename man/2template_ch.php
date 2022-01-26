@@ -541,7 +541,7 @@ __EOT;
       global $backhref;
       list($dva,$ymd)= explode(',',$top);
       $plny= $dva==$id;
-      $obsah= cac_meditace($ymd,"$backhref!$id",$plny,2); // 1=publikované, 2=už přeložené
+      $obsah= cac_meditace($ymd,"$backhref!$id",$plny,2); // třetí parametr je vysvětlený ve funkci
 //      $obsah= cac_meditace($ymd,"$backhref!$id",$plny,$_SESSION['web']['GET']['cac']?:1); // 1=publikované, 2=už přeložené
       if ( $plny ) {
         // zobrazit jako plný článek
