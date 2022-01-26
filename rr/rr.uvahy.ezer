@@ -101,15 +101,20 @@ panel testy {type:'right', title:'Úvahy a meditace'
     view c: table cac
     view t: table cactheme { join_type:'LEFT', join:"USING (id_cactheme)" }
     view u: table _user { join_type:'LEFT', join:"ON u.id_user=c.preklada" }
-    label [90,2,42,16] { title:" <span class='silver pointer'>volné</span>"       
+    label [90,2,42,16] { title:" <span class='silver pointer'>volné</span>", 
+        help:"necháme to na DeepL"
       func onclick() { zmena_stavu(0) }}
     label [127,2,67,16] { title:" <span class='blue pointer'>rezervováno</span>"  
+        help:"zavazuji se k úpravě překladu, chci dostat mail až bude anglický text dostupný"
       func onclick() { zmena_stavu(1) }}
     label [204,2,66,16] { title:" <span class='yellow pointer'>překládáno</span>" 
+        help:"teď na tom pracuji a NECHCI aby to bylo zobrazeno na webu"
       func onclick() { zmena_stavu(2) }}
     label [281,2,55,16] { title:" <span class='green pointer'>upraveno</span>"    
+        help:"upravil jsem formát ale angličtinou si nejsem zcela jist"
       func onclick() { zmena_stavu(3) }}
     label [348,2,59,16] { title:" <span class='green2 pointer'>přeloženo</span>"  
+        help:"upravil jsem formát i angličtinu"
       func onclick() { zmena_stavu(4) }}
     browse b [0,24,,] { rows:7, qry_rows:1, css_rows:'barva,1:blue,2:yellow,3:green,4:green2'
       show id_cac { data:c.id_cac }
