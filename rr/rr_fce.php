@@ -37,7 +37,7 @@ function bib_save_aliases($kniha,$aliasy,$nazev,$poradi) {
 function stamp_show($typ,$subj='') {
   $html= '<dl>';
   ezer_connect("ezertask");
-  $rs= pdo_qry("SELECT kdy,GROUP_CONCAT(TIME(kdy)),pozn  
+  $rs= pdo_qry("SELECT DATE(kdy),GROUP_CONCAT(TIME(kdy)),pozn  
     FROM stamp WHERE typ='$typ' GROUP BY CONCAT(DATE(kdy),pozn) ORDER BY kdy DESC LIMIT 24");
   while ( $rs && (list($den,$cas,$pozn)= pdo_fetch_row($rs)) ) {
     $html.= "<dt>$den $cas</dt><dd>$pozn $subj</dd>";
@@ -243,7 +243,7 @@ function cac_read_medit($dueto,$ymd) {
         $html,$p);
     $ret->stamp.= "match2={$ret->cut}; ";
     display("načtení dne: $ret->ok ($cac_day)");
-    $text= preg_split('~<p><strong>(Story|Reference|Explore|Breath)~',$p[1],-1,PREG_SPLIT_DELIM_CAPTURE);
+    $text= preg_split('~<p><strong>(Story|Reference(?:s|)|Explore|Breath)~',$p[1],-1,PREG_SPLIT_DELIM_CAPTURE);
     $ret->text= $text[0];
     $ret->reference= '';
     for ($i= 1; $i<count($text); $i+= 2) {
