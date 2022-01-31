@@ -38,6 +38,7 @@
       'chlapi_rr_ico.png','chlapi_rr_ico.png','chlapi_rr_ico.png');
   $add_pars= array(
     'favicon' => $favicons[$ezer_server],
+    'watch_ip' => 0,    
     'CKEditor' => "{
       version:'4.6',
       Cac:{toolbar:[['Styles','-','Undo','Redo','-','Bold','Italic','-','Outdent','Indent','-','Source']],

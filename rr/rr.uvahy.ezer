@@ -156,7 +156,7 @@ panel testy {type:'right', title:'Úvahy a meditace'
             b.browse_row(); nacti()
         } }
         item { title:'znovu načíst den bez překladu' skill:'m' func onclick() { 
-            clear(); php.cac_save_medit_from('AGAIN',date2sql(datum)); b.browse_row(); nacti() 
+            clear(); php.cac_read_medit('AGAIN',date2sql(datum)); b.browse_row(); nacti() 
         } }
         item { title:'přeložit den pomocí DeepL'     skill:'m' func onclick() { 
             clear(); 
