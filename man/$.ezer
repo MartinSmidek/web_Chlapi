@@ -416,7 +416,7 @@ panel ADMIN [0,0,600,465] { title:'Nástroje administrátora', type:'popup', css
   func onfirstfocus() { var db_info:object
     db_info= php.sys_db_info(this.par,'..ADMIN'); 
     m.str.attach_code(db_info.group);
-    m.c.c.click() 
+    m.a.d.click() 
   }
   func append(x) { u.append(x) }
   func _seznam(tab,val) { append(php.man_append(tab,val)) }
