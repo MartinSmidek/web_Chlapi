@@ -24,21 +24,23 @@ function note_text($who) {
     <br><b>Do 5. dne každého měsíce</b> nejpozději je nutné zaslat účetnímu následující podklady:
     <br>{$subst[$who]}
     <br><br><em>Pokud jste již vše vyřídili, tak prosím přijměte poděkování i od automatického upomínače :-) </em>";
+  // dočasná poznámka
+  $text.= "<br><em>Toto upozornění vám bude jinak chodit vždy ke konci měsíce.</em>";
   return $text;
 }
 # ---------------------------------------------------------------------------------------- note send
-# pošle dopis pro $who
+# pošle dopis pro $who - pokud je to * tak všem
 function note_send($whos) {
   $adresy= array(
-    'ds' => "dum@setkani.org",
+    'ds' => "dum@setkani.org,ivana.zivnustkova@seznam.cz",
     'ms' => "pokladna@setkani.org",
-    'pc' => "horakj7@gmail.com,anna.stykarova.lakosilova@gmail.com",
-    'pb' => "pavel.bajer@volny.cz,mila.bajerova@volny.cz",
+    'pc' => "bucek@fem.cz",
+    'pb' => "mila.bajerova@volny.cz,pavel.bajer@volny.cz",
     'mv' => "ymca@setkani.org",
     'ja' => "martin@smidek.eu"
   );
   $n= 0;
-  $whos= explode(',',$whos);
+  $whos= $whos=='*' ? array_keys($adresy) : explode(',',$whos);
   foreach ($whos as $who) {
     $text= note_text($who);
     $ok= rr_send_mail("Měsíční připomenutí zápisu zůstatků pokladen",$text,
@@ -397,7 +399,7 @@ function rr_send($par) {
             ? $par->test
             : ($_GET['email'] ? $_GET['email'] : 'chlapi-myslenky@googlegroups.com');
         $html.= "<hr/>zaslání na <i>$email</i> skončilo se stavem ";
-        $ok= rr_send_mail($subj,$body,'martin.smidek@setkani.org',$email,'Richard Rohr','');
+        $ok= rr_send_mail($subj,$body,'martin.smidek@setkani.org',$email,'Richard Rohr','rr');
         $html.= $ok;
         //$html.= $mail->sendHtmlMail('smidek@proglas.cz',$email,'','',$subj,$body,'Richard Rohr');
         if ( $ok && !isset($_GET['email']) ) {

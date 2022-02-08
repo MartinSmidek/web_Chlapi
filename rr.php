@@ -85,7 +85,7 @@
       echo "<hr><h2>Daily Meditations from CAC</h2><br>$html";
       break;
     case 'rr-note':
-      $stamp= note_send('ja');
+      $stamp= note_send('*');
       echo "<hr><h2>Odeslání připomenutí</h2><br>$html";
       break;
     }
