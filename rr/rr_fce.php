@@ -1,6 +1,55 @@
 <?php # (c) 2007-2012 Martin Smidek <martin@smidek.eu>
 
-# ============================================================================================ BBILE
+# ============================================================================================ MAILY
+# ---------------------------------------------------------------------------------------- note text
+# vytvoří dopis pro $who
+function note_text($who) {
+  $subst= array(
+    'ds' => "<b>DS</b>: kniha hostů, účetní doklady, obchůdek+zásoby, fyzický stav pokladny (+soubor tabulka pokladna) – odpovídá Pepa Náprstek",
+    'ms' => "<b>MS</b>: účetní doklady, soubor pokladní deník (export z Answeru), fyzický stav pokladny - Helenka Imramovská",
+    'pc' => "<b>Pečovatelé<b>: účetní doklady, soubor pokladní deník (ve spolupráci s Jirkou), fyzický stav pokladny – Anička Štykarová-Lakosilová</li>",
+    'pb' => "<b>MV</b>: účetní doklady, soubor pokladní deník, fyzický stav pokladny - Pavel Bajer",
+    'mv' => "<b>Pokladna Krnov</b>: účetní doklady, fyzický stav pokladny – Miloš Vyleťal",
+    'ja' => "<b>jen</b>: test"
+  );
+  $ref= "https://docs.google.com/spreadsheets/d/1WF1NPFWvGpMCLmgypNUOf901nWOG81o-xpmlSY1-oGA/edit#gid=1081184551";
+  $text= "Přátelé,
+    <br>prosím o <b>zapsání fyzického zůstatku</b> ve vámi vedené pokladně k poslednímu dni tohoto 
+    měsíce na Intranetu <a href='$ref' target='doc'>zde</a>
+    <br><b>Účetní zůstatek ponechte prázdný pro doplnění</b> od našeho účetního.
+    <br>Děkuji a přeji vše dobré.
+    <br>Miloš
+    <br>
+    <br>P.S. Stav zůstatků pokladen je potřeba <b>zapisovat nejpozději první den následujícího měsíce</b>.</li>
+    <br><b>Do 5. dne každého měsíce</b> nejpozději je nutné zaslat účetnímu následující podklady:
+    <br>{$subst[$who]}
+    <br><br><em>Pokud jste již vše vyřídili, tak prosím přijměte poděkování i od automatického upomínače :-) </em>";
+  return $text;
+}
+# ---------------------------------------------------------------------------------------- note send
+# pošle dopis pro $who
+function note_send($whos) {
+  $adresy= array(
+    'ds' => "dum@setkani.org",
+    'ms' => "pokladna@setkani.org",
+    'pc' => "horakj7@gmail.com,anna.stykarova.lakosilova@gmail.com",
+    'pb' => "pavel.bajer@volny.cz,mila.bajerova@volny.cz",
+    'mv' => "ymca@setkani.org",
+    'ja' => "martin@smidek.eu"
+  );
+  $n= 0;
+  $whos= explode(',',$whos);
+  foreach ($whos as $who) {
+    $text= note_text($who);
+    $ok= rr_send_mail("Měsíční připomenutí zápisu zůstatků pokladen",$text,
+        'ymca@setkani.org',$adresy[$who],'','mail');
+    if (!$ok) break;
+    $n++;
+  }
+  $html= "odesláno $n mailů z ".count($whos);
+  return $html;
+}
+# ============================================================================================ BIBLE
 # --------------------------------------------------------------------------------- bib save_aliases
 # aktualizuje aliasy dané knihy
 function bib_save_aliases($kniha,$aliasy,$nazev,$poradi) {
@@ -348,7 +397,7 @@ function rr_send($par) {
             ? $par->test
             : ($_GET['email'] ? $_GET['email'] : 'chlapi-myslenky@googlegroups.com');
         $html.= "<hr/>zaslání na <i>$email</i> skončilo se stavem ";
-        $ok= rr_send_mail($subj,$body,'martin.smidek@setkani.org',$email,'Richard Rohr');
+        $ok= rr_send_mail($subj,$body,'martin.smidek@setkani.org',$email,'Richard Rohr','');
         $html.= $ok;
         //$html.= $mail->sendHtmlMail('smidek@proglas.cz',$email,'','',$subj,$body,'Richard Rohr');
         if ( $ok && !isset($_GET['email']) ) {
@@ -363,7 +412,7 @@ function rr_send($par) {
 # ---------------------------------------------------------------------------------------- send mail
 # pošle systémový mail, pokud není určen adresát či odesílatel jde o mail správci aplikace
 # $to může být seznam adres oddělený čárkou
-function rr_send_mail($subject,$html,$from='',$to='',$fromname='') { //trace();
+function rr_send_mail($subject,$html,$from='',$to='',$fromname='',$typ='') { //trace();
   global $ezer_path_serv, $EZER, $api_gmail_user, $api_gmail_pass;
   $to= $to ? $to : $EZER->options->mail;
   // poslání mailu
@@ -398,7 +447,7 @@ function rr_send_mail($subject,$html,$from='',$to='',$fromname='') { //trace();
   else {
     // zápis do stamp
     $dt= date('Y-m-d H:i:s');
-    query("INSERT INTO stamp (typ,kdy,pozn) VALUES ('rr','$dt','$subject')");
+    query("INSERT INTO stamp (typ,kdy,pozn) VALUES ('$typ','$dt','$subject')");
   }
   return $ok;
 }

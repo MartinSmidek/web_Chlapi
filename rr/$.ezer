@@ -115,6 +115,44 @@ menu rr { type:'main', active:rr.richard
   }
   # ===================================================================================> CAC
   tabs uvahy {title:"CAC", _sys:'*', skill:'cac', include:'onload'}
+  # ===================================================================================> CAC
+  tabs maily {title:"Maily", _sys:'*', skill:'mail'
+    panel maily { type:'right', title:'Upomínací maily'
+      use info: form right [12,4,,]
+      menu m {type:'left', format:'f'
+        menu p {title:'Editace a plán',type:'group'
+          item {title:'[fa-cutlery] Text'
+            func onclick(i:ezer) { 
+              info.header(i); clear();
+              info.fill('',php.note_text('ja'));
+            }
+          }
+          item k {title:'[fa-calendar-check-o] Plán'
+            func onclick(i:ezer) { 
+              info.header(i); clear();
+              info.append("rozesílá se 3. den v měsíci, je to třeba v Plánovači úloh na Synology");
+            }
+          }
+        }
+        menu poslat {title:'Rozeslání', type:'group', active:no
+          item dnesni {title:'upomínky', par:{adresy:'ja'}}
+          item {title:' ... na Miloše', par:{adresy:'mv'}, skill:'m'}
+          item {title:' ... na martin@smidek.eu', par:{adresy:'ja'}, skill:'m'}
+          func onclick(i:ezer) { 
+            info.header(i); clear();
+            info.fill('',php.note_send(i.par.adresy));
+          }
+        }
+        menu {title:'Log file',type:'group', skill:'a'
+          item {title:'[fa-question] odeslání mailu Pokladna',  par:{typ:'mail',subj:'pokladna'} }
+          func onclick (i:ezer) { var cac:object
+            clear(); info.header(i); panel.display(0,'.'); 
+            info.fill('',php.stamp_show(i.par.typ,i.par.subj));
+          }
+        }
+      }
+    }
+  }
   # ===================================================================================> system
   tabs sys {title:"[fa-cogs] Nastavení", _sys:'sys',  include:'onclick,ezer2.syst', active:*
     //panel oso {type:'right', title:'Osobní nastavení', _sys:'*', include:'onclick' }
