@@ -25,7 +25,7 @@ function note_text($who) {
     <br>{$subst[$who]}
     <br><br><em>Pokud jste již vše vyřídili, tak prosím přijměte poděkování i od automatického upomínače :-) </em>";
   // dočasná poznámka
-  $text.= "<br><em>Toto upozornění vám bude jinak chodit vždy ke konci měsíce.</em>";
+//  $text.= "<br><em>Toto upozornění vám bude jinak chodit vždy ke konci měsíce.</em>";
   return $text;
 }
 # ---------------------------------------------------------------------------------------- note send

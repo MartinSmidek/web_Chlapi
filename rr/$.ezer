@@ -1,4 +1,5 @@
 menu rr { type:'main', active:rr.richard
+  func onstart() { php.table_lock('none'); } // uvolni všechny zámky řádků tabulek přihlášeného 
   # =================================================================================== RR
   tabs richard {title:"Myšlenky", _sys:'*', skill:'rr'
     panel rohr {type:'right', title:'Rozesílání'

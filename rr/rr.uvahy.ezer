@@ -130,13 +130,13 @@ panel testy { type:'right', title:'Úvahy a meditace'
       form.enable(1,on); form.enable(0,off);    
     }
     # ==> .. ochrana editace více uživateli
-    func onchanged () { cac_lock('on'); }
+    func onchanged () { if (!edited) { cac_lock('on'); echo('changed') }}
     func cac_lock(on) { var lock:object 
       if (form.key()) {
         lock= php.table_lock(on,'cac',form.key()); 
         if (on=='on') {
           if (!lock.ok) { alert(`${lock.info}`); zpet(); }
-          else { LoadCac(); Open(form.key()); }
+          else if (!edited) { Open(form.key()); }
         }
         else { Free(); } 
       }
