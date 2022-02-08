@@ -135,7 +135,7 @@ menu rr { type:'main', active:rr.richard
           }
         }
         menu poslat {title:'Rozeslání', type:'group', active:no
-          item dnesni {title:'upomínky', par:{adresy:'ja'}}
+          item dnesni {title:'upomínky nyní všem', par:{adresy:'*'}}
           item {title:' ... na Miloše', par:{adresy:'mv'}, skill:'m'}
           item {title:' ... na martin@smidek.eu', par:{adresy:'ja'}, skill:'m'}
           func onclick(i:ezer) { 
