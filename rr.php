@@ -84,6 +84,10 @@
       $stamp= cac_read_medits('AUTO');
       echo "<hr><h2>Daily Meditations from CAC</h2><br>$html";
       break;
+    case 'rr-note':
+      $stamp= note_send('ja');
+      echo "<hr><h2>Odeslání připomenutí</h2><br>$html";
+      break;
     }
   }
   else {

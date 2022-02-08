@@ -42,7 +42,7 @@ function note_send($whos) {
   foreach ($whos as $who) {
     $text= note_text($who);
     $ok= rr_send_mail("Měsíční připomenutí zápisu zůstatků pokladen",$text,
-        'ymca@setkani.org',$adresy[$who],'','mail');
+        'ymca@setkani.org',$adresy[$who],'','mail','ymca@setkani.org');
     if (!$ok) break;
     $n++;
   }
@@ -412,7 +412,7 @@ function rr_send($par) {
 # ---------------------------------------------------------------------------------------- send mail
 # pošle systémový mail, pokud není určen adresát či odesílatel jde o mail správci aplikace
 # $to může být seznam adres oddělený čárkou
-function rr_send_mail($subject,$html,$from='',$to='',$fromname='',$typ='') { //trace();
+function rr_send_mail($subject,$html,$from='',$to='',$fromname='',$typ='',$replyto='') { //trace();
   global $ezer_path_serv, $EZER, $api_gmail_user, $api_gmail_pass;
   $to= $to ? $to : $EZER->options->mail;
   // poslání mailu
@@ -433,6 +433,7 @@ function rr_send_mail($subject,$html,$from='',$to='',$fromname='',$typ='') { //t
   $mail->Password= $api_gmail_pass;
   $mail->CharSet = "utf-8";
   $mail->From= $from;
+  $mail->AddReplyTo($replyto?:$from);
   $mail->FromName= $fromname;
   foreach (explode(',',$to) as $to1) {
     $mail->AddAddress($to1);
