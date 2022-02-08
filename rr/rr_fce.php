@@ -47,7 +47,7 @@ function stamp_show($typ,$subj='') {
 }
 # ============================================================================================== CAC
 # ------------------------------------------------------------------------------------ cac make_free
-# uvolní datum ale pokud
+# TECHNICKÁ funkce - uvolní datum ale pokud
 #  je na webu => vrátí upozornění
 #  překládáno => vrátí na rezervováno, smaže texty
 #  rezervováno => smaže texty
@@ -58,7 +58,7 @@ function cac_make_free($idc) {
     if ($stav==2) $stav= 1;
     query("UPDATE cac SET stav=$stav,id_cactheme=0,
       text_eng='',title_eng='',imported_eng='',url_text='',author='',reference='',
-      text_cz='',title_cz='',changed_cz='' WHERE id_cac=$idc");
+      text_cz='',title_cz='',title_cz_deepl='',changed_cz='' WHERE id_cac=$idc");
   }
   else {
     $msg= 'publikovaný text nelze zrušit';
@@ -84,7 +84,7 @@ function cac_through_DeepL($idc) {
   $text_cz= cac_deepl_en2cs($text_eng);
   $dt= date('Y-m-d H:i:s');
   query("UPDATE cac SET changed_cz='$dt',
-    text_cz=\"$text_cz\",title_cz=\"$title_cz\" WHERE id_cac=$idc");
+    text_cz=\"$text_cz\",title_cz=\"$title_cz\",title_cz_deepl=\"$title_cz\" WHERE id_cac=$idc");
   return $title_cz;
 }
 # ---------------------------------------------------------------------------------- cac deepl_en2cs
