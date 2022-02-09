@@ -287,6 +287,7 @@ panel testy { type:'right', title:'Úvahy a meditace'
     text theme_cz
     text title_cz
     text text_cz
+    text text_cz_deepl
     date changed_cz
   }
   table cactheme { key_id:'id_cactheme'
