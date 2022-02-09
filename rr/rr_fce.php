@@ -135,7 +135,7 @@ function cac_through_DeepL($idc) {
   $text_cz= cac_deepl_en2cs($text_eng);
   $dt= date('Y-m-d H:i:s');
   query("UPDATE cac SET changed_cz='$dt',
-    text_cz=\"$text_cz\",title_cz=\"$title_cz\",title_cz_deepl=\"$title_cz\" WHERE id_cac=$idc");
+    text_cz=\"$text_cz\",title_cz=\"$title_cz\",text_cz_deepl=\"$title_cz\" WHERE id_cac=$idc");
   return $title_cz;
 }
 # ---------------------------------------------------------------------------------- cac deepl_en2cs
