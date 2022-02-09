@@ -318,14 +318,14 @@ function cac_change_state($idc,$s) {
   $msg= '';
   $preklada= select('preklada','cac',"id_cac=$idc");
   $dt= date('Y-m-d H:i:s');
+  $me= $USER->id_user;
+  if (!$me) fce_error("uživatel není přihlášen, nelze provést změnu stavu");
   if (!$preklada) {
-    $me= $USER->id_user;
-    if (!$me) fce_error("uživatel není přihlášen, nelze provést změnu stavu");
     query("UPDATE cac SET preklada=$me,stav=$s WHERE id_cac=$idc");
   }
   else {
-    $and= $s==0 ? ", preklada=0" : '';
-    query("UPDATE cac SET changed_cz='$dt',stav=$s $and WHERE id_cac=$idc");
+    $kdo= $s==0 ? 0 : $me;
+    query("UPDATE cac SET changed_cz='$dt',stav=$s, preklada=$kdo WHERE id_cac=$idc");
   }
   return $msg;
 }

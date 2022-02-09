@@ -111,7 +111,22 @@ panel testy { type:'right', title:'Úvahy a meditace'
       b.browse_seek(`id_cac=${idc}`);
     }
     # ==> . lokální funkce
-    func Open(cid) { edited= cid; form_state('c',''); }
+    func Open(cid) { var kdo: text
+      // zkontrolujme, zda je v pořádku stav
+      if (!b.barva) {
+        php.cac_change_state(b.id_cac,2); b.browse_row();
+      }
+      elseif (b.preklada!=sys('user','id_user')) {
+        kdo= conc(sys('user','forename'),' ',sys('user','surname'));
+        if (confirm(`k tomuto překladu se zná ${kdo} opravdu si ho chceš přepsat na sebe?`)) {
+          php.cac_change_state(b.id_cac,2); b.browse_row();
+        }
+        else {
+          zpet()
+        }
+      }
+      edited= cid; form_state('c',''); 
+    }
     func Free() { edited= 0; form_state('','c'); }
     func zmena_stavu(s) {
       if (form.same()) { 
@@ -172,6 +187,7 @@ panel testy { type:'right', title:'Úvahy a meditace'
       show preklad [,,40,] { title:'překládá', data:u.username, format:'q' }
       show import [,,0,] { title:'načteno z CAC', data:c.imported_eng, format:'q' }
       show barva { data:c.stav }
+      show preklada { data:c.preklada }
       func onrowclick () { 
         if (!edited) { LoadCac(); curr_row= b.browse_active(); }
         else { b.browse_active(curr_row); alert('ulož nabo zahoď změny'); }
