@@ -160,21 +160,31 @@ panel testy { type:'right', title:'Úvahy a meditace'
     view c: table cac
     view t: table cactheme { join_type:'LEFT', join:"USING (id_cactheme)" }
     view u: table _user { join_type:'LEFT', join:"ON u.id_user=c.preklada" }
-    label [90,2,42,16] { title:" <span class='silver pointer'>volné</span>", 
+    // ==> změny stavu seznamu
+    button [0,0,,] { title:'[fa-plus]' 
+      func onclick() { 
+        alert(php.cac_read_medits('USER')); 
+        g.b.browse_refresh();
+    }}
+    button [24,0,,] { title:'[fa-calendar-check-o] Dnes' func onclick() { GoNewCac() }}
+    label [87,2,38,16] { title:" <span class='silver pointer'>volné</span>", 
         help:"necháme to na DeepL"
       func onclick() { zmena_stavu(0) }}
-    label [127,2,67,16] { title:" <span class='blue pointer'>rezervováno</span>"  
+    label [121,2,67,16] { title:" <span class='blue pointer'>rezervováno</span>"  
         help:"zavazuji se k úpravě překladu, chci dostat mail až bude anglický text dostupný"
       func onclick() { zmena_stavu(1) }}
-    label [204,2,66,16] { title:" <span class='yellow pointer'>překládáno</span>" 
+    label [195,2,63,16] { title:" <span class='yellow pointer'>překládáno</span>" 
         help:"teď na tom pracuji a NECHCI aby to bylo zobrazeno na webu"
       func onclick() { zmena_stavu(2) }}
-    label [281,2,55,16] { title:" <span class='green pointer'>upraveno</span>"    
+    label [263,2,55,16] { title:" <span class='green pointer'>upraveno</span>"    
         help:"upravil jsem formát ale angličtinou si nejsem zcela jist"
       func onclick() { zmena_stavu(3) }}
-    label [348,2,59,16] { title:" <span class='green2 pointer'>přeloženo</span>"  
+    label [322,2,59,16] { title:" <span class='green2 pointer'>přeloženo</span>"  
         help:"upravil jsem formát i angličtinu"
       func onclick() { zmena_stavu(4) }}
+    button [387,0,,] { title:'[fa-question]', help:'ukáže odlišnost autorského překladu od DeepL' 
+      func onclick() { Diff.Show(b.id_cac) }}
+    // 
     browse b [0,24,,] { rows:7, qry_rows:1, css_rows:'barva,1:blue,2:yellow,3:green,4:green2'
       show id_cac { data:c.id_cac }
       show id_cactheme { data:t.id_cactheme }
@@ -202,6 +212,7 @@ panel testy { type:'right', title:'Úvahy a meditace'
         item { title:'hotovo: upraveno po DeepL'    func onclick() { zmena_stavu(3) } }
         item { title:'hotovo: přeloženo'            func onclick() { zmena_stavu(4) } }
         item { title:'-odvolávám a uvolňuji jinému' func onclick() { zmena_stavu(0) } }
+        item { title:'porovnání s původním DeepL'   func onclick() { Diff.Show(id_cac) } }
         item { title:'=vymazat originál i překlad' skill:'m' func onclick() { var msg:text
             msg= php.cac_make_free(id_cac); 
             if (msg) alert(msg);
@@ -226,12 +237,6 @@ panel testy { type:'right', title:'Úvahy a meditace'
       "<a href='https://notability.com/n/VXEqiurh5_dKdZ5fcna5a' target='pdf' 
         style='background:#365faf;color:#ffffff;cursor:pointer'>&nbsp;více&nbsp;</a>", 
     }
-    button [0,0,,] { title:'[fa-plus]' 
-      func onclick() { 
-        alert(php.cac_read_medits('USER')); 
-        g.b.browse_refresh();
-    }}
-    button [24,0,,] { title:'[fa-calendar-check-o] Dnes' func onclick() { GoNewCac() }}
     label [710,0,114,57] { css:'parm' }
     button [718,8,,] { tag:'c', title:'[fa-save] Uložení změn', func onclick() { uloz() }}
     button [719,31,,] { tag:'c', title:'[fa-undo] Vrácení změn', func onclick() { 
@@ -254,6 +259,30 @@ panel testy { type:'right', title:'Úvahy a meditace'
     label ref_tema [780,top+184,46,16] { style:'cursor:pointer' }
     label ref_text [780,top+211,46,16] { style:'cursor:pointer' }
     edit text_eng [421,top+236,405,548] { type:'html', data:c.text_eng, par:{toolbar:'Cac'} }
+  }
+  // ==> zobrazení rozdílu proti původnímu DeepL
+  panel Diff [0,0,400,600] { type:'popup' 
+    var idc: number
+    func Show(_idc) { 
+      clear(); idc= _idc; 
+      compare();
+      panel.popup();
+    }
+    func compare() { var html:text
+      html= php.cac_show_diff(idc,{html:d.html,ins:eq(d.typ,1,3),del:eq(d.typ,2,3)});
+      d.x= html;
+    }
+    use d: form {
+      label [7,4,71,17] { title:'ukázat, co je' }
+      radio typ [75,0,212,17] { format:'t', value:'3'
+        case [0,0,80,] { title:"přidané", value:'1' }
+        case [70,0,80,] { title:"zrušené", value:'2' }
+        case [140,0,80,] { title:"oboje", value:'3' }
+        func onchange() {compare()} 
+      }
+      check html [282,0,112,17] { title:"potlačit html tagy", value:'0', format:'t' func onchange() {compare()} }
+      label x [0,30,400,570] { style:'overflow-x:overlay;background:#eee' }
+    }
   }
   // ==> tabulky CAC
   table bible_kniha { key_id:'id_bible_kniha', db:'setkani'

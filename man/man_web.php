@@ -24,10 +24,10 @@ function bib_transform ($html) {
 function bib_ref ($ref) { trace();
   $bib= '';
   $m= null;
-  $ok= preg_match("/(\d?\pL+)(?:\s|&nbsp;)*(\d+),(\d+)(?:-(\d+)|)/u",$ref,$m);
+  $ok= preg_match("/(\d*\s*\pL+)(?:\s|&nbsp;)*(\d+),(\d+)(?:-(\d+)|)/u",$ref,$m);
   if (!$ok) goto end;
   debug($m,$ref);
-  $k= $m[1];
+  $k= str_replace(' ','',$m[1]);
   $kap= $m[2];
   $v1= $m[3];
   $v2= isset($m[4]) ? $m[4] : $v1;

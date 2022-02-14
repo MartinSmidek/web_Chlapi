@@ -97,6 +97,31 @@ function stamp_show($typ,$subj='') {
   return $html;
 }
 # ============================================================================================== CAC
+# ------------------------------------------------------------------------------------ cac show_diff
+# vrátí překlad s vyznačenými odchylkami od původního překladu DeepL
+#   par.html zaobrazí jako html jinak s entitami
+#   par.ins zobrazí zeleně přidaný text
+#   par.del zobrazí červeně zrušený text
+# používá modul https://github.com/gorhill/PHP-FineDiff
+function cac_show_diff($idc,$par) {
+  require_once 'finediff.php';
+  $html= "<style type='text/css'>";
+  $html.= $par->ins ? "ins {color:green;background:#dfd;text-decoration:none}" : "ins {display:none}";
+  $html.= $par->del ? "del {color:red;background:#fdd;text-decoration:none}" : "del {display:none}";
+  $html.= "</style>";
+  list($to_text,$from_text)= select('text_cz,text_cz_deepl','cac',"id_cac=$idc");
+  $granularity= 2;
+  $granularityStacks = array(
+      FineDiff::$paragraphGranularity,
+      FineDiff::$sentenceGranularity,
+      FineDiff::$wordGranularity,
+      FineDiff::$characterGranularity
+      );
+  $diff_opcodes = FineDiff::getDiffOpcodes($from_text, $to_text, $granularityStacks[$granularity]);
+  $html.= FineDiff::renderDiffToHTMLFromOpcodes($from_text, $diff_opcodes);
+  if ($par->html) $html= html_entity_decode($html);
+  return $html;
+}
 # ------------------------------------------------------------------------------------ cac make_free
 # TECHNICKÁ funkce - uvolní datum ale pokud
 #  je na webu => vrátí upozornění
