@@ -280,7 +280,8 @@ panel testy { type:'right', title:'Úvahy a meditace'
         case [140,0,80,] { title:"oboje", value:'3' }
         func onchange() {compare()} 
       }
-      check html [282,0,112,17] { title:"potlačit html tagy", value:'0', format:'t' func onchange() {compare()} }
+      check html [282,0,112,17] { title:"potlačit html tagy", value:'1', format:'t' 
+        func onchange() {compare()} }
       label x [0,30,400,570] { style:'overflow-x:overlay;background:#eee' }
     }
   }

@@ -110,6 +110,13 @@ function cac_show_diff($idc,$par) {
   $html.= $par->del ? "del {color:red;background:#fdd;text-decoration:none}" : "del {display:none}";
   $html.= "</style>";
   list($to_text,$from_text)= select('text_cz,text_cz_deepl','cac',"id_cac=$idc");
+  // odstraníme html tagy
+  if ($par->html) {
+    $to_text= preg_replace('~<\/?[^>]+>~', '', strtr($to_text,array('&nbsp;'=>' ','</p>'=>"\n")));
+    $to_text= str_replace("\n\n\n","\n\n",$to_text);
+    $from_text= preg_replace('~<\/?[^>]*>~', '', strtr($from_text,array('&nbsp;'=>' ','</p>'=>"\n")));
+    $from_text= str_replace("\n\n\n","\n\n",$from_text);
+  }
   $granularity= 2;
   $granularityStacks = array(
       FineDiff::$paragraphGranularity,
@@ -119,7 +126,11 @@ function cac_show_diff($idc,$par) {
       );
   $diff_opcodes = FineDiff::getDiffOpcodes($from_text, $to_text, $granularityStacks[$granularity]);
   $html.= FineDiff::renderDiffToHTMLFromOpcodes($from_text, $diff_opcodes);
-  if ($par->html) $html= html_entity_decode($html);
+  if ($par->html) {
+    $html= html_entity_decode($html);
+    $html= strtr($html,array('<del>\n</del>'=>''));
+    $html= nl2br($html);
+  }
   return $html;
 }
 # ------------------------------------------------------------------------------------ cac make_free
