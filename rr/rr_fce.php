@@ -115,7 +115,7 @@ function cac_show_diff($idc,$par) {
     $to_text= preg_replace('~<\/?[^>]+>~', '', strtr($to_text,array('&nbsp;'=>' ','</p>'=>"\n")));
     $to_text= str_replace("\n\n\n","\n\n",$to_text);
     $from_text= preg_replace('~<\/?[^>]*>~', '', strtr($from_text,array('&nbsp;'=>' ','</p>'=>"\n")));
-    $from_text= str_replace("\n\n\n","\n\n",$from_text);
+    $from_text= str_replace("\n\n","\n",$from_text);
   }
   $granularity= 2;
   $granularityStacks = array(
@@ -127,9 +127,8 @@ function cac_show_diff($idc,$par) {
   $diff_opcodes = FineDiff::getDiffOpcodes($from_text, $to_text, $granularityStacks[$granularity]);
   $html.= FineDiff::renderDiffToHTMLFromOpcodes($from_text, $diff_opcodes);
   if ($par->html) {
-    $html= html_entity_decode($html);
-    $html= strtr($html,array('<del>\n</del>'=>''));
-    $html= nl2br($html);
+    $html= str_replace("\n\n","\n",$html);
+    $html= strtr($html,array('<del>\n</del>'=>'',"\n"=>'<br><br>'));
   }
   return $html;
 }
