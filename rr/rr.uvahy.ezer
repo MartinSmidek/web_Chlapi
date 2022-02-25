@@ -103,6 +103,7 @@ panel testy { type:'right', title:'Úvahy a meditace'
     func Init() { b.browse_refresh(); Free() }
     func LoadCac() {
       g.load(b.id_cac); t.load(b.id_cactheme); 
+      text_eng= b.text_eng;
       ref_tema= `<a href="${b.url_theme}" target="cac"><i class='fa fa-share'></i> CAC</a>`; 
       ref_text= `<a href="${b.url_text}" target="cac"><i class='fa fa-share'></i> CAC</a>`; 
     } 
@@ -137,7 +138,10 @@ panel testy { type:'right', title:'Úvahy a meditace'
     func uloz() {
       // případná změna téma
       if (theme_cz.changed()) { t.save(); t.load(); b.browse_seek() }
-      if (!g.same()) { changed_cz= fdate('Y-m-d H:i:s'); changed_cz.change(); g.save(); g.load()  }
+      // český překlad uložíme zvlášť
+      if (text_cz.changed()) { php.cac_save_fld(form.key(),'text_cz',text_cz); text_cz.plain() }
+      // zbylé už normálně
+      if (!g.same()) { g.save(); g.load()  }
       cac_lock('off');
     }
     func zpet() { g.load(); cac_lock('off'); }
@@ -145,7 +149,11 @@ panel testy { type:'right', title:'Úvahy a meditace'
       form.enable(1,on); form.enable(0,off);    
     }
     # ==> .. ochrana editace více uživateli
-    func onchanged () { if (!edited) { cac_lock('on'); echo('changed') }}
+    func onchanged () { 
+      if (!edited) { 
+        cac_lock('on'); echo('changed'); 
+        changed_cz= fdate('Y-m-d H:i:s'); changed_cz.change();  
+    }}
     func cac_lock(on) { var lock:object 
       if (form.key()) {
         lock= php.table_lock(on,'cac',form.key()); 
@@ -191,6 +199,7 @@ panel testy { type:'right', title:'Úvahy a meditace'
       show { data:u.id_user }
       show url_text { data:c.url_text }
       show url_theme { data:t.url_theme }
+      show text_eng { data:c.text_eng }
       show datum [,,90,] { title:'datum', data:c.datum, format:'rqs+' }
       show tema [,,60,] { title:'téma', data:t.theme_eng, format:'tq' }
       show [,,185,] { title:'název', data:c.title_eng, format:'tq' }
@@ -258,7 +267,8 @@ panel testy { type:'right', title:'Úvahy a meditace'
     field [422,top+208,344,] { data:c.title_eng }
     label ref_tema [780,top+184,46,16] { style:'cursor:pointer' }
     label ref_text [780,top+211,46,16] { style:'cursor:pointer' }
-    edit text_eng [421,top+236,405,548] { type:'html', data:c.text_eng, par:{toolbar:'Cac'} }
+//    edit text_eng [421,top+236,405,548] { type:'html', data:c.text_eng, par:{toolbar:'Cac'} }
+    label text_eng [421,top+238,390,543] { style:'overflow-x:auto;border:1px solid #d3d3d3;padding:5px;font-size:10pt' }
   }
   // ==> zobrazení rozdílu proti původnímu DeepL
   panel Diff [0,0,400,600] { type:'popup' 

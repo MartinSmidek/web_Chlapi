@@ -364,6 +364,12 @@ function cac_change_state($idc,$s) {
   }
   return $msg;
 }
+# ------------------------------------------------------------------------------------- cac save_fld
+# uloží text překladu (obejdeme form.save kvůli problémům s FCEditorem)
+function cac_save_fld($idc,$fld,$text) {
+  $text= pdo_real_escape_string($text);
+  query("UPDATE cac SET $fld='$text' WHERE id_cac=$idc");
+}
 # =============================================================================================== RR
 # ---------------------------------------------------------------------------------------- rr nastav
 # $par = {den:ode dneška,poslat: 0/1}
