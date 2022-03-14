@@ -1244,6 +1244,10 @@ __EOD;
   echo <<<__EOD
   $head
   <body onload="jump_fokus();">
+    <div title="We stand with Ukraine" id="we-stand-with-ukraine" style="left: -80px; bottom: 20px; 
+      transform: rotate(45deg); background: linear-gradient(-180deg, rgb(0, 91, 187) 50%, 
+        rgb(255, 213, 0) 50%); width: 300px; height: 84px; position: fixed; z-index: 999;">
+    </div>    
     $demo
     <div id='web'>
       <div id='work'>
