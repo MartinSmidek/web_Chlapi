@@ -25,10 +25,9 @@ function get_fileadmin() {
   global $ezer_server;
   $fileadmin= array(
       "http://setkani.bean:8080/fileadmin",
+      "http://setkani.petr/fileadmin",
       "https://www.setkani.org/fileadmin",
-      "https://web.setkani.org/fileadmin",
-      "http://setkani4.doma/fileadmin",
-      "https://www.setkani.org/fileadmin" // ben
+      "http://setkani4.doma/fileadmin"
     )[$ezer_server];
   return $fileadmin;
 }
@@ -38,10 +37,9 @@ function get_prefix() {
   global $ezer_server;
   $prefix= array(
       "http://chlapi.bean:8080/",
-      "http://chlapi.online/",
+      "http://chlapi.petr/",
       "https://chlapi.cz/",
-      "http://chlapi.doma/",
-      "http://chlapi.ben:8080/"   // ben
+      "http://chlapi.doma/"
     )[$ezer_server];
   return $prefix;
 }
@@ -1064,10 +1062,9 @@ __EOJ;
   // head
   $icon= array(
       '/man/img/chlapi_ico_local.png',
-      '/man/img/chlapi_ico_dsm.png',
+      '/man/img/chlapi_ico_local.png',
       '/man/img/chlapi_ico.png',
-      '/man/img/chlapi_ico_doma.png',
-      '/man/img/chlapi_ico_local.png' // ben
+      '/man/img/chlapi_ico_doma.png'
     )[$ezer_server];
   $head=  <<<__EOD
   <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
@@ -1530,12 +1527,10 @@ function servant($qry,$context=null) {
   global $s, $servant, $ezer_server;
   $secret= "WEBKEYNHCHEIYSERVANTAFVUOVKEYWEB";
   $servant= array(
-//      "https://www.setkani.org/servant.php?secret=$secret", 
       "http://setkani4m.bean:8080/servant.php?secret=$secret",
+      "http://setkani.petr/servant.php?secret=$secret",
       "https://www.setkani.org/servant.php?secret=$secret",
-      "https://www.setkani.org/servant.php?secret=$secret",
-      "http://setkani4.doma/servant.php?secret=$secret",
-      "https://www.setkani.org/servant.php?secret=$secret"  // ben
+      "http://setkani4.doma/servant.php?secret=$secret"
     )[$ezer_server];
   $_SESSION['web']['*servant_last']= "$servant&$qry";
   $json= url_get_contents("$servant&$qry",false,$context);

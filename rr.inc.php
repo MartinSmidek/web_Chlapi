@@ -19,6 +19,13 @@
       'activity'=>(object)array()
   );
 
+  // cesta k utilitám MySQL/MariaDB
+  $ezer_mysql_path= array(
+      "C:/Apache/bin/mysql/mysql5.7.21/bin",  // *.bean
+      "/volume1/@appstore/MariaDB/usr/bin",   // Synology YMCA
+      "D:/wamp64/bin/mysql/mysql5.7.36/bin",  // petr
+    )[$ezer_server];
+
   // informace pro debugger o poloze ezer modulů
   $dbg_info= (object)array(
     'src_path'  => array('rr','man','ezer3.1') // poloha a preference zdrojových modulů

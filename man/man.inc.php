@@ -40,11 +40,10 @@
 
   // cesta k utilitám MySQL/MariaDB
   $ezer_mysql_path= array(
-      "C:/Apache/bin/mysql/mysql5.7.21/bin",  // *.bean
+      "C:/Apache/bin/mysql/mysql5.7.21/bin",  // martin
+      "D:/wamp64/bin/mysql/mysql5.7.36/bin",  // petr
       "/volume1/@appstore/MariaDB/usr/bin",   // Synology YMCA
-      "/volume1/@appstore/MariaDB/usr/bin",   // Synology YMCA
-      "/volume1/@appstore/MariaDB/usr/bin",    // Synology DOMA
-      "C:/Apache/bin/mysql/mysql5.7.26/bin",  // ben
+      "/volume1/@appstore/MariaDB/usr/bin"    // Synology DOMA
     )[$ezer_server];
 
   // ostatní parametry

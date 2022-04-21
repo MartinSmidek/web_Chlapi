@@ -3,13 +3,12 @@
 date_default_timezone_set('Europe/Prague');
 
 $ezer_server= 
-    $_SERVER["SERVER_NAME"]=='chlapi.bean'       ? 0 : (         // 0:lokální         = oranžové logo
-    $_SERVER["SERVER_NAME"]=='chlapi.online'     ? 1 : (         // Synology - online = modré logo
-    $_SERVER["SERVER_NAME"]=='www.chlapi.online' ? 1 : (
-    $_SERVER["SERVER_NAME"]=='chlapi.cz'         ? 2 : (         // Synology - cz     = šedé logo
+  $ezer_server= 
+    $_SERVER["SERVER_NAME"]=='chlapi.bean'       ? 0 : (       // 0:lokální - Martin = oranžové logo
+    $_SERVER["SERVER_NAME"]=='chlapi.petr'       ? 1 : (       // 1:lokální - Petr   = oranžové logo
+    $_SERVER["SERVER_NAME"]=='chlapi.cz'         ? 2 : (       // Synology - OSTRÝ WEB  = šedé logo
     $_SERVER["SERVER_NAME"]=='www.chlapi.cz'     ? 2 : (
-    $_SERVER["SERVER_NAME"]=='chlapi.doma'       ? 3 : (         // Synology - DOMA   = modré logo
-    $_SERVER["SERVER_NAME"]=='chlapi.ben'        ? 4 : -1)))))); // 4:lokální - Ben   = oranžové logo
+    $_SERVER["SERVER_NAME"]=='chlapi.doma'       ? 3 : -1)))); // Synology - DOMA   = modré logo
 
 # ------------------------------------------ init
 
