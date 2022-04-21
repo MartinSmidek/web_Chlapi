@@ -1035,7 +1035,7 @@ __EOJ
       Ezer.fce= {};
       Ezer.str= {};
       Ezer.obj= {};
-      Ezer.version= 'ezer3.1'; Ezer.root= 'man'; Ezer.app_root= 'man'; 
+      Ezer.version= '3.1'; Ezer.root= 'man'; Ezer.app_root= 'man'; 
       Ezer.options= {
         _oninit: 'skup_mapka',
         skin: 'db'

@@ -1,6 +1,6 @@
 menu rr { type:'main', active:rr.richard
   func onstart() { php.table_lock('none'); } // uvolni všechny zámky řádků tabulek přihlášeného 
-  # =================================================================================== RR
+  # ===================================================================================> RR
   tabs richard {title:"Myšlenky", _sys:'*', skill:'rr'
     panel rohr {type:'right', title:'Rozesílání'
       menu myslenka {type:'left'
@@ -116,7 +116,7 @@ menu rr { type:'main', active:rr.richard
   }
   # ===================================================================================> CAC
   tabs uvahy {title:"CAC", _sys:'*', skill:'cac', include:'onload'}
-  # ===================================================================================> CAC
+  # ===================================================================================> Maily
   tabs maily {title:"Maily", _sys:'*', skill:'mail'
     panel maily { type:'right', title:'Upomínací maily'
       use info: form right [12,4,,]
@@ -149,6 +149,37 @@ menu rr { type:'main', active:rr.richard
           func onclick (i:ezer) { var cac:object
             clear(); info.header(i); panel.display(0,'.'); 
             info.fill('',php.stamp_show(i.par.typ,i.par.subj));
+          }
+        }
+      }
+    }
+  }
+  # ===================================================================================> Bans
+  tabs bans {title:"BANs", _sys:'*', skill:'ban'
+    panel maily { type:'right', title:'Správa BANů v konferencích'
+      use info: form right {
+        select mail [10,40,150,] { type:'auto', par:{fce:'ban_maily_auto'}, format:'t'
+          func onchanged() { var ido:number, name:text
+            ido= this.key();
+            if (ido) {
+              name= php.select("CONCAT(jmeno,' ',prijmeni)",'ezer_db2.osoba',`id_osoba=${ido}`);
+              inf= `${ido}: ${name} ${this.get()}`;
+            }
+            else {
+              inf= `mail '${this.get()}' neznám`;
+            }
+          }
+        }
+        label inf [170,42,150,17]
+      }
+      menu m {type:'left', format:'f'
+        menu p {title:'Přehled BANů',type:'group'
+          item {title:'[fa-question] Hledání podle mailu'
+            func onclick(i:ezer) { 
+              info.header(i); clear(); 
+              info.mail= ''; info.inf= '';
+              info.fill('',' ');
+            }
           }
         }
       }

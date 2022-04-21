@@ -1,5 +1,39 @@
 <?php # (c) 2007-2012 Martin Smidek <martin@smidek.eu>
 
+# =============================================================================================> BAN
+# ----------------------------------------------------------------------------------- ban maily_auto
+function ban_maily_auto($patt,$par) {  //trace();
+//                                                      debug($par,"test_auto.par");
+  $a= (object)array();
+  $limit= 10;
+  $n= 0;
+  if ( !$patt ) {
+    $a->{0}= "... zadejte vzor";
+  }
+  else {
+    if ( $par->prefix ) {
+      $patt= "{$par->prefix}$patt";
+    }
+    // zpracování vzoru
+    $qry= "SELECT id_osoba AS _key,IF(email REGEXP '^$patt.*|,$patt.*',email,gmail) AS _value
+           FROM ezer_db2.osoba
+           WHERE email REGEXP '^$patt.*|,$patt.*' OR gmail REGEXP '^$patt.*|,$patt.*' 
+           ORDER BY email LIMIT $limit";
+    $res= pdo_qry($qry);
+    while ( $res && $t= pdo_fetch_object($res) ) {
+      if ( ++$n==$limit ) break;
+      $a->{$t->_key}= $t->_value;
+    }
+//                                                        display("test_auto:$n,$limit");
+    // obecné položky
+    if ( !$n )
+      $a->{0}= "... nic nezačíná $patt";
+    elseif ( $n==$limit )
+      $a->{999999}= "... a další";
+  }
+//                                                      debug($a,"test_auto");
+  return $a;
+}
 # ============================================================================================ MAILY
 # ---------------------------------------------------------------------------------------- note text
 # vytvoří dopis pro $who
