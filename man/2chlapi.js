@@ -252,7 +252,7 @@ function _table_test_(y) {
 function table_add1(e,skup,cid) {
   if ( e ) { e.stopPropagation(); e.preventDefault(); }
   jQuery('#skupiny input').css({display:'none'});
-  let ss= skup.replace(' ','_'),
+  let ss= skup.replace(/\s|\./,'_'),
       input= jQuery('#table-'+ss);
   input.val(Ezer.web.username ? Ezer.web.username : '');
   input.css({display:'block'});
@@ -261,7 +261,7 @@ function table_add1(e,skup,cid) {
 // přidá účastníka do skupiny
 function table_add(e,skup,idc) {
   if ( e ) { e.stopPropagation(); e.preventDefault(); }
-  let ss= skup.replace(' ','_'),
+  let ss= skup.replace(/\s|\./,'_'),
       input= jQuery('#table-'+ss);
   table_x= {cmd:'table_add',skupina:skup,jmeno:input.val(),idc:idc};
   ask(table_x,_table_add);
