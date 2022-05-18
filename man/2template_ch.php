@@ -1650,7 +1650,13 @@ function ask_server($x) {
     break;
   
   case 'me_login': // ------------------------------------------------------------------------ login
-    servant("cmd=me_login&mail=$x->mail&pin=$x->pin&web=$x->web");
+    switch ($_SERVER["SERVER_NAME"]) {
+      // zkratka pr ladící prostředí
+      case 'chlapi.bean': $s= (object)array('state'=>'ok','user'=>5877,'mrop'=>1,'firm'=>1); break;
+      case 'chlapi.petr': $s= (object)array('state'=>'ok','user'=>5457,'mrop'=>1,'firm'=>1); break;
+      // normální dotaz na ostrý server
+      default: servant("cmd=me_login&mail=$x->mail&pin=$x->pin&web=$x->web");
+    }
     if ( isset($s->state) && $s->state=='ok') {
       // přepočítej _user.skill na fe_level
       db_connect();
