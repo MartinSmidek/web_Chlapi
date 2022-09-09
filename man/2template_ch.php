@@ -22,26 +22,14 @@ function def_user() {
 # --------------------------------------------------------------------------------==> get fileadmin
 # vrátí fileadmin pro web setkani
 function get_fileadmin() {
-  global $ezer_server;
-  $fileadmin= array(
-      "http://setkani.bean:8080/fileadmin",
-      "http://setkani.petr/fileadmin",
-      "https://www.setkani.org/fileadmin",
-      "http://setkani4.doma/fileadmin"
-    )[$ezer_server];
+  global $fileadmin;
   return $fileadmin;
 }
 # -----------------------------------------------------------------------------------==> get prefix
 # vrátí prefix
 function get_prefix() {
-  global $ezer_server;
-  $prefix= array(
-      "http://chlapi.bean:8080/",
-      "http://chlapi.petr/",
-      "https://chlapi.cz/",
-      "http://chlapi.doma/"
-    )[$ezer_server];
-  return $prefix;
+  global $url_prefix;
+  return $url_prefix;
 }
 # -------------------------------------------------------------------------------------==> page
 // jen pro CMS mod: vrací objekt se stránkou
@@ -99,7 +87,7 @@ function read_menu() {
 # -------------------------------------------------------------------------------------==> eval menu
 # path = [ mid, ...]
 function eval_menu($path) { 
-  global $REDAKCE, $currpage, $tm_active, $ezer_server;
+  global $REDAKCE, $currpage, $tm_active;
   global  $menu, $amenu, $submenu_shift, $elem, $curr_menu, $backref, $backhref, $top;
   global $prefix, $href, $input;
   $prefix= get_prefix();
@@ -299,8 +287,8 @@ function title_menu($title,$items,$id=0,$idk=0,$idm=0) {
 // ids  :: id1 [ / id2 ] , ...    -- id2 je klíč v lokální db pro ladění
 // $counts je pole sčítající skutečně renderované (viditelné) elementy
 function eval_elem($desc,$book=null) { //trace();
-  global $REDAKCE, $KLIENT, $ezer_server, $http_server, $index, $load_ezer, $curr_menu, $top, 
-      $prefix, $mobile, $cmenu, $backref, $counts; 
+  global $REDAKCE, $KLIENT, $ezer_server_ostry, $index, $load_ezer, $curr_menu, $top, 
+      $prefix, $mobile, $cmenu, $backref, $counts, $rel_root; 
                                                     debug(array($desc,$book),"eval_elem");
   $elems= explode(';',$desc);
   $ipad= '';
@@ -315,7 +303,7 @@ function eval_elem($desc,$book=null) { //trace();
       $id= array();
       foreach (explode(',',$ids) as $id12) {
         list($id_server,$id_local)= explode('/',$id12);
-        $id[]= $id_local ? (!$ezer_server ? $id_local : $id_server) : $id_server; 
+        $id[]= $id_local ? (!$ezer_server_ostry ? $id_local : $id_server) : $id_server; 
       }
       $id= implode(',',$id);
     }
@@ -630,7 +618,7 @@ __EOT;
       $obsah= x_cenzura($obsah);
       $menu= $note= '';
       if ( $REDAKCE ) {
-        $obsah= preg_replace_callback("~(href=\"(?:$http_server/|/|(?!https?://)))(.*)\"~U", 
+        $obsah= preg_replace_callback("~(href=\"(?:$rel_root/|/|(?!https?://)))(.*)\"~U", 
             function($m) {
               return preg_match('~inc/(c|f)/~',$m[2])
                 ? $m[1].$m[2].'"'
@@ -798,7 +786,7 @@ __EOT;
       $obsah= str_replace('$index',$index,$obsah);
       $menu= '';
       if ( $REDAKCE ) {
-        $obsah= preg_replace_callback("~(href=\"(?:$http_server/|/|(?!https?://)))(.*)\"~U", 
+        $obsah= preg_replace_callback("~(href=\"(?:$rel_root/|/|(?!https?://)))(.*)\"~U", 
             function($m) {
               return preg_match('~inc/(c|f)/~',$m[2])
                 ? $m[1].$m[2].'"'
@@ -867,7 +855,7 @@ __EOT;
           }
           else {
             $web= $REDAKCE
-              ? preg_replace_callback("~(href=\"(?:$http_server/|/|(?!https?://)))(.*)\"~U", 
+              ? preg_replace_callback("~(href=\"(?:$rel_root/|/|(?!https?://)))(.*)\"~U", 
                   function($m) {
                     return preg_match('~inc/(c|f)/~',$m[2])
                       ? $m[1].$m[2].'"'
@@ -963,7 +951,7 @@ __EOT;
 }
 # -------------------------------------------------------------------------------------==> show_page
 function show_page($html) {
-  global $REDAKCE, $KLIENT, $index, $GET_rok, $mode, $load_ezer, $ezer_server, $prefix;
+  global $REDAKCE, $KLIENT, $index, $GET_rok, $mode, $load_ezer, $ezer_server_ostry, $prefix;
   global $bar_menu, $links, $currpage, $tm_active;
   
   // definice do <HEAD>
@@ -979,7 +967,7 @@ function show_page($html) {
 //__EOD;      
 
  // Google Analytics - chlapi.cz=UA-163664361-1 chlapi.online=UA-99235788-2
-  $GoogleAnalytics= $ezer_server!==2 ? '' : <<<__EOD
+  $GoogleAnalytics= !$ezer_server_ostry ? '' : <<<__EOD
 <!-- Global site tag (gtag.js) - Google Analytics -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=UA-163664361-1"></script>
 <script>
@@ -1060,12 +1048,7 @@ __EOJ;
   // počáteční tapeta pro klientský běh, pro redakční je v man.php ve funkci specific
   $wall= isset($_COOKIE['wallpaper']) ? $_COOKIE['wallpaper'] : 'foto_home.jpg';
   // head
-  $icon= array(
-      '/man/img/chlapi_ico_local.png',
-      '/man/img/chlapi_ico_local.png',
-      '/man/img/chlapi_ico.png',
-      '/man/img/chlapi_ico_doma.png'
-    )[$ezer_server];
+  global $icon;
   $head=  <<<__EOD
   <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
   <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en" dir="ltr">
@@ -1074,7 +1057,7 @@ __EOJ;
     <meta http-equiv="X-UA-Compatible" content="IE=11" />
     <meta name="viewport" content="width=device-width,user-scalable=yes,initial-scale=1" />
     <title>chlapi.cz</title>
-    <link rel="shortcut icon" href="$icon" />
+    <link rel="shortcut icon" href="/man/img/$icon" />
     <style>body{background-image:url(man/css/wall/$wall);}</style>
     $script
     $eb_link
@@ -1226,7 +1209,7 @@ __EOD;
 
   // upozornění na testovací verzi 
   $demo= '';
-//  if ( $ezer_server==2 ) {
+//  if ( $ezer_server_ostry ) {
 //    $click= "jQuery('#DEMO').fadeOut(1000).delay(2000).fadeIn(1000);";
 //    $dstyle= "left:0; top:0; position:fixed; transform:rotate(320deg) translate(-128px,-20px); "
 //        . "width:500px;height:100px;background:orange; color:white; font-weight: bolder; "
@@ -1313,21 +1296,21 @@ function zapis_xakce($ida) {
 # pokud je akce v archivu, vynuť zobrazení tabulky jako abstraktu, pokud na ni uživatel neklikne
 function table_show($ida,$idc) { 
   global $currpage;
-  $skup= $tab= array();  // tab: [skup][poradi] poradi=0 => max, poradi>0 => jméno
+  $skupx= $tab= array();  // tab: [skup][poradi] poradi=0 => max, poradi>0 => jméno
   list($skupiny,$skupina,$ids)= explode('!',$currpage);
   $ids= explode(',',$ids);
   $A= count($ids)==3 ? 'C' : 'A';
   $maximum= 0;
   $h= '';
-  $tr= pdo_qry("SELECT skupina,jmeno,poradi FROM xucast
+  $tr= pdo_qry("SELECT skupina,jmeno,poradi,id_xucast FROM xucast
     WHERE id_xclanek=$idc ORDER BY skupina,poradi,id_xucast");
-  while ( $tr && (list($skupina,$jmeno,$poradi)= pdo_fetch_row($tr)) ) {
+  while ( $tr && (list($skupina,$jmeno,$poradi,$idx)= pdo_fetch_row($tr)) ) {
     if ( $skupina=='maximum' )    { $maximum= max($maximum,$poradi); continue; }
-    if ( !isset($tab[$skupina]) ) { $skup[]= $skupina; $tab[$skupina]= array(0); }
+    if ( !isset($tab[$skupina]) ) { $skupx[]= array($skupina,$idx); $tab[$skupina]= array(0); }
     if ( $jmeno=='max' )          { $tab[$skupina][0]= $poradi; $maximum= max($maximum,$poradi); continue; }
     $tab[$skupina][]= "$jmeno";
   }
-//                                                        debug($skup,"maximum=$maximum");
+//                                                        debug($skupx,"maximum=$maximum");
 //                                                        debug($tab);
   if ( !count($tab) ) goto end; // pro $idc není tabulka
   // zjistíme datum ukončení akce
@@ -1358,10 +1341,11 @@ function table_show($ida,$idc) {
           postupuj podle kroků 1 -3 a znovu napiš svoje jméno jako poprvé. Tvoje účast bude zrušena.";
   $h.= "<br><div class='skupiny_container'><table class='skupiny' cellspacing='0' cellpadding='0'><tr>";
   $add= $event= '';
-  foreach ($skup as $s) {
+  foreach ($skupx as $sx) {
+    list($s,$idx)= $sx;
     if ( $day>=$dnes )
       $event= $_SESSION['web']['tab'] || $_SESSION['web']['username']
-        ? "onclick=\"table_add1(arguments[0],'$s','$idc');\""
+        ? "onclick=\"table_add1(arguments[0],'$s','$idc','$idx');\""
         : "onclick=\"table_test(arguments[0]);return false;\"";
     $style= "style='box-shadow:3px 2px 6px gray;float:right'";
     $class= "class='jump'";
@@ -1370,19 +1354,20 @@ function table_show($ida,$idc) {
     $h.= "<th>$s$add</th>";
   }
   $h.= "</tr><tr>";
-  foreach ($skup as $s) {
+  foreach ($skupx as $sx) {
+    list($s,$idx)= $sx;
     if ( $day>=$dnes ) {
-      $ss= strtr($s,' ','_'); 
-      $event= "onsubmit=\"table_add(arguments[0],'$s','$idc');return false;\"";
+      $event= "onsubmit=\"table_add(arguments[0],'$s','$idc','$idx');return false;\"";
       $h.= "<td><form $event>
-              <input type='text' size='1' maxlength='100' id='table-$ss' style='display:none'>
+              <input type='text' size='1' maxlength='100' id='table-$idx' style='display:none'>
             </form></td>";
     }
   }
   $h.= "</tr>";
   for ($i= 1; $i<=$maximum; $i++) {
     $h.= "<tr>";
-    foreach ($skup as $s) {
+    foreach ($skupx as $sx) {
+      list($s,$idx)= $sx;
       if ( !$tab[$s][0] ) $tab[$s][0]= $maximum;
       $jm= isset($tab[$s][$i]) ? $tab[$s][$i] : '';
       if ( !$_SESSION['web']['tab'] && !$_SESSION['web']['username'] ) {
@@ -1525,13 +1510,6 @@ function show_fotky($fid,$lst,$back_href) {
 # funkce na serveru přes AJAX
 function servant($qry,$context=null) {
   global $s, $servant, $ezer_server;
-  $secret= "WEBKEYNHCHEIYSERVANTAFVUOVKEYWEB";
-  $servant= array(
-      "http://setkani4m.bean:8080/servant.php?secret=$secret",
-      "http://setkani.petr/servant.php?secret=$secret",
-      "https://www.setkani.org/servant.php?secret=$secret",
-      "http://setkani4.doma/servant.php?secret=$secret"
-    )[$ezer_server];
   $_SESSION['web']['*servant_last']= "$servant&$qry";
   $json= url_get_contents("$servant&$qry",false,$context);
 //                                          display("<b style='color:red'>servant</b> $servant$qry");
@@ -1822,36 +1800,7 @@ function db_connect() {
 //  );
 //  ezer_connect('setkani');
   
-  global $ezer_db, $dbs, $ezer_server, $http_server;
-  $http_server= "https://$ezer_server";
-  /*
-  $dbs= array(
-    array(  // 0 = lokální
-      'setkani'  => array(0,'localhost','gandi','radost','utf8','chlapi'),
-      'ezertask' => array(0,'localhost','gandi','radost','utf8')
-    ),
-    array(  // 1 = ostré - Synology + online 
-      'setkani'  => array(0,'localhost','ymca','JW4YNPTDf4Axkj9','utf8','chlapi'),
-      'ezertask' => array(0,'localhost','ymca','JW4YNPTDf4Axkj9','utf8','myslenky')
-    ),
-    array(  // 2 = ostré - Synology + cz
-      'setkani'  => array(0,'localhost','ymca','JW4YNPTDf4Axkj9','utf8','chlapi'),
-      'ezertask' => array(0,'localhost','ymca','JW4YNPTDf4Axkj9','utf8','myslenky')
-    ),
-    array(  // 3 = ladící - Synology DOMA
-      'setkani'  => array(0,'localhost:3307','gandi10','Radost_2020','utf8','chlapi'),
-      'ezertask' => array(0,'localhost:3307','gandi10','Radost_2020','utf8','myslenky')
-    ),
-//    array(  // 3 = ladící - Synology DOMA
-//      'setkani'  => array(0,'localhost','gandi','radost','utf8','chlapi'),
-//      'ezertask' => array(0,'localhost','gandi','radost','utf8','myslenky')
-//    ),
-    array(  // 4 = ladící - ben
-      'setkani'  => array(0,'localhost','gandi','radost','utf8','chlapi'),
-      'ezertask' => array(0,'localhost','gandi','radost','utf8')
-    ),
-  );
-  */
+  global $ezer_db, $dbs, $ezer_server;
   $ezer_db= $dbs[$ezer_server];
   ezer_connect('setkani'); 
 }

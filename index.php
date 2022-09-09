@@ -2,14 +2,6 @@
 
 date_default_timezone_set('Europe/Prague');
 
-//$ezer_server= 
-//  $ezer_server= 
-//    $_SERVER["SERVER_NAME"]=='chlapi.bean'       ? 0 : (       // 0:lokální - Martin = oranžové logo
-//    $_SERVER["SERVER_NAME"]=='chlapi.petr'       ? 1 : (       // 1:lokální - Petr   = oranžové logo
-//    $_SERVER["SERVER_NAME"]=='chlapi.cz'         ? 2 : (       // Synology - OSTRÝ WEB  = šedé logo
-//    $_SERVER["SERVER_NAME"]=='www.chlapi.cz'     ? 2 : (
-//    $_SERVER["SERVER_NAME"]=='chlapi.doma'       ? 3 : -1)))); // Synology - DOMA   = modré logo
-
 # ------------------------------------------ init
 
 $microtime_start= microtime();
@@ -30,9 +22,6 @@ require_once("man/2template_ch.php");
 // pro testovací GETs
 $_SESSION['web']['GET']= isset($_SESSION['web']['GET']) 
     ? array_merge($_SESSION['web']['GET'],$_GET) : $_GET;
-//// databáze
-//$deep_root= "../files/chlapi";
-//require_once("$deep_root/man.dbs.php");
 # ------------------------------------------ ajax
 if ( count($_POST) ) {
   global $s;

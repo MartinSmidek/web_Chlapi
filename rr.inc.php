@@ -1,41 +1,24 @@
 <?php # (c) 2010 Martin Smidek <martin@smidek.eu>
 
-  global // import 
-    $ezer_root; 
-  global // export
-    $EZER, $ezer_server;
-  
-  // vyzvednutí ostatních hodnot ze SESSION
-  $ezer_server=  $_SESSION[$ezer_root]['ezer_server'];
-  $kernel= "ezer{$_SESSION[$ezer_root]['ezer']}";
-  $abs_root=     $_SESSION[$ezer_root]['abs_root'];
-  $rel_root=     $_SESSION[$ezer_root]['rel_root'];
+  // obnov skryté definice, cesty, databáze, aktuální server
+  $abs_root= $_SESSION['rr']['abs_root'];
   chdir($abs_root);
+  $deep_root= "../files/chlapi";
+  require_once("$deep_root/rr.dbs.php");
 
   // inicializace objektu Ezer
   $EZER= (object)array(
-      'version'=>'ezer'.$_SESSION[$ezer_root]['ezer'],
+      'version'=>'ezer'.$_SESSION['rr']['ezer'],
       'options'=>(object)array(),
       'activity'=>(object)array()
   );
-
-  // cesta k utilitám MySQL/MariaDB
-  $ezer_mysql_path= array(
-      "C:/Apache/bin/mysql/mysql5.7.21/bin",  // *.bean
-      "/volume1/@appstore/MariaDB/usr/bin",   // Synology YMCA
-      "D:/wamp64/bin/mysql/mysql5.7.36/bin",  // petr
-    )[$ezer_server];
 
   // informace pro debugger o poloze ezer modulů
   $dbg_info= (object)array(
     'src_path'  => array('rr','man','ezer3.1') // poloha a preference zdrojových modulů
   );
 
-  // databáze
-  $deep_root= "../files/chlapi";
-  require_once("$deep_root/rr.dbs.php");
-  $path_backup= "$deep_root/sql";
-
+  // použité funkce
   $app_php= array('rr/rr_fce.php');
   
   // je to standardní aplikace

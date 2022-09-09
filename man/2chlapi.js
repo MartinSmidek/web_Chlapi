@@ -249,20 +249,18 @@ function _table_test_(y) {
 }
 // -------------------------------------------------------------------------------------- table add1
 // zobrazí jméno přihlášeného účastníka jako vzor
-function table_add1(e,skup,cid) {
+function table_add1(e,skup,cid,idx) {
   if ( e ) { e.stopPropagation(); e.preventDefault(); }
   jQuery('#skupiny input').css({display:'none'});
-  let ss= skup.replace(/\s|\./,'_'),
-      input= jQuery('#table-'+ss);
+  let input= jQuery('#table-'+idx);
   input.val(Ezer.web.username ? Ezer.web.username : '');
   input.css({display:'block'});
 }
 // --------------------------------------------------------------------------------------- table add
 // přidá účastníka do skupiny
-function table_add(e,skup,idc) {
+function table_add(e,skup,idc,idx) {
   if ( e ) { e.stopPropagation(); e.preventDefault(); }
-  let ss= skup.replace(/\s|\./,'_'),
-      input= jQuery('#table-'+ss);
+  let input= jQuery('#table-'+idx);
   table_x= {cmd:'table_add',skupina:skup,jmeno:input.val(),idc:idc};
   ask(table_x,_table_add);
 }

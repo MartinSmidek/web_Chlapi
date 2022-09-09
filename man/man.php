@@ -1,22 +1,8 @@
 <?php
 
-  // volba verze jádra Ezer
+  // volba verze jádra Ezer, vnucení parametrů
   $kernel= "ezer3.1"; 
   $_GET['pdo']= 2;
-
-//  // skryté definice 
-//  $deep_root= "../files/chlapi";
-//  require_once("$deep_root/man.dbs.php");
-
-//  $ezer_local= preg_match('/^\w+\.bean$/',$_SERVER["SERVER_NAME"])?1:0;
-//  $ezer_server= 
-//    $_SERVER["SERVER_NAME"]=='chlapi.bean'       ? 0 : (         // 0:lokální         = oranžové logo
-//    $_SERVER["SERVER_NAME"]=='chlapi.online'     ? 1 : (         // Synology - online = modré logo
-//    $_SERVER["SERVER_NAME"]=='www.chlapi.online' ? 1 : (
-//    $_SERVER["SERVER_NAME"]=='chlapi.cz'         ? 2 : (         // Synology - cz     = šedé logo
-//    $_SERVER["SERVER_NAME"]=='www.chlapi.cz'     ? 2 : (
-//    $_SERVER["SERVER_NAME"]=='chlapi.doma'       ? 3 : (         // Synology - DOMA   = modré logo
-//    $_SERVER["SERVER_NAME"]=='chlapi.ben'        ? 4 : -1)))))); // 4:lokální - ben   = oranžové logo
 
   // verze js + css
   $v_app= '';
@@ -24,7 +10,8 @@
     require "man/version.php";
     $v_app= "?v=$version";
   }
-  // parametry aplikace MAN
+  
+  // základní údaje aplikace MAN
   $app_name=  "chlapi.cz";
   $app_root=  'man';
   $app_js=    array("/man/2chlapi.js$v_app", "/man/man.js$v_app", 
@@ -32,22 +19,6 @@
   $app_css=   array("/man/css/mini.css$v_app","/man/css/2chlapi.css$v_app","/man/css/edit.css$v_app",
                     "/man/fotorama/fotorama.css$v_app");
   $skin=      'ck';
-  
-//  // cesty
-//  $abs_roots= array(
-//      "C:/Ezer/beans/chlapi.online",
-//      "/var/services/web/www/chlapi",
-//      "/var/services/web/www/chlapi",
-//      "/var/services/web/www/chlapi",
-//      "C:/Ezer/beans/chlapi.online",    // ben
-//    );
-//  $rel_roots= array(
-//      "http://chlapi.bean:8080",
-//      "http://chlapi.online",
-//      "https://chlapi.cz",
-//      "http://chlapi.doma",
-//      "http://chlapi.ben:8080"        // ben
-//    );
   
   require_once("../$kernel/server/ae_slib.php");
   require_once '2template_ch.php';
@@ -65,7 +36,6 @@
     // nebo odmítnutí přihlášení
     session_destroy();
     header("Location: $rel_root"); 
-//    header("Location: $rel_roots[$ezer_server]"); 
   }
 
   // specifická část aplikace předávaná do options
@@ -75,16 +45,17 @@
   $add_options= (object)array(
     'to_trace' => 1,
     'mini_debug' => 1,
-    'path_files_href' => "'$rel_roots[$ezer_server]'",
+    'path_files_href' => "'$rel_root'",
     'path_files_s' => "'$abs_root/'"  // absolutní cesta pro přílohy
-//    'path_files_s' => "'$abs_roots[$ezer_server]/'"  // absolutní cesta pro přílohy
   );
 
   // (re)definice Ezer.options
+  global $icon;
   $add_pars= array(
     'log_login' => false,   // nezapisovat standardně login do _touch (v ezer2.php)
-    'favicon' => array('chlapi_ico_local.png','chlapi_ico_dsm.png','chlapi_ico.png',
-                       'chlapi_ico_doma.png','chlapi_ico_local.png')[$ezer_server],    // ben
+    'favicon' => $icon,
+//                  array('chlapi_ico_local.png','chlapi_ico_dsm.png','chlapi_ico.png',
+//                        'chlapi_ico_doma.png','chlapi_ico_local.png')[$ezer_server],    // ben
     'template' => "user",
     'template_meta' => $template_meta,
     'template_body' => $template,

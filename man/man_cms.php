@@ -300,74 +300,74 @@ end:
   return $ret;
 }
 /** =========================================================================================> FOTKY */
-# ---------------------------------------------------------------------------------==> . ERRATA_2020
-# oprava fotek - kopie z fileadmin/photo do inc/f
-function ERRATA_2020($cond) {
-  global $ezer_server;
-  if ($ezer_server) { // Synology
-    $incf=  "/var/services/web/www/chlapi/inc/f";
-    $photo= "/var/services/web/www/setkani4/fileadmin/photo";
-  }
-  else { // local
-    $incf=  "C:/Ezer/beans/chlapi.online/inc/f";
-    $photo= "C:/Ezer/beans/setkani4/fileadmin/photo";
-  }
-
-  $html= '';
-  $mn= pdo_qry("SELECT id_xfotky,path FROM xfotky WHERE $cond AND path!='' ");
-  while ( $mn && (list($ch,$ys)= pdo_fetch_row($mn)) ) {
-    $html.= "<hr> ($ch,$ys) ";
-    $src= "$photo/$ys";
-    $dst= "$incf/$ch";
-    if (file_exists($src)) {
-      if (file_exists($dst)) {
-        // vyprázdníme cíl
-        $files= files($dst);
-        $html.= count($files)." unlink ";
-        foreach ($files as $file) {
-//          $html.= "<br> unlink($dst/$file)";
-          unlink("$dst/$file");
-        }
-      }
-      else {
-        $html.= "<br> mkdir($dst)";
-        mkdir($dst);
-      }
-      // a zkopírujeme 
-      $files= files($src);
-      $html.= count($files)." copy ";
-      foreach ($files as $file) {
-//        $html.= "<br> copy($src/$file,$dst/$file)";
-        copy("$src/$file","$dst/$file");
-      }
-    }
-    else {
-      $html.= " mising";
-    }
-  }
-  return $html;
-}
-function files($dirname) {
-  $return= array();
-  if ( file_exists($dirname) ) {
-    $dir= opendir($dirname);
-    if ($dir) {
-      while (($filename= readdir($dir)) !== false) {
-        if (!is_dir($filename)) {
-          $return[] = "$filename";
-        }
-      }
-      closedir($dir);
-    }
-  }
-  return $return;
-}
+//# ---------------------------------------------------------------------------------==> . ERRATA_2020
+//# oprava fotek - kopie z fileadmin/photo do inc/f
+//function ERRATA_2020($cond) {
+//  global $ezer_server;
+//  if ($ezer_server) { // Synology
+//    $incf=  "/var/services/web/www/chlapi/inc/f";
+//    $photo= "/var/services/web/www/setkani4/fileadmin/photo";
+//  }
+//  else { // local
+//    $incf=  "C:/Ezer/beans/chlapi.online/inc/f";
+//    $photo= "C:/Ezer/beans/setkani4/fileadmin/photo";
+//  }
+//
+//  $html= '';
+//  $mn= pdo_qry("SELECT id_xfotky,path FROM xfotky WHERE $cond AND path!='' ");
+//  while ( $mn && (list($ch,$ys)= pdo_fetch_row($mn)) ) {
+//    $html.= "<hr> ($ch,$ys) ";
+//    $src= "$photo/$ys";
+//    $dst= "$incf/$ch";
+//    if (file_exists($src)) {
+//      if (file_exists($dst)) {
+//        // vyprázdníme cíl
+//        $files= files($dst);
+//        $html.= count($files)." unlink ";
+//        foreach ($files as $file) {
+////          $html.= "<br> unlink($dst/$file)";
+//          unlink("$dst/$file");
+//        }
+//      }
+//      else {
+//        $html.= "<br> mkdir($dst)";
+//        mkdir($dst);
+//      }
+//      // a zkopírujeme 
+//      $files= files($src);
+//      $html.= count($files)." copy ";
+//      foreach ($files as $file) {
+////        $html.= "<br> copy($src/$file,$dst/$file)";
+//        copy("$src/$file","$dst/$file");
+//      }
+//    }
+//    else {
+//      $html.= " mising";
+//    }
+//  }
+//  return $html;
+//}
+//function files($dirname) {
+//  $return= array();
+//  if ( file_exists($dirname) ) {
+//    $dir= opendir($dirname);
+//    if ($dir) {
+//      while (($filename= readdir($dir)) !== false) {
+//        if (!is_dir($filename)) {
+//          $return[] = "$filename";
+//        }
+//      }
+//      closedir($dir);
+//    }
+//  }
+//  return $return;
+//}
 # -------------------------------------------------------------------------------------- fotky2array
 // přečte fotky ze složky inc/f/fid do pole time=fname->time
 // pokud složka neexistuje, založí ji
 // obnov popisky: pokud neexistuje soubor fotka.txt vytvoř jej z zfotky.seznam
 function fotky2array($fid) { 
-  global $ezer_path_root, $abs_root, $ezer_server;
+  global $ezer_path_root, $abs_root, $ezer_server_ostry;
   $path= "$abs_root/inc/f/$fid";
   $time= array(); // fname->time
   // pokud složka neexistuje vytvoříme ji a návrat
@@ -382,8 +382,8 @@ function fotky2array($fid) {
   foreach ($fotky as $fotka) {
     $n++;
     $orig= mb_substr($fotka,mb_strlen($path)+1);
-    // případná transformace jména do ASCII
-    $file= $ezer_server 
+    // případná transformace jména do ASCII pro Windows
+    $file= $ezer_server_ostry 
         ? $orig 
         : iconv( "windows-1250", "utf-8", $orig );
     $ascii= utf2ascii($file,'.');

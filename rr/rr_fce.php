@@ -188,7 +188,7 @@ function cac_make_free($idc) {
 # ------------------------------------------------------------------------------- cac get_new_medits
 # doplní nové úvahy do CAC
 function cac_through_DeepL($idc) {
-  global $ezer_server;
+  global $ezer_server_ostry;
   list($idt,$theme_eng,$theme_cz,$title_eng,$text_eng)= 
       select('id_cactheme,theme_eng,theme_cz,title_eng,text_eng',
           'cac LEFT JOIN cactheme USING (id_cactheme)',"id_cac=$idc");
@@ -198,7 +198,7 @@ function cac_through_DeepL($idc) {
     query("UPDATE cactheme SET theme_cz=\"$theme_cz\" WHERE id_cactheme=$idt");
   }
   // překlad textu
-  if ($ezer_server==0) // v lokálu neplýtváme :-)
+  if (!$ezer_server_ostry) // v lokálu neplýtváme :-) ... domény bean a petr
     $text_eng= "<p>Testing <em>this</em> awesome <b>translator.</b></p>";
   $title_cz= cac_deepl_en2cs($title_eng);
   $text_cz= cac_deepl_en2cs($text_eng);
