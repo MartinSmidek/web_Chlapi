@@ -175,7 +175,7 @@ function rr_myslenka() {
       , 'První'=>'první', 'Druhá'=>'druhou', 'Čtvrtá'=>'čtvrtou', 'Pátá'=>'pátou'
       , 'Šestá'=>'šestou', 'Sedmá' => 'sedmou'
       ));
-    $subj= "Myšlenka na $subject - ";
+    $subj= "Myšlenka Richarda Rohra na $subject - ";
     $body= "<table cellpadding='10'><tr>";
     $body.= "<td valign='top' width='50%'><b>$title_cz</b><br>$text_cz</td>";
     $body.= "<td valign='top' width='50%'><b>$title_en</b><br>$text_en<div align='right'>$from_en</div></td>";
@@ -188,6 +188,7 @@ function rr_myslenka() {
 # $par: 1=jen upravené nebo přeložené, 
 #       2=přeložené i bez kontroly ale nikoliv překládané  ... DEFAULT
 #       3=přeložené bez omezení 
+# $plny 1=má být plný text včetně odkazů vpřed/vzad
 function cac_meditace($ymd,$jmp,$plny,$par=2) {
   $dny= array('z neděle','z pondělí','z úterý','ze středy','ze čtvrtka','z pátku','ze soboty');
   $cond= 
@@ -219,17 +220,19 @@ function cac_meditace($ymd,$jmp,$plny,$par=2) {
     <br>$x->text_eng
     <div align='right'><i>$x->author</i></div></td>";
   $body.= "</tr></table>";
-  // starší a novější myšlenka
-  $go=  select('datum','cac',
-      "text_cz!='' AND $cond AND datum<'$ymd' ORDER BY datum DESC LIMIT 1",'ezertask');
-  $dalsi= $go
-      ? "<a class='jump' href='$jmp,$go'>starší</a>"
-      : "<span class='neodkaz'><a class='jump'>starší</a></span>";
-  $go= select('datum','cac',
-      "text_cz!='' AND $cond AND datum>'$ymd' ORDER BY datum ASC LIMIT 1",'ezertask');
-  $dalsi.= $go
-      ? "<a class='jump' href='$jmp,$go'>novější</a>"
-      : "<span class='neodkaz'><a class='jump'>novější</a></span>";
+  if ($plny) {
+    // starší a novější myšlenka
+    $go=  select('datum','cac',
+        "text_cz!='' AND $cond AND datum<'$ymd' ORDER BY datum DESC LIMIT 1",'ezertask');
+    $dalsi= $go
+        ? "<a class='jump' href='$jmp,$go'>starší</a>"
+        : "<span class='neodkaz'><a class='jump'>starší</a></span>";
+    $go= select('datum','cac',
+        "text_cz!='' AND $cond AND datum>'$ymd' ORDER BY datum ASC LIMIT 1",'ezertask');
+    $dalsi.= $go
+        ? "<a class='jump' href='$jmp,$go'>novější</a>"
+        : "<span class='neodkaz'><a class='jump'>novější</a></span>";
+  }
   // patička a redakce
   $postfix= "Zde se nacházejí překlady <b>Daily Meditations</b>, jejichž anglické originály 
     se nacházejí na webu <a href='https://cac.org/' target='cac'>CAC</a>. 
