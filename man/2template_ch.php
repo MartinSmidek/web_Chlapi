@@ -1630,8 +1630,10 @@ function ask_server($x) {
   case 'me_login': // ------------------------------------------------------------------------ login
     switch ($_SERVER["SERVER_NAME"]) {
       // zkratka pr ladící prostředí
-      case 'chlapi.bean': $s= (object)array('state'=>'ok','user'=>5877,'mrop'=>1,'firm'=>1); break;
-      case 'chlapi.petr': $s= (object)array('state'=>'ok','user'=>5457,'mrop'=>1,'firm'=>1); break;
+      case 'chlapi.bean':  $s= (object)array('state'=>'ok','user'=>5877,'mrop'=>1,'firm'=>1); break;
+      case 'chlapi.doma':  $s= (object)array('state'=>'ok','user'=>5877,'mrop'=>1,'firm'=>1); break;
+      case 'chlapi.chata': $s= (object)array('state'=>'ok','user'=>5877,'mrop'=>1,'firm'=>1); break;
+      case 'chlapi.petr':  $s= (object)array('state'=>'ok','user'=>5457,'mrop'=>1,'firm'=>1); break;
       // normální dotaz na ostrý server
       default: servant("cmd=me_login&mail=$x->mail&pin=$x->pin&web=$x->web");
     }
