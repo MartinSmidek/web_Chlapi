@@ -1440,6 +1440,7 @@ function show_fotky2($fid,$lst,$back_href='') {
     xdata-ratio='800/400'
     data-nav='thumbs'
     data-x-autoplay='true'
+    oncontextmenu='return false;'
   >";
   // pro mobily ukážeme komprimované obrázky tzn. začínající tečkou
   $agent= $_SERVER['HTTP_USER_AGENT'];

@@ -62,10 +62,7 @@ else {
   echo(<<<__EOH
   <iframe 
     style="border: 1px solid black;border-radius:5px"
-    width="540"
-    height="150"
-    id="chlapi.cz"
-    title="chlapi.cz"
+    width="540" height="150" id="chlapi.cz" title="chlapi.cz"
     src= "$rel_root/banner.php?typ=$typ&src=1"
   </iframe>
 __EOH
