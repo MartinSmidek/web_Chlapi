@@ -63,6 +63,7 @@ function git_make($par) {
   case 'cmd':
     $cmd= $par->cmd;
     $folder= $par->folder;
+    $workdir= $folder=='ezer' ? 'ezer3.1' : null;
     $lines= '';
     if ( $cmd=='fetch' && $bean) {
       $msg= "na vývojových serverech (*.bean) příkaz fetch není povolen ";
@@ -75,36 +76,29 @@ function git_make($par) {
         ftruncate($f, 0);
         fclose($f);
     }
-    if ( $folder=='ezer') chdir("../ezer3.1");
-//    $exec= "git $cmd>$abs_root/docs/.git.log";
-//    exec($exec,$lines,$state);
-//                            display("$state::$exec");
     $exec= "git $cmd";
-    $answer= execute($exec);
+    $answer= execute($exec,$workdir);
     debug($answer,"execute($exec)");
     $msg.= "<u>code</u>: {$answer['code']}\n";
     $msg.= $answer['out'] ? "<u>output</u>: {$answer['out']}\n" : "<u>no output</u>\n";
     $msg.= $answer['err'] ? "<u>error</u>: {$answer['err']}" : "<u>no error</u>";
     file_put_contents("$abs_root/docs/.git.log",$msg);
-    
     // po fetch ještě nastav shodu s github
     if ( $cmd=='fetch') {
       $msg.= "$state:$exec\n";
       $cmd= "reset --hard origin/".($folder=='ezer'?'ezer3.1':'master');
-      $answer= execute($exec);
+      $answer= execute($exec,$workdir);
       debug($answer,"execute($exec)");
       $msg.= "<u>code</u>: {$answer['code']}\n";
       $msg.= $answer['out'] ? "<u>output</u>: {$answer['out']}\n" : "<u>no output</u>\n";
       $msg.= $answer['err'] ? "<u>error</u>: {$answer['err']}" : "<u>no error</u>";
       file_put_contents("$abs_root/docs/.git.log",$msg);
     }
-    if ( $folder=='ezer') chdir($abs_root);
     break;
   case 'show':
     $msg.= file_get_contents("$abs_root/docs/.git.log");
     break;
   }
-//  $msg= nl2br(htmlentities($msg));
   $msg= nl2br($msg);
   $msg= "<i>Synology: musí být spuštěný Git Server (po aktualizaci se vypíná)</i><hr>$msg";
   return $msg;

@@ -303,7 +303,7 @@ function eval_elem($desc,$book=null) { //trace();
       $id= array();
       foreach (explode(',',$ids) as $id12) {
         list($id_server,$id_local)= explode('/',$id12);
-        $id[]= $id_local ? (!$ezer_server_ostry ? $id_local : $id_server) : $id_server; 
+        $id[]= isset($id_local) ? (!$ezer_server_ostry ? $id_local : $id_server) : $id_server; 
       }
       $id= implode(',',$id);
     }

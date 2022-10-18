@@ -241,7 +241,7 @@ panel p [0,0,*,*] { type:'main', _sys:'$'
 # ----------------------------------------------------------------------------==> MENU
 panel CMS [0,0,610,400] { type:'popup',  title:'CMS - definice menu', 
     style:"min-width:590px", _sys:'cms'
-    css:'dialog', par:°{min_top:30}
+    css:'dialog', par:{min_top:30}
   var web=2, from_table= 1
   use a: area a_ 
   use u: form _u [210,0,,] 
@@ -444,17 +444,17 @@ panel ADMIN [0,0,600,465] { title:'Nástroje administrátora', type:'popup', css
 //  }
   menu m { type:'left', format:'f'
     menu a { title:'Aktivní redaktoři', type:'group', skill:'s'
-      item d { title:'dnes'             par:°{s:'uzivatele',c:'dnes',short:'1'}}
-      item { title:'včera'              par:°{s:'uzivatele',c:'vcera',short:'1'}}
-      item { title:'týden'              par:°{s:'uzivatele',c:'dny',days:'8',short:'1'}}
-      item { title:'dva týdny'          par:°{s:'uzivatele',c:'dny',days:'15',short:'1'}}
-      item { title:'měsíc'              par:°{s:'uzivatele',c:'dny',days:'30',short:'1'}}
-      item { title:'nastavený den'      par:°{s:'uzivatele',c:'den',short:'1'}}
+      item d { title:'dnes'             par:{s:'uzivatele',c:'dnes',short:'1'}}
+      item { title:'včera'              par:{s:'uzivatele',c:'vcera',short:'1'}}
+      item { title:'týden'              par:{s:'uzivatele',c:'dny',days:'8',short:'1'}}
+      item { title:'dva týdny'          par:{s:'uzivatele',c:'dny',days:'15',short:'1'}}
+      item { title:'měsíc'              par:{s:'uzivatele',c:'dny',days:'30',short:'1'}}
+      item { title:'nastavený den'      par:{s:'uzivatele',c:'den',short:'1'}}
     }
     menu c { title:'Přihlášení - chlapi',type:'group', skill:'a'
-      item c { title:'chybná přihlášení'    par:°{cmd:'me_login',typ:'ko'}}
-      item   { title:'správná přihlášení'   par:°{cmd:'me_login',typ:'ok'}}
-      item   { title:'přihlášení k editaci' par:°{cmd:'me_login',typ:'r'}}
+      item c { title:'chybná přihlášení'    par:{cmd:'me_login',typ:'ko'}}
+      item   { title:'správná přihlášení'   par:{cmd:'me_login',typ:'ok'}}
+      item   { title:'přihlášení k editaci' par:{cmd:'me_login',typ:'r'}}
       func onclick (i:ezer) {  var y:text
         panel.display(2,'mu'); u.display(0,'d|t');
         y= php.log_report(i.par);
@@ -462,14 +462,14 @@ panel ADMIN [0,0,600,465] { title:'Nástroje administrátora', type:'popup', css
       }
     }
     menu err { title:'Chyby', type:'group', skill:'a'
-      item today { title:'dnes'         par:°{s:'chyby',c:'dnes'}}
-      item { title:'včera'              par:°{s:'chyby',c:'vcera'}}
-      item { title:'týden'              par:°{s:'chyby',c:'tyden'}}
-      item { title:'měsíc'              par:°{s:'chyby',c:'mesic'}}
-      item { title:'nastavený den'      par:°{s:'chyby',c:'den'}}
-      item { title:'všechna hlášení'    par:°{s:'chyby',c:'vsechny'}}
-      item { title:'čekající BUGs'      par:°{s:'chyby',c:'BUG1'}}
-      item { title:'vyřešené BUGs'      par:°{s:'chyby',c:'BUG2'}}
+      item today { title:'dnes'         par:{s:'chyby',c:'dnes'}}
+      item { title:'včera'              par:{s:'chyby',c:'vcera'}}
+      item { title:'týden'              par:{s:'chyby',c:'tyden'}}
+      item { title:'měsíc'              par:{s:'chyby',c:'mesic'}}
+      item { title:'nastavený den'      par:{s:'chyby',c:'den'}}
+      item { title:'všechna hlášení'    par:{s:'chyby',c:'vsechny'}}
+      item { title:'čekající BUGs'      par:{s:'chyby',c:'BUG1'}}
+      item { title:'vyřešené BUGs'      par:{s:'chyby',c:'BUG2'}}
     }
     menu  {title:'Zobrazení dat aplikace', type:'group', skill:'m'
       item {title:'[fa-question] zobrazení záznamů'
@@ -491,8 +491,8 @@ panel ADMIN [0,0,600,465] { title:'Nástroje administrátora', type:'popup', css
       }
     }
 //    menu { title:'Struktura databáze',type:'group',skill:'m'
-//      //item {title:'[fa-object-group] Přehled struktury dat'     par:°{img:'schema_db_chlapi_2020'} }
-//      item {title:'[fa-object-group] Přehled struktury dat'     par:°{img:'schema_db_chlapi_2019'} }
+//      //item {title:'[fa-object-group] Přehled struktury dat'     par:{img:'schema_db_chlapi_2020'} }
+//      item {title:'[fa-object-group] Přehled struktury dat'     par:{img:'schema_db_chlapi_2019'} }
 //      item {title:'[fa-question] zobrazení záznamů'
 //        func onclick (i:ezer) {
 //          clear(); u.display(1,'t'); u.display(0,'d');
@@ -503,12 +503,12 @@ panel ADMIN [0,0,600,465] { title:'Nástroje administrátora', type:'popup', css
 //          }
 //        }
 //      }
-//      item {title:'[fa-database] tabulka MENU',                 par:°{tab:'menu'} }
-//      item {title:'[fa-database] tabulka xAKCE',                par:°{tab:'xakce'} }
-//      item {title:'[fa-database] tabulka xKNIHA',               par:°{tab:'xkniha'} }
-//      item {title:'[fa-database] tabulka xCLANEK',              par:°{tab:'xclanek'} }
-//      item {title:'[fa-database] tabulka xFOTKY',               par:°{tab:'xfotky'} }
-//      item {title:'[fa-database] tabulka xUCAST',               par:°{tab:'xucast'} }
+//      item {title:'[fa-database] tabulka MENU',                 par:{tab:'menu'} }
+//      item {title:'[fa-database] tabulka xAKCE',                par:{tab:'xakce'} }
+//      item {title:'[fa-database] tabulka xKNIHA',               par:{tab:'xkniha'} }
+//      item {title:'[fa-database] tabulka xCLANEK',              par:{tab:'xclanek'} }
+//      item {title:'[fa-database] tabulka xFOTKY',               par:{tab:'xfotky'} }
+//      item {title:'[fa-database] tabulka xUCAST',               par:{tab:'xucast'} }
 //      func onclick (i:ezer) {
 //        clear(); panel.display(2,'mu'); u.display(0,'d|t');
 //        u.fill(p.item_title(i),' ');
@@ -519,9 +519,9 @@ panel ADMIN [0,0,600,465] { title:'Nástroje administrátora', type:'popup', css
 //      }
 //    }
     menu { title:'Import a záloha databáze',type:'group',skill:'m'
-      item { title:"[fa-question] přehled záloh"                par:°{typ:'download'}}
-      item { title:"[fa-upload] zálohuj teď"                    par:°{typ:'special'}}
-      item { title:"[fa-download] obnova ze zálohy (jen local)" par:°{typ:'restore'}}
+      item { title:"[fa-question] přehled záloh"                par:{typ:'download'}}
+      item { title:"[fa-upload] zálohuj teď"                    par:{typ:'special'}}
+      item { title:"[fa-download] obnova ze zálohy (jen local)" par:{typ:'restore'}}
       func onclick(i:ezer) {
         panel.display(2,'mu'); u.display(0,'d|t');
         u.fill(p.item_title(i),' ');
@@ -557,37 +557,38 @@ panel ADMIN [0,0,600,465] { title:'Nástroje administrátora', type:'popup', css
 //      }
     }
     menu { title:'GitHub',type:'group',skill:'m'
-      item { title:'[fa-question] show log'         par:°{op:'show'}}
-      item { title:'[fa-gear] CMS: git status'      par:°{folder:'cms',op:'cmd',cmd:'status'}}
-      item { title:'[fa-gear] CMS: git pull'        par:°{folder:'cms',op:'cmd',cmd:'pull origin master'}}
+      item { title:'[fa-question] show log'         par:{op:'show'}}
+      item { title:'[fa-gear] CMS: git status'      par:{folder:'cms',op:'cmd',cmd:'status'}}
+      item { title:'[fa-gear] CMS: git log'         par:{folder:'cms',op:'cmd',cmd:'log'}}
+      item { title:'[fa-gear] CMS: git pull'        par:{folder:'cms',op:'cmd',cmd:'pull origin master'}}
       item { title:'[fa-gear] CMS: git fetch ...'   help:"po fetch>git reset --hard origin/master"
-                                                    par:°{folder:'cms',op:'cmd',cmd:'fetch'}}
-      item { title:'[fa-gears] Ezer: git status'    par:°{folder:'ezer',op:'cmd',cmd:'status'}}
-      item { title:'[fa-gears] Ezer: git log'       par:°{folder:'ezer',op:'cmd',cmd:'log'}}
-      item { title:'[fa-gears] Ezer: git pull'      par:°{folder:'ezer',op:'cmd',cmd:'pull origin ezer3.1'}}
+                                                    par:{folder:'cms',op:'cmd',cmd:'fetch'}}
+      item { title:'[fa-gears] Ezer: git status'    par:{folder:'ezer',op:'cmd',cmd:'status'}}
+      item { title:'[fa-gears] Ezer: git log'       par:{folder:'ezer',op:'cmd',cmd:'log'}}
+      item { title:'[fa-gears] Ezer: git pull'      par:{folder:'ezer',op:'cmd',cmd:'pull origin ezer3.1'}}
       item { title:'[fa-gears] Ezer: git fetch ...' help:"po fetch>git reset --hard origin/ezer3.1"
-                                                    par:°{folder:'ezer',op:'cmd',cmd:'fetch'}}
-//      item { title:'[fa-question] CMS: git status'  par:°{folder:'cms',op:'cmd',cmd:'status'}}
-//      item { title:'[fa-gear] CMS: git log'         par:°{folder:'cms',op:'cmd',cmd:'log'}}
-//      item { title:'[fa-gear] CMS: git pull'        par:°{folder:'cms',op:'cmd',cmd:'pull origin master'}}
+                                                    par:{folder:'ezer',op:'cmd',cmd:'fetch'}}
+//      item { title:'[fa-question] CMS: git status'  par:{folder:'cms',op:'cmd',cmd:'status'}}
+//      item { title:'[fa-gear] CMS: git log'         par:{folder:'cms',op:'cmd',cmd:'log'}}
+//      item { title:'[fa-gear] CMS: git pull'        par:{folder:'cms',op:'cmd',cmd:'pull origin master'}}
 //      item { title:'[fa-gear] CMS: git fetch ...'   help:"po fetch>git reset --hard origin/master"
-//                                                    par:°{folder:'cms',op:'cmd',cmd:'fetch'}}
-//      item { title:'[fa-question] Ezer: git status' par:°{folder:'ezer',op:'cmd',cmd:'status'}}
-//      item { title:'[fa-gears] Ezer: git log'       par:°{folder:'ezer',op:'cmd',cmd:'log'}}
-//      item { title:'[fa-gears] Ezer: git pull'      par:°{folder:'ezer',op:'cmd',cmd:'pull origin ezer3.1'}}
+//                                                    par:{folder:'cms',op:'cmd',cmd:'fetch'}}
+//      item { title:'[fa-question] Ezer: git status' par:{folder:'ezer',op:'cmd',cmd:'status'}}
+//      item { title:'[fa-gears] Ezer: git log'       par:{folder:'ezer',op:'cmd',cmd:'log'}}
+//      item { title:'[fa-gears] Ezer: git pull'      par:{folder:'ezer',op:'cmd',cmd:'pull origin ezer3.1'}}
 //      item { title:'[fa-gears] Ezer: git fetch ...' help:"po fetch>git reset --hard origin/ezer3.1"
-//                                                    par:°{folder:'ezer',op:'cmd',cmd:'fetch'}}
+//                                                    par:{folder:'ezer',op:'cmd',cmd:'fetch'}}
       func onclick (i:ezer) {  
         panel.display(2,'mu'); u.display(0,'d|t'); clear();
         u.fill(p.item_title(i),php.git_make(i.par));
       }
     }
 //    menu { title:'(errata)', type:'group', skill:'m'
-//      item { title:'oprava fotek - 1'     par:°{copy:'id_xfotky=1'} }
-//      item { title:'oprava fotek - 35'    par:°{copy:'id_xfotky=35'} }
-//      item { title:'oprava fotek - 48'    par:°{copy:'id_xfotky=48'} }
-//      item { title:'oprava fotek - 49,50' par:°{copy:'id_xfotky IN (49,50)'} }
-//      item { title:'oprava fotek - vše'   par:°{copy:"path!=''"} }
+//      item { title:'oprava fotek - 1'     par:{copy:'id_xfotky=1'} }
+//      item { title:'oprava fotek - 35'    par:{copy:'id_xfotky=35'} }
+//      item { title:'oprava fotek - 48'    par:{copy:'id_xfotky=48'} }
+//      item { title:'oprava fotek - 49,50' par:{copy:'id_xfotky IN (49,50)'} }
+//      item { title:'oprava fotek - vše'   par:{copy:"path!=''"} }
 //      func onclick(i:ezer) {
 //        clear(); panel.display(2,'mu'); u.den.display(0);
 //        u.fill(p.item_title(i),' ');
@@ -778,21 +779,21 @@ panel REDAKCE [0,0,840,515] {type:'popup', title:'Nástroje redaktora', css:'dia
       }
     }
     menu o {title:'Historie redakční práce',type:'group'
-      item d {title:'Přehled změn dnes',      par:°{cmd:'obsah',days:1} }
-      item   {title:'Přehled změn za týden',  par:°{cmd:'obsah',days:7} }
-      item   {title:'Přehled změn za měsíc',  par:°{cmd:'obsah',days:30} }
-      item   {title:'Přehled změn za rok',    par:°{cmd:'obsah',days:365} }
-      item   {title:'Přehled uskutečněných změn', par:°{cmd:'obsah',days:99999} }
+      item d {title:'Přehled změn dnes',      par:{cmd:'obsah',days:1} }
+      item   {title:'Přehled změn za týden',  par:{cmd:'obsah',days:7} }
+      item   {title:'Přehled změn za měsíc',  par:{cmd:'obsah',days:30} }
+      item   {title:'Přehled změn za rok',    par:{cmd:'obsah',days:365} }
+      item   {title:'Přehled uskutečněných změn', par:{cmd:'obsah',days:99999} }
       func onclick(i:ezer) {
         panel.display(2,'i'); 
         info.fill(p.item_title(i),php.log_report(i.par));
       }
     }
     menu g {title:'Programové změny',type:'group'
-      item d {title:'Přehled změn za týden',  par:°{days:7} }
-      item   {title:'Přehled změn za měsíc',  par:°{days:30} }
-      item   {title:'Přehled změn za rok',    par:°{days:365} }
-      item   {title:'Přehled uskutečněných změn', par:°{days:99999} }
+      item d {title:'Přehled změn za týden',  par:{days:7} }
+      item   {title:'Přehled změn za měsíc',  par:{days:30} }
+      item   {title:'Přehled změn za rok',    par:{days:365} }
+      item   {title:'Přehled uskutečněných změn', par:{days:99999} }
       func onclick(i:ezer) {
         panel.display(2,'i'); 
         info.fill(p.item_title(i),php.doc_chngs_show('ak',i.par.days));
@@ -805,9 +806,9 @@ panel REDAKCE [0,0,840,515] {type:'popup', title:'Nástroje redaktora', css:'dia
       }
     }
     menu all { title:'Členové redakce',type:'group'
-      item actives { title:'[fa-user-plus] aktivní uživatelé', par:°{on:'h',off:'u',cond:"LEFT(deleted,1)!='H'"}}
-      item         { title:'[fa-user-times] skrytí uživatelé', par:°{on:'u',off:'h',cond:"deleted LIKE 'H%'"}}
-      item         { title:'[fa-user] všichni uživatelé',      par:°{on:'h|u',off:'',cond:1}}
+      item actives { title:'[fa-user-plus] aktivní uživatelé', par:{on:'h',off:'u',cond:"LEFT(deleted,1)!='H'"}}
+      item         { title:'[fa-user-times] skrytí uživatelé', par:{on:'u',off:'h',cond:"deleted LIKE 'H%'"}}
+      item         { title:'[fa-user] všichni uživatelé',      par:{on:'h|u',off:'',cond:1}}
       func onclick (i:ezer) {
         panel.display(2,'u');
         last_par= &i.par;
@@ -1177,7 +1178,7 @@ panel OPTIONS [0,0,220,220] { title:'Volby zobrazení pro redakci', type:'popup'
   }
 }
 # ----------------------------------------------------------------------------==> EDITOR
-panel EDITOR [0,0,720,550] { type:'popup', style:"min-width:700px", par:°{close:'no'}, _sys:'edi'
+panel EDITOR [0,0,720,550] { type:'popup', style:"min-width:700px", par:{close:'no'}, _sys:'edi'
   var id:number,
       path:text
   use a: form _a [2,0,,] { tag:'a', format:'n' }  // akce
@@ -1324,7 +1325,7 @@ panel EDITOR [0,0,720,550] { type:'popup', style:"min-width:700px", par:°{close
     check online [450,60,183,] { title:'online akce', data:xakce.online }
     // anotace
     label [0,70,300,20] { title:'anotace s odkazem na pozvánku' }
-    edit obsah [0,90,710,150] { type:'html', data:xakce.web_text, par:°{toolbar:'WEB'} }
+    edit obsah [0,90,710,150] { type:'html', data:xakce.web_text, par:{toolbar:'WEB'} }
     // informace
     label info [0,265,710,40] 
     // zápis
@@ -1387,7 +1388,7 @@ panel EDITOR [0,0,720,550] { type:'popup', style:"min-width:700px", par:°{close
     select  [388,5,100,] { type:'map', title:'omezení', help:'zobrazí se jen pro ...'
         options:cis_cms.zkratka, value:'0', data:xc.cms_skill }
     // text
-    edit obsah [0,70,710,450] { type:'html', data:xc.web_text, par:°{toolbar:'WEB'} }
+    edit obsah [0,70,710,450] { type:'html', data:xc.web_text, par:{toolbar:'WEB'} }
   }
   # -----------------------------------------------------------------------------==> edit clanek    
   # oprava textu článku
@@ -1450,7 +1451,7 @@ panel EDITOR [0,0,720,550] { type:'popup', style:"min-width:700px", par:°{close
     select  [382,5,100,] { type:'map', title:'omezení', help:'zobrazí se jen pro ...'
         options:cis_cms.zkratka, value:'0', data:xclanek.cms_skill }
     // text
-    edit obsah [0,40,712,480] { type:'html', data:xclanek.web_text, par:°{toolbar:'WEB'} }
+    edit obsah [0,40,712,480] { type:'html', data:xclanek.web_text, par:{toolbar:'WEB'} }
   }
   # -----------------------------------------------------------------------------==> edit kniha
   # oprava nadpisu knihy
@@ -1485,7 +1486,7 @@ panel UPLOAD [0,0,400,130] { title:' Nahrát soubor', type:'popup', style:"min-w
   form _g [,,400,100] {
     label dlab [0,10,380,] {tag:'l_', title:'... použij [init] ' }
     label drop [0,27,380,100] {tag:'l_', type:'drop', 
-        par:°{contextmenu:"-vložit obrázek;vložit odkaz"}
+        par:{contextmenu:"-vložit obrázek;vložit odkaz"}
       func ondrop(f:object):text {                                                // možnost odmítnutí přenosu
         //gt(f.size,5242880); warning('odmítnuto ',f.name,' má více jak 5MB'); return(0)
         echo('dropped=',f.name);                                      // jméno nemusí být ASCII
@@ -1755,7 +1756,7 @@ panel FOTKY [0,0,680,265] { title:' Organizér fotek', type:'popup', css:'dialog
 //    proc drop_init() {
 //      drop.set_css('drop_area','');
 //      drop.set("<span>místo pro novou fotku</span>");
-//      form.file_drop(drop,°{css_hover:'drop_area_hover',css_run:'drop_area_run',handler:'ondrop',
+//      form.file_drop(drop,{css_hover:'drop_area_hover',css_run:'drop_area_run',handler:'ondrop',
 //        max_width:1200,max_height:960});
 //    }
     label drop   [0,72,80,80]      { type:'drop', tag:'o', css:'drop_foto', format:'t' 
