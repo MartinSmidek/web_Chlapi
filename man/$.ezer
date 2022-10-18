@@ -578,7 +578,7 @@ panel ADMIN [0,0,600,465] { title:'Nástroje administrátora', type:'popup', css
 //      item { title:'[fa-gears] Ezer: git fetch ...' help:"po fetch>git reset --hard origin/ezer3.1"
 //                                                    par:°{folder:'ezer',op:'cmd',cmd:'fetch'}}
       func onclick (i:ezer) {  
-        panel.display(2,'mu'); u.display(0,'d|t');
+        panel.display(2,'mu'); u.display(0,'d|t'); clear();
         u.fill(p.item_title(i),php.git_make(i.par));
       }
     }

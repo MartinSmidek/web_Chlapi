@@ -76,19 +76,32 @@ function git_make($par) {
         fclose($f);
     }
     if ( $folder=='ezer') chdir("../ezer3.1");
-    $exec= "git $cmd>$abs_root/docs/.git.log";
-    exec($exec,$lines,$state);
-                            display("$state::$exec");
+//    $exec= "git $cmd>$abs_root/docs/.git.log";
+//    exec($exec,$lines,$state);
+//                            display("$state::$exec");
+    $exec= "git $cmd";
+    $answer= execute($exec);
+    debug($answer,"execute($exec)");
+    if ($answer['err']) $msg.= "<span color='red'>{$answer['err']}</span>";
+    if ($answer['out']) $msg.= $answer['out'];
+    file_put_contents("$abs_root/docs/.git.log",$msg);
+    
     // po fetch ještě nastav shodu s github
     if ( $cmd=='fetch') {
       $msg.= "$state:$exec\n";
       $cmd= "reset --hard origin/".($folder=='ezer'?'ezer3.1':'master');
-      $exec= "git $cmd>$abs_root/docs/.git.log";
-      exec($exec,$lines,$state);
-                            display("$state::$exec");
+//      $exec= "git $cmd>$abs_root/docs/.git.log";
+//      exec($exec,$lines,$state);
+//                            display("$state::$exec");
+      $answer= execute($exec);
+      debug($answer,"execute($exec)");
+      if ($answer['err']) $msg.= "<span color='red'>{$answer['err']}</span>";
+      if ($answer['out']) $msg.= $answer['out'];
+      file_put_contents("$abs_root/docs/.git.log",$msg);
     }
     if ( $folder=='ezer') chdir($abs_root);
-    $msg.= "$state:$exec\n";
+//    $msg.= "$state:$exec\n";
+    break;
   case 'show':
     $msg.= file_get_contents("$abs_root/docs/.git.log");
     break;
@@ -96,6 +109,32 @@ function git_make($par) {
   $msg= nl2br(htmlentities($msg));
   $msg= "<i>Synology: musí být spuštěný Git Server (po aktualizaci se vypíná)</i><hr>$msg";
   return $msg;
+}
+/**
+ * Executes a command and reurns an array with exit code, stdout and stderr content
+ * @param string $cmd - Command to execute
+ * @param string|null $workdir - Default working directory
+ * @return string[] - Array with keys: 'code' - exit code, 'out' - stdout, 'err' - stderr
+ */
+function execute($cmd, $workdir = null) {
+    if (is_null($workdir)) {
+        $workdir = __DIR__;
+    }
+    $descriptorspec = array(
+       0 => array("pipe", "r"),  // stdin
+       1 => array("pipe", "w"),  // stdout
+       2 => array("pipe", "w"),  // stderr
+    );
+    $process = proc_open($cmd, $descriptorspec, $pipes, $workdir, null);
+    $stdout = stream_get_contents($pipes[1]);
+    fclose($pipes[1]);
+    $stderr = stream_get_contents($pipes[2]);
+    fclose($pipes[2]);
+    return [
+        'code' => proc_close($process),
+        'out' => trim($stdout),
+        'err' => trim($stderr),
+    ];
 }
 /** =========================================================================================> TABLE */
 # zobrazované tabulky >* je označuje klíč, >tab označuje klíč jiné tabulky
