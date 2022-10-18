@@ -63,7 +63,7 @@ function git_make($par) {
   case 'cmd':
     $cmd= $par->cmd;
     $folder= $par->folder;
-    $workdir= $folder=='ezer' ? 'ezer3.1' : null;
+    $workdir= $folder=='ezer' ? "$abs_root/ezer3.1" : null;
     $lines= '';
     if ( $cmd=='fetch' && $bean) {
       $msg= "na vývojových serverech (*.bean) příkaz fetch není povolen ";
@@ -86,7 +86,7 @@ function git_make($par) {
     // po fetch ještě nastav shodu s github
     if ( $cmd=='fetch') {
       $msg.= "$state:$exec\n";
-      $cmd= "reset --hard origin/".($folder=='ezer'?'ezer3.1':'master');
+      $exec= "reset --hard origin/".($folder=='ezer'?'ezer3.1':'master');
       $answer= execute($exec,$workdir);
       debug($answer,"execute($exec)");
       $msg.= "<u>code</u>: {$answer['code']}\n";
