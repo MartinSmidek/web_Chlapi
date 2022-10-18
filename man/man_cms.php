@@ -83,10 +83,8 @@ function git_make($par) {
     $answer= execute($exec);
     debug($answer,"execute($exec)");
     $msg.= "<u>code</u>: {$answer['code']}\n";
-    $msg.= $answer['out'] 
-        ? "<u>output</u>: {$answer['out']}\n" : "<u>no output</u>\n";
-    $msg.= $answer['err'] 
-        ? "<u>error</u>: <span style='color:red'>{$answer['err']}</span>" : "<u>no error</u>";
+    $msg.= $answer['out'] ? "<u>output</u>: {$answer['out']}\n" : "<u>no output</u>\n";
+    $msg.= $answer['err'] ? "<u>error</u>: {$answer['err']}" : "<u>no error</u>";
     file_put_contents("$abs_root/docs/.git.log",$msg);
     
     // po fetch ještě nastav shodu s github
@@ -96,10 +94,8 @@ function git_make($par) {
       $answer= execute($exec);
       debug($answer,"execute($exec)");
       $msg.= "<u>code</u>: {$answer['code']}\n";
-      $msg.= $answer['out'] 
-          ? "<u>output</u>: {$answer['out']}\n" : "<u>no output</u>\n";
-      $msg.= $answer['err'] 
-          ? "<u>error</u>: <span style='color:red'>{$answer['err']}</span>" : "<u>no error</u>";
+      $msg.= $answer['out'] ? "<u>output</u>: {$answer['out']}\n" : "<u>no output</u>\n";
+      $msg.= $answer['err'] ? "<u>error</u>: {$answer['err']}" : "<u>no error</u>";
       file_put_contents("$abs_root/docs/.git.log",$msg);
     }
     if ( $folder=='ezer') chdir($abs_root);
