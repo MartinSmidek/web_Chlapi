@@ -82,31 +82,34 @@ function git_make($par) {
     $exec= "git $cmd";
     $answer= execute($exec);
     debug($answer,"execute($exec)");
-    if ($answer['err']) $msg.= "<span color='red'>{$answer['err']}</span>";
-    if ($answer['out']) $msg.= $answer['out'];
+    $msg.= "<u>code</u>: {$answer['code']}\n";
+    $msg.= $answer['out'] 
+        ? "<u>output</u>: {$answer['out']}\n" : "<u>no output</u>\n";
+    $msg.= $answer['err'] 
+        ? "<u>error</u>: <span style='color:red'>{$answer['err']}</span>" : "<u>no error</u>";
     file_put_contents("$abs_root/docs/.git.log",$msg);
     
     // po fetch ještě nastav shodu s github
     if ( $cmd=='fetch') {
       $msg.= "$state:$exec\n";
       $cmd= "reset --hard origin/".($folder=='ezer'?'ezer3.1':'master');
-//      $exec= "git $cmd>$abs_root/docs/.git.log";
-//      exec($exec,$lines,$state);
-//                            display("$state::$exec");
       $answer= execute($exec);
       debug($answer,"execute($exec)");
-      if ($answer['err']) $msg.= "<span color='red'>{$answer['err']}</span>";
-      if ($answer['out']) $msg.= $answer['out'];
+      $msg.= "<u>code</u>: {$answer['code']}\n";
+      $msg.= $answer['out'] 
+          ? "<u>output</u>: {$answer['out']}\n" : "<u>no output</u>\n";
+      $msg.= $answer['err'] 
+          ? "<u>error</u>: <span style='color:red'>{$answer['err']}</span>" : "<u>no error</u>";
       file_put_contents("$abs_root/docs/.git.log",$msg);
     }
     if ( $folder=='ezer') chdir($abs_root);
-//    $msg.= "$state:$exec\n";
     break;
   case 'show':
     $msg.= file_get_contents("$abs_root/docs/.git.log");
     break;
   }
-  $msg= nl2br(htmlentities($msg));
+//  $msg= nl2br(htmlentities($msg));
+  $msg= nl2br($msg);
   $msg= "<i>Synology: musí být spuštěný Git Server (po aktualizaci se vypíná)</i><hr>$msg";
   return $msg;
 }
