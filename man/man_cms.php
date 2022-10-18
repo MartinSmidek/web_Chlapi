@@ -57,13 +57,13 @@ function git_make($par) {
   global $abs_root;
   $bean= preg_match('/bean/',$_SERVER['SERVER_NAME'])?1:0;
                                                     display("bean=$bean");
-  $cmd= $par->cmd;
-  $folder= $par->folder;
-  $lines= '';
   $msg= "";
   // proveď operaci
   switch ($par->op) {
   case 'cmd':
+    $cmd= $par->cmd;
+    $folder= $par->folder;
+    $lines= '';
     if ( $cmd=='fetch' && $bean) {
       $msg= "na vývojových serverech (*.bean) příkaz fetch není povolen ";
       break;
@@ -75,7 +75,7 @@ function git_make($par) {
         ftruncate($f, 0);
         fclose($f);
     }
-    if ( $folder=='ezer') chdir("../_ezer3.1");
+    if ( $folder=='ezer') chdir("../ezer3.1");
     $exec= "git $cmd>$abs_root/docs/.git.log";
     exec($exec,$lines,$state);
                             display("$state::$exec");

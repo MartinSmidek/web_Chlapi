@@ -557,16 +557,26 @@ panel ADMIN [0,0,600,465] { title:'Nástroje administrátora', type:'popup', css
 //      }
     }
     menu { title:'GitHub',type:'group',skill:'m'
-      item { title:'[fa-question] CMS: git status'  par:°{folder:'cms',op:'cmd',cmd:'status'}}
-      item { title:'[fa-gear] CMS: git log'         par:°{folder:'cms',op:'cmd',cmd:'log'}}
+      item { title:'[fa-question] show log'         par:°{op:'show'}}
+      item { title:'[fa-gear] CMS: git status'      par:°{folder:'cms',op:'cmd',cmd:'status'}}
       item { title:'[fa-gear] CMS: git pull'        par:°{folder:'cms',op:'cmd',cmd:'pull origin master'}}
       item { title:'[fa-gear] CMS: git fetch ...'   help:"po fetch>git reset --hard origin/master"
                                                     par:°{folder:'cms',op:'cmd',cmd:'fetch'}}
-      item { title:'[fa-question] Ezer: git status' par:°{folder:'ezer',op:'cmd',cmd:'status'}}
+      item { title:'[fa-gears] Ezer: git status'    par:°{folder:'ezer',op:'cmd',cmd:'status'}}
       item { title:'[fa-gears] Ezer: git log'       par:°{folder:'ezer',op:'cmd',cmd:'log'}}
       item { title:'[fa-gears] Ezer: git pull'      par:°{folder:'ezer',op:'cmd',cmd:'pull origin ezer3.1'}}
       item { title:'[fa-gears] Ezer: git fetch ...' help:"po fetch>git reset --hard origin/ezer3.1"
                                                     par:°{folder:'ezer',op:'cmd',cmd:'fetch'}}
+//      item { title:'[fa-question] CMS: git status'  par:°{folder:'cms',op:'cmd',cmd:'status'}}
+//      item { title:'[fa-gear] CMS: git log'         par:°{folder:'cms',op:'cmd',cmd:'log'}}
+//      item { title:'[fa-gear] CMS: git pull'        par:°{folder:'cms',op:'cmd',cmd:'pull origin master'}}
+//      item { title:'[fa-gear] CMS: git fetch ...'   help:"po fetch>git reset --hard origin/master"
+//                                                    par:°{folder:'cms',op:'cmd',cmd:'fetch'}}
+//      item { title:'[fa-question] Ezer: git status' par:°{folder:'ezer',op:'cmd',cmd:'status'}}
+//      item { title:'[fa-gears] Ezer: git log'       par:°{folder:'ezer',op:'cmd',cmd:'log'}}
+//      item { title:'[fa-gears] Ezer: git pull'      par:°{folder:'ezer',op:'cmd',cmd:'pull origin ezer3.1'}}
+//      item { title:'[fa-gears] Ezer: git fetch ...' help:"po fetch>git reset --hard origin/ezer3.1"
+//                                                    par:°{folder:'ezer',op:'cmd',cmd:'fetch'}}
       func onclick (i:ezer) {  
         panel.display(2,'mu'); u.display(0,'d|t');
         u.fill(p.item_title(i),php.git_make(i.par));
