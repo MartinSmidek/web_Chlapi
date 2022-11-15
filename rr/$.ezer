@@ -185,6 +185,22 @@ menu rr { type:'main', active:rr.richard
       }
     }
   }
+  # ===================================================================================> Statistika
+  tabs stat {title:"[fa-line-chart] Statistika", _sys:'*', skill:'ban'
+    panel maily { type:'right', title:'Brněnská skupina'
+      use info: form right
+      menu m {type:'left', format:'f'
+        menu p {title:'Dělená setkání',type:'group'
+          item {title:'[fa-question] Počet skupin' par:{fce:'n_skupin'} }
+          func onclick(i:ezer) { var graf:object
+            info.header(i); clear(); 
+            graf= php.stat_brno(i.par);
+            info.fill('',graf.html);
+          }
+        }
+      }
+    }
+  }
   # ===================================================================================> system
   tabs sys {title:"[fa-cogs] Nastavení", _sys:'sys',  include:'onclick,ezer2.syst', active:*
     //panel oso {type:'right', title:'Osobní nastavení', _sys:'*', include:'onclick' }

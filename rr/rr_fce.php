@@ -1,5 +1,82 @@
 <?php # (c) 2007-2012 Martin Smidek <martin@smidek.eu>
 
+# ======================================================================================> STATISTIKA
+# ---------------------------------------------------------------------------------------- stat brno
+function stat_brno($par) {  //trace();
+  $inf= (object)array('html'=>'');
+  switch ($par->fce) {
+    case 'n_skupin':
+      // přehled
+      list($od,$do,$n)= select('MIN(datum),MAX(datum),COUNT(*)','setkani4.gnucast',"skupina='maximum'");
+      $last_setkani_org= $do;
+      $od= sql_date($od);
+      $do= sql_date($do);
+      $inf->html.= "$n termínů dělených skupin od $od do $do na webu <b>setkani.org</b>";
+      // rozbor tabulky GNUCAST
+      $dny= array();
+      $roky= array();
+      $qr= pdo_qry("
+        SELECT datum,COUNT(*) AS _pocet FROM setkani4.gnucast
+        WHERE jmeno!='max' AND skupina!='maximum'
+        GROUP BY datum,skupina 
+        HAVING _pocet>1 
+        ORDER BY datum");
+      while ($qr && (list($den,$pocet)= pdo_fetch_row($qr))) {
+        if (!isset($dny[$den])) $dny[$den]= array();
+        $dny[$den][]= $pocet;
+      }
+      // rozbor tabulky XUCAST
+      ezer_connect('setkani');
+      $od= '9999-99-99';
+      $do= '0000-00-00';
+      $n= 0;
+      $qr= pdo_qry("
+        SELECT datum_od,COUNT(*) AS _pocet
+        FROM xucast AS u
+        JOIN xakce AS a ON xelems=CONCAT('aclanek=',id_xclanek)
+        WHERE jmeno!='max' AND datum_od>'$last_setkani_org'
+        GROUP BY datum_od,u.skupina 
+        HAVING _pocet>1 
+        ORDER BY datum_od");
+      while ($qr && (list($den,$pocet)= pdo_fetch_row($qr))) {
+        if (!isset($dny[$den])) $dny[$den]= array();
+        $dny[$den][]= $pocet;
+        $od= min($od,$den);
+        $do= max($do,$den);
+        $n++;
+      }
+      $od= sql_date($od);
+      $do= sql_date($do);
+      $inf->html.= "<br>$n termínů dělených skupin od $od do $do na webu <b>chlapi.cz</b>";
+//      debug($dny);
+      foreach ($dny as $den=>$skupiny) {
+        if (count($skupiny)>1) {
+          $rok= substr($den,0,4);
+          $skupin= count($skupiny);
+//          display("$rok $skupin");
+          if (!isset($roky[$rok])) $roky[$rok]= array(0,0,0); // počet: setkání, skupin, účastí
+          $roky[$rok][0]++; 
+          $roky[$rok][1]+= $skupin; 
+          $roky[$rok][2]+= array_sum($skupiny); 
+        }
+      }
+      // zobrazení
+      $inf->html.= "<h3>Přehled dělených skupin brněnských chlapů podle let</h3>";
+      $td= "td style='text-align:right'";
+      $inf->html.= "<table><tr><th>rok</th><th>&sum; termínů</th><th>&Oslash; skupin</th><th>&Oslash; chlapů</th></tr>";
+      foreach ($roky as $rok=>list($setkani,$skupin,$ucasti)) {
+        $p_skupin= number_format($skupin/$setkani,1);
+        $p_ucast= number_format($ucasti/$skupin,1);
+        $inf->html.= "<tr><th>$rok</th><$td>$setkani</td><$td>$p_skupin</td><$td>$p_ucast</td></tr>";
+        
+      }
+      $inf->html.= "</table>";
+//      debug($roky);
+      break;
+  }
+//                                                      debug($inf,"stat_brno");
+  return $inf;
+}
 # =============================================================================================> BAN
 # ----------------------------------------------------------------------------------- ban maily_auto
 function ban_maily_auto($patt,$par) {  //trace();
