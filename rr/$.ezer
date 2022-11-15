@@ -186,7 +186,7 @@ menu rr { type:'main', active:rr.richard
     }
   }
   # ===================================================================================> Statistika
-  tabs stat {title:"[fa-line-chart] Statistika", _sys:'*', skill:'ban'
+  tabs stat {title:"[fa-line-chart] Statistika", _sys:'*'
     panel maily { type:'right', title:'Brněnská skupina'
       use info: form right
       menu m {type:'left', format:'f'
