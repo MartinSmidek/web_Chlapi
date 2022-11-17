@@ -169,7 +169,7 @@ function stat_brno($par) {  //trace();
       // zobrazení
       $inf->html.= "<h3>Přehled dělených skupin brněnských chlapů podle let</h3>";
       $td= "td style='text-align:right'";
-      $inf->html.= "<table><tr><th>rok</th><th>&sum; termínů</th><th>&Oslash; skupin</th>"
+      $inf->html.= "<table class='systable'><tr><th>rok</th><th>&sum; termínů</th><th>&Oslash; skupin</th>"
           . "<th>&Oslash; chlapů</th><th>&sum; účastí</th><th>X chlapů</th>"
           . "<th>většinou</th><th colspan=2>poprvé a naposled</th></tr>";
       $hist4= array_count_values($roky4);
