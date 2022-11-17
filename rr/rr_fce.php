@@ -23,7 +23,21 @@ function stat_brno($par) {  //trace();
         }
         $n+= query("UPDATE setkani4.gnucast SET jmeno_id=$id WHERE gnucast=$idg ");
       }
-//      debug($jmena);
+      // a v xucast
+      $qr= pdo_qry("
+        SELECT id_xucast,IF(jmeno_corr!='',jmeno_corr,TRIM(jmeno))
+        FROM chlapi.xucast
+        WHERE jmeno_remove=''
+        -- LIMIT 50");
+      while ($qr && (list($idg,$jmeno)= pdo_fetch_row($qr))) {
+        $id= array_search($jmeno,$jmena,1);
+        if (!$id) {
+          $jmena[]= $jmeno;
+          $id= count($jmena)-1;
+          if ($jmeno=='Martin Šmídek') debug($jmena,"$jmeno,$id");
+        }
+        $n+= query("UPDATE chlapi.xucast SET jmeno_id=$id WHERE id_xucast=$idg ");
+      }
       $inf->html.= "anonymizováno $n jmen";
       break;
     case 'corr_jmeno':  // --------------------------------------- opravy jmen podle doc/gnucast.csv
@@ -42,6 +56,26 @@ function stat_brno($par) {  //trace();
         }
         $d+= query("UPDATE setkani4.gnucast SET jmeno_remove='o' 
           WHERE jmeno='max' OR skupina='maximum' OR LENGTH(jmeno)=1");
+      }
+      fclose($fp);
+      $inf->html.= "opraveno $n překlepů a zrušeno $r řádků a $d označeno jako pomocných";
+      break;
+    case 'corr_xucast':  // --------------------------------------- opravy jmen podle doc/xucast.csv
+      $fp= fopen("$abs_root/doc/xucast.csv",'r');
+      fgetcsv($fp,0,';'); 
+      $n= $r= $d= 0;
+      while (($row= fgetcsv($fp,0,';')) !== false) {
+        list($pocet,$jmeno,$corr,$delete)= $row;
+        if ($corr) {
+          $n+= query("UPDATE chlapi.xucast SET jmeno_corr='$corr' 
+            WHERE TRIM(UPPER(jmeno))=TRIM(UPPER('$jmeno')) ");
+        }
+        if ($delete) {
+          $r+= query("UPDATE chlapi.xucast SET jmeno_remove='x' 
+            WHERE TRIM(UPPER(jmeno))=TRIM(UPPER('$jmeno')) ");
+        }
+        $d+= query("UPDATE chlapi.xucast SET jmeno_remove='o' 
+          WHERE jmeno='max' ");
       }
       fclose($fp);
       $inf->html.= "opraveno $n překlepů a zrušeno $r řádků a $d označeno jako pomocných";
@@ -80,20 +114,43 @@ function stat_brno($par) {  //trace();
       $do= '0000-00-00';
       $n= 0;
       $qr= pdo_qry("
-        SELECT datum_od,COUNT(*) AS _pocet
+        SELECT datum_od,u.skupina,jmeno_id -- COUNT(*) AS _pocet
         FROM xucast AS u
         JOIN xakce AS a ON xelems=CONCAT('aclanek=',id_xclanek)
-        WHERE jmeno!='max' AND datum_od>'$last_setkani_org'
-        GROUP BY datum_od,u.skupina 
-        HAVING _pocet>1 
+        WHERE jmeno_remove='' AND datum_od>'$last_setkani_org'
+        -- GROUP BY datum_od,u.skupina 
+        -- HAVING _pocet>1 
         ORDER BY datum_od");
-      while ($qr && (list($den,$pocet)= pdo_fetch_row($qr))) {
-        if (!isset($dny[$den])) $dny[$den]= array();
-        $dny[$den][]= $pocet;
+      while ($qr && (list($den,$skupina,$jmeno_id)= pdo_fetch_row($qr))) {
+        if (!isset($dny[$den][$skupina])) $dny[$den][$skupina]= 0;
+        $dny[$den][$skupina]++;
+        $rok= substr($den,0,4);
+        if (!isset($roky2[$rok])) $roky2[$rok]= array(); // různí
+        if (!in_array($jmeno_id,$roky2[$rok])) $roky2[$rok][]= $jmeno_id;
+        if (!isset($roky3[$rok])) $roky3[$rok]= array(); // seznam
+        $roky3[$rok][]= $jmeno_id;
+        $roky4[]= $jmeno_id;
+//        if (!isset($dny[$den])) $dny[$den]= array();
+//        $dny[$den][]= $pocet;
         $od= min($od,$den);
         $do= max($do,$den);
         $n++;
       }
+//      $qr= pdo_qry("
+//        SELECT datum_od,COUNT(*) AS _pocet
+//        FROM xucast AS u
+//        JOIN xakce AS a ON xelems=CONCAT('aclanek=',id_xclanek)
+//        WHERE jmeno!='max' AND datum_od>'$last_setkani_org'
+//        GROUP BY datum_od,u.skupina 
+//        HAVING _pocet>1 
+//        ORDER BY datum_od");
+//      while ($qr && (list($den,$pocet)= pdo_fetch_row($qr))) {
+//        if (!isset($dny[$den])) $dny[$den]= array();
+//        $dny[$den][]= $pocet;
+//        $od= min($od,$den);
+//        $do= max($do,$den);
+//        $n++;
+//      }
       $od= sql_date($od);
       $do= sql_date($do);
       $inf->html.= "<br>$n termínů dělených skupin od $od do $do na webu <b>chlapi.cz</b>";

@@ -191,9 +191,10 @@ menu rr { type:'main', active:rr.richard
       use info: form right
       menu m {type:'left', format:'f', active:m.d.p
         menu d {title:'Dělená setkání',type:'group'
-          item p {title:'[fa-question] Počet skupin'      par:{fce:'n_skupin'} }
-          item {title:'[fa-exclamation] Oprava překlepů'  par:{fce:'corr_jmeno'} }
-          item {title:'[fa-exclamation] Anonymizace jmen' par:{fce:'id_jmeno'} }
+          item p {title:'[fa-question] Počet skupin'              par:{fce:'n_skupin'} }
+          item {title:'[fa-exclamation] Oprava překlepů gnucast'  par:{fce:'corr_jmeno'} }
+          item {title:'[fa-exclamation] Oprava překlepů xucast'   par:{fce:'corr_xucast'} }
+          item {title:'[fa-exclamation] Anonymizace jmen'         par:{fce:'id_jmeno'} }
           func onclick(i:ezer) { var graf:object
             info.header(i); clear(); 
             graf= php.stat_brno(i.par);
