@@ -3,9 +3,50 @@
 # ======================================================================================> STATISTIKA
 # ---------------------------------------------------------------------------------------- stat brno
 function stat_brno($par) {  //trace();
+  global $abs_root;
   $inf= (object)array('html'=>'');
   switch ($par->fce) {
-    case 'n_skupin':
+    case 'id_jmeno':  // -------------------------------------------------------- anonymizovat jména
+      $jmena= array(0);
+      $n= 0;
+      $qr= pdo_qry("
+        SELECT gnucast,IF(jmeno_corr!='',jmeno_corr,TRIM(jmeno))
+        FROM setkani4.gnucast
+        WHERE jmeno_remove=''
+        -- LIMIT 50");
+      while ($qr && (list($idg,$jmeno)= pdo_fetch_row($qr))) {
+        $id= array_search($jmeno,$jmena,1);
+        if (!$id) {
+          $jmena[]= $jmeno;
+          $id= count($jmena)-1;
+          if ($jmeno=='Martin Šmídek') debug($jmena,"$jmeno,$id");
+        }
+        $n+= query("UPDATE setkani4.gnucast SET jmeno_id=$id WHERE gnucast=$idg ");
+      }
+//      debug($jmena);
+      $inf->html.= "anonymizováno $n jmen";
+      break;
+    case 'corr_jmeno':  // --------------------------------------- opravy jmen podle doc/gnucast.csv
+      $fp= fopen("$abs_root/doc/gnucast.csv",'r');
+      fgetcsv($fp,0,';'); 
+      $n= $r= $d= 0;
+      while (($row= fgetcsv($fp,0,';')) !== false) {
+        list($id,$pocet,$jmeno,$corr,$delete)= $row;
+        if ($corr) {
+          $n+= query("UPDATE setkani4.gnucast SET jmeno_corr='$corr' 
+            WHERE TRIM(UPPER(jmeno))=TRIM(UPPER('$jmeno')) ");
+        }
+        if ($delete) {
+          $r+= query("UPDATE setkani4.gnucast SET jmeno_remove='x' 
+            WHERE TRIM(UPPER(jmeno))=TRIM(UPPER('$jmeno')) ");
+        }
+        $d+= query("UPDATE setkani4.gnucast SET jmeno_remove='o' 
+          WHERE jmeno='max' OR skupina='maximum' OR LENGTH(jmeno)=1");
+      }
+      fclose($fp);
+      $inf->html.= "opraveno $n překlepů a zrušeno $r řádků a $d označeno jako pomocných";
+      break;
+    case 'n_skupin': // -------------------------------------------------------------------- skupiny
       // přehled
       list($od,$do,$n)= select('MIN(datum),MAX(datum),COUNT(*)','setkani4.gnucast',"skupina='maximum'");
       $last_setkani_org= $do;
@@ -15,15 +56,23 @@ function stat_brno($par) {  //trace();
       // rozbor tabulky GNUCAST
       $dny= array();
       $roky= array();
+      $roky2= array();
+      $roky3= array();
+      $roky4= array();
       $qr= pdo_qry("
-        SELECT datum,COUNT(*) AS _pocet FROM setkani4.gnucast
-        WHERE jmeno!='max' AND skupina!='maximum'
-        GROUP BY datum,skupina 
-        HAVING _pocet>1 
+        SELECT datum,skupina, jmeno_id
+        FROM setkani4.gnucast
+        WHERE jmeno_remove=''
         ORDER BY datum");
-      while ($qr && (list($den,$pocet)= pdo_fetch_row($qr))) {
-        if (!isset($dny[$den])) $dny[$den]= array();
-        $dny[$den][]= $pocet;
+      while ($qr && (list($den,$skupina,$jmeno_id)= pdo_fetch_row($qr))) {
+        if (!isset($dny[$den][$skupina])) $dny[$den][$skupina]= 0;
+        $dny[$den][$skupina]++;
+        $rok= substr($den,0,4);
+        if (!isset($roky2[$rok])) $roky2[$rok]= array(); // různí
+        if (!in_array($jmeno_id,$roky2[$rok])) $roky2[$rok][]= $jmeno_id;
+        if (!isset($roky3[$rok])) $roky3[$rok]= array(); // seznam
+        $roky3[$rok][]= $jmeno_id;
+        $roky4[]= $jmeno_id;
       }
       // rozbor tabulky XUCAST
       ezer_connect('setkani');
@@ -63,11 +112,28 @@ function stat_brno($par) {  //trace();
       // zobrazení
       $inf->html.= "<h3>Přehled dělených skupin brněnských chlapů podle let</h3>";
       $td= "td style='text-align:right'";
-      $inf->html.= "<table><tr><th>rok</th><th>&sum; termínů</th><th>&Oslash; skupin</th><th>&Oslash; chlapů</th></tr>";
+      $inf->html.= "<table><tr><th>rok</th><th>&sum; termínů</th><th>&Oslash; skupin</th>"
+          . "<th>&Oslash; chlapů</th><th>&sum; účastí</th><th>X chlapů</th>"
+          . "<th>většinou</th><th colspan=2>poprvé a naposled</th></tr>";
+      $hist4= array_count_values($roky4);
       foreach ($roky as $rok=>list($setkani,$skupin,$ucasti)) {
         $p_skupin= number_format($skupin/$setkani,1);
         $p_ucast= number_format($ucasti/$skupin,1);
-        $inf->html.= "<tr><th>$rok</th><$td>$setkani</td><$td>$p_skupin</td><$td>$p_ucast</td></tr>";
+        $n_ucast= number_format($ucasti,0);
+        $i_ucast= count($roky2[$rok]); // různí
+        $x1_ucast= $xx_ucast= 0;
+        $hist= array_count_values($roky3[$rok]);
+            debug($hist,$rok);
+        foreach ($hist as $frequency) {
+          $xx_ucast+= $frequency>=$setkani-1 ? 1 : 0;
+        }
+        foreach ($roky2[$rok] as $id) {
+          $x1_ucast+= $hist4[$id]==1 ? 1 : 0;
+        }
+        $x1_proc= round(100*$x1_ucast/$i_ucast);
+        $inf->html.= "<tr><th>$rok</th><$td>$setkani</td><$td>$p_skupin</td>"
+            . "<$td>$p_ucast</td><$td>$n_ucast</td><$td>$i_ucast</td>"
+            . "<$td>$xx_ucast</td><$td>$x1_ucast</td><$td>$x1_proc%</td></tr>";
         
       }
       $inf->html.= "</table>";

@@ -189,9 +189,11 @@ menu rr { type:'main', active:rr.richard
   tabs stat {title:"[fa-line-chart] Statistika", _sys:'*'
     panel maily { type:'right', title:'Brněnská skupina'
       use info: form right
-      menu m {type:'left', format:'f'
-        menu p {title:'Dělená setkání',type:'group'
-          item {title:'[fa-question] Počet skupin' par:{fce:'n_skupin'} }
+      menu m {type:'left', format:'f', active:m.d.p
+        menu d {title:'Dělená setkání',type:'group'
+          item p {title:'[fa-question] Počet skupin'      par:{fce:'n_skupin'} }
+          item {title:'[fa-exclamation] Oprava překlepů'  par:{fce:'corr_jmeno'} }
+          item {title:'[fa-exclamation] Anonymizace jmen' par:{fce:'id_jmeno'} }
           func onclick(i:ezer) { var graf:object
             info.header(i); clear(); 
             graf= php.stat_brno(i.par);
