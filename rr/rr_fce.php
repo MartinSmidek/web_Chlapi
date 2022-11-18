@@ -168,6 +168,16 @@ function stat_brno($par) {  //trace();
       }
       // zobrazení
       $inf->html.= "<h3>Přehled dělených skupin brněnských chlapů podle let</h3>";
+      $legenda= "<ol>
+        <li>suma termínů - jsou vynechány termíny s jedinou skupinou (Senorady ap.)
+        <li>průměrně skupin - průměrný počet skupinek na jeden termín
+        <li>průměrně chlapů v jedné skupině
+        <li>počet účastí = v podstatě (1)*(2)*(3)
+        <li>různých chlapů - kolik chlapů se v roce zúčastnilo setkání 
+        <li>většinou - kolik chlapů se zúčastnilo všech nebo všech až na jedno
+        <li>poprvé a naposled - kolik chlapů přišlo na dělené setkání poprvé a pak už nikdy
+        <li>dtto v procentech vzhledem k (5)
+        </ol>";
       $td= "td style='text-align:right'";
       $inf->html.= "<table class='systable'><tr><th>rok</th><th>&sum; termínů</th><th>&Oslash; skupin</th>"
           . "<th>&Oslash; chlapů</th><th>&sum; účastí</th><th>X chlapů</th>"
@@ -193,7 +203,7 @@ function stat_brno($par) {  //trace();
             . "<$td>$xx_ucast</td><$td>$x1_ucast</td><$td>$x1_proc%</td></tr>";
         
       }
-      $inf->html.= "</table>";
+      $inf->html.= "</table>$legenda";
 //      debug($roky);
       break;
   }

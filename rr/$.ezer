@@ -191,11 +191,13 @@ menu rr { type:'main', active:rr.richard
       use info: form right
       menu m {type:'left', format:'f', active:m.d.p
         menu d {title:'Dělená setkání',type:'group'
-          item p {title:'[fa-question] Počet skupin'              par:{fce:'n_skupin'} }
-          item {title:'[fa-exclamation] Oprava překlepů gnucast'  par:{fce:'corr_jmeno'} }
-          item {title:'[fa-exclamation] Oprava překlepů xucast'   par:{fce:'corr_xucast'} }
-          item {title:'[fa-exclamation] Anonymizace jmen'         par:{fce:'id_jmeno'} }
+          item p {title:'[fa-question] Počet skupin'              par:{fce:'n_skupin',confirm:0} }
+          item {title:'[fa-exclamation] Oprava překlepů gnucast'  par:{fce:'corr_jmeno',confirm:1} }
+          item {title:'[fa-exclamation] Oprava překlepů xucast'   par:{fce:'corr_xucast',confirm:1} }
+          item {title:'[fa-exclamation] Anonymizace jmen'         par:{fce:'id_jmeno',confirm:1} }
           func onclick(i:ezer) { var graf:object
+            if (i.par.confirm 
+              && !confirm("Opravdu mám přepočítat údaje podle gnucast.csv a xucast.csv?")) return;
             info.header(i); clear(); 
             graf= php.stat_brno(i.par);
             info.fill('',graf.html);
