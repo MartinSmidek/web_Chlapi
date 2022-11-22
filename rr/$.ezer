@@ -197,7 +197,7 @@ menu rr { type:'main', active:rr.richard
           item {title:'[fa-exclamation] Anonymizace jmen'         par:{fce:'id_jmeno',confirm:1} }
           func onclick(i:ezer) { var graf:object
             if (i.par.confirm 
-              && !confirm("Opravdu mám přepočítat údaje podle gnucast.csv a xucast.csv?")) return;
+              && !confirm(`Opravdu mám přepočítat údaje podle ${i.par.fce}?`)) return;
             info.header(i); clear(); 
             graf= php.stat_brno(i.par);
             info.fill('',graf.html);

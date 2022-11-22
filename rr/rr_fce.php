@@ -10,31 +10,33 @@ function stat_brno($par) {  //trace();
       $jmena= array(0);
       $n= 0;
       $qr= pdo_qry("
-        SELECT gnucast,IF(jmeno_corr!='',jmeno_corr,TRIM(jmeno))
+        SELECT gnucast,IF(jmeno_corr!='',TRIM(UPPER(jmeno_corr)),TRIM(UPPER(jmeno))),
+          TRIM(UPPER(jmeno)) LIKE TRIM(UPPER('petr balous'))
         FROM setkani4.gnucast
         WHERE jmeno_remove=''
         -- LIMIT 50");
-      while ($qr && (list($idg,$jmeno)= pdo_fetch_row($qr))) {
+      while ($qr && (list($idg,$jmeno,$x)= pdo_fetch_row($qr))) {
         $id= array_search($jmeno,$jmena,1);
         if (!$id) {
           $jmena[]= $jmeno;
           $id= count($jmena)-1;
-          if ($jmeno=='Martin Šmídek') debug($jmena,"$jmeno,$id");
+//          if ($x) display("$jmeno,$id");
         }
         $n+= query("UPDATE setkani4.gnucast SET jmeno_id=$id WHERE gnucast=$idg ");
       }
       // a v xucast
       $qr= pdo_qry("
-        SELECT id_xucast,IF(jmeno_corr!='',jmeno_corr,TRIM(jmeno))
+        SELECT id_xucast,IF(jmeno_corr!='',TRIM(UPPER(jmeno_corr)),TRIM(UPPER(jmeno))),
+          TRIM(UPPER(jmeno)) LIKE TRIM(UPPER('Vladimír Tůma'))
         FROM chlapi.xucast
         WHERE jmeno_remove=''
         -- LIMIT 50");
-      while ($qr && (list($idg,$jmeno)= pdo_fetch_row($qr))) {
+      while ($qr && (list($idg,$jmeno,$x)= pdo_fetch_row($qr))) {
         $id= array_search($jmeno,$jmena,1);
         if (!$id) {
           $jmena[]= $jmeno;
           $id= count($jmena)-1;
-          if ($jmeno=='Martin Šmídek') debug($jmena,"$jmeno,$id");
+//          if ($x) display("$jmeno,$id");
         }
         $n+= query("UPDATE chlapi.xucast SET jmeno_id=$id WHERE id_xucast=$idg ");
       }
@@ -48,11 +50,11 @@ function stat_brno($par) {  //trace();
         list($id,$pocet,$jmeno,$corr,$delete)= $row;
         if ($corr) {
           $n+= query("UPDATE setkani4.gnucast SET jmeno_corr='$corr' 
-            WHERE TRIM(UPPER(jmeno))=TRIM(UPPER('$jmeno')) ");
+            WHERE TRIM(UPPER(jmeno)) LIKE TRIM(UPPER('$jmeno')) ");
         }
         if ($delete) {
           $r+= query("UPDATE setkani4.gnucast SET jmeno_remove='x' 
-            WHERE TRIM(UPPER(jmeno))=TRIM(UPPER('$jmeno')) ");
+            WHERE TRIM(UPPER(jmeno)) LIKE TRIM(UPPER('$jmeno')) ");
         }
         $d+= query("UPDATE setkani4.gnucast SET jmeno_remove='o' 
           WHERE jmeno='max' OR skupina='maximum' OR LENGTH(jmeno)=1");
@@ -68,11 +70,11 @@ function stat_brno($par) {  //trace();
         list($pocet,$jmeno,$corr,$delete)= $row;
         if ($corr) {
           $n+= query("UPDATE chlapi.xucast SET jmeno_corr='$corr' 
-            WHERE TRIM(UPPER(jmeno))=TRIM(UPPER('$jmeno')) ");
+            WHERE TRIM(UPPER(jmeno)) LIKE TRIM(UPPER('$jmeno')) ");
         }
         if ($delete) {
           $r+= query("UPDATE chlapi.xucast SET jmeno_remove='x' 
-            WHERE TRIM(UPPER(jmeno))=TRIM(UPPER('$jmeno')) ");
+            WHERE TRIM(UPPER(jmeno)) LIKE TRIM(UPPER('$jmeno')) ");
         }
         $d+= query("UPDATE chlapi.xucast SET jmeno_remove='o' 
           WHERE jmeno='max' ");
