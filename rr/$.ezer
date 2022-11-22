@@ -192,6 +192,7 @@ menu rr { type:'main', active:rr.richard
       menu m {type:'left', format:'f', active:m.d.p
         menu d {title:'Dělená setkání',type:'group'
           item p {title:'[fa-question] Počet skupin'              par:{fce:'n_skupin',confirm:0} }
+          item {title:'[fa-exclamation] Přesun gnucast do xucast' par:{fce:'copy_gnucast',confirm:1} }
           item {title:'[fa-exclamation] Oprava překlepů gnucast'  par:{fce:'corr_jmeno',confirm:1} }
           item {title:'[fa-exclamation] Oprava překlepů xucast'   par:{fce:'corr_xucast',confirm:1} }
           item {title:'[fa-exclamation] Anonymizace jmen'         par:{fce:'id_jmeno',confirm:1} }

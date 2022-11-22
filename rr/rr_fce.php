@@ -6,63 +6,46 @@ function stat_brno($par) {  //trace();
   global $abs_root;
   $inf= (object)array('html'=>'');
   switch ($par->fce) {
-    case 'id_jmeno':  // -------------------------------------------------------- anonymizovat jména
-      $jmena= array(0);
+    case 'copy_gnucast':  // ------------------------------------------ zkopírovat gnucast do xucast 1.
+//      ezer_connect('setkani');
+      query("DELETE FROM chlapi.xucast WHERE gnucast!=0");
       $n= 0;
       $qr= pdo_qry("
-        SELECT gnucast,IF(jmeno_corr!='',TRIM(UPPER(jmeno_corr)),TRIM(UPPER(jmeno))),
-          TRIM(UPPER(jmeno)) LIKE TRIM(UPPER('petr balous'))
+        SELECT gnucast,jmeno,jmeno_corr,jmeno_id
         FROM setkani4.gnucast
         WHERE jmeno_remove=''
-        -- LIMIT 50");
-      while ($qr && (list($idg,$jmeno,$x)= pdo_fetch_row($qr))) {
-        $id= array_search($jmeno,$jmena,1);
-        if (!$id) {
-          $jmena[]= $jmeno;
-          $id= count($jmena)-1;
-//          if ($x) display("$jmeno,$id");
-        }
-        $n+= query("UPDATE setkani4.gnucast SET jmeno_id=$id WHERE gnucast=$idg ");
+        ORDER BY gnucast
+        -- LIMIT 1");
+      while ($qr && (list($idg,$jmeno,$jmeno_corr,$idj)= pdo_fetch_row($qr))) {
+        $n+= query("INSERT INTO chlapi.xucast SET 
+          gnucast=$idg, jmeno='$jmeno', jmeno_corr='$jmeno_corr', jmeno_id=$idj");
       }
-      // a v xucast
-      $qr= pdo_qry("
-        SELECT id_xucast,IF(jmeno_corr!='',TRIM(UPPER(jmeno_corr)),TRIM(UPPER(jmeno))),
-          TRIM(UPPER(jmeno)) LIKE TRIM(UPPER('Vladimír Tůma'))
-        FROM chlapi.xucast
-        WHERE jmeno_remove=''
-        -- LIMIT 50");
-      while ($qr && (list($idg,$jmeno,$x)= pdo_fetch_row($qr))) {
-        $id= array_search($jmeno,$jmena,1);
-        if (!$id) {
-          $jmena[]= $jmeno;
-          $id= count($jmena)-1;
-//          if ($x) display("$jmeno,$id");
-        }
-        $n+= query("UPDATE chlapi.xucast SET jmeno_id=$id WHERE id_xucast=$idg ");
-      }
-      $inf->html.= "anonymizováno $n jmen";
+      $inf->html.= "vkopírováno $n účastí";
       break;
-    case 'corr_jmeno':  // --------------------------------------- opravy jmen podle doc/gnucast.csv
+    case 'corr_jmeno':  // --------------------------------------- opravy jmen podle doc/gnucast.csv 2.
       $fp= fopen("$abs_root/doc/gnucast.csv",'r');
       fgetcsv($fp,0,';'); 
       $n= $r= $d= 0;
       while (($row= fgetcsv($fp,0,';')) !== false) {
         list($id,$pocet,$jmeno,$corr,$delete)= $row;
         if ($corr) {
-          $n+= query("UPDATE setkani4.gnucast SET jmeno_corr='$corr' 
+//          $n+= query("UPDATE setkani4.gnucast SET jmeno_corr='$corr' 
+          $n+= query("UPDATE chlapi.xucast SET jmeno_corr='$corr' 
             WHERE TRIM(UPPER(jmeno)) LIKE TRIM(UPPER('$jmeno')) ");
         }
         if ($delete) {
-          $r+= query("UPDATE setkani4.gnucast SET jmeno_remove='x' 
+//          $r+= query("UPDATE setkani4.gnucast SET jmeno_remove='x' 
+          $r+= query("UPDATE chlapi.xucast SET jmeno_remove='x' 
             WHERE TRIM(UPPER(jmeno)) LIKE TRIM(UPPER('$jmeno')) ");
         }
-        $d+= query("UPDATE setkani4.gnucast SET jmeno_remove='o' 
+//        $d+= query("UPDATE setkani4.gnucast SET jmeno_remove='o' 
+        $d+= query("UPDATE chlapi.xucast SET jmeno_remove='o' 
           WHERE jmeno='max' OR skupina='maximum' OR LENGTH(jmeno)=1");
       }
       fclose($fp);
       $inf->html.= "opraveno $n překlepů a zrušeno $r řádků a $d označeno jako pomocných";
       break;
-    case 'corr_xucast':  // --------------------------------------- opravy jmen podle doc/xucast.csv
+    case 'corr_xucast':  // --------------------------------------- opravy jmen podle doc/xucast.csv 2.
       $fp= fopen("$abs_root/doc/xucast.csv",'r');
       fgetcsv($fp,0,';'); 
       $n= $r= $d= 0;
@@ -82,47 +65,85 @@ function stat_brno($par) {  //trace();
       fclose($fp);
       $inf->html.= "opraveno $n překlepů a zrušeno $r řádků a $d označeno jako pomocných";
       break;
+    case 'id_jmeno':  // -------------------------------------------------------- anonymizovat jména 3.
+      $jmena= array(0);
+      $n= 0;
+//      $qr= pdo_qry("
+//        SELECT gnucast,IF(jmeno_corr!='',TRIM(UPPER(jmeno_corr)),TRIM(UPPER(jmeno))),
+//          TRIM(UPPER(jmeno)) LIKE TRIM(UPPER('Vladimír Tůma'))
+//        FROM setkani4.gnucast
+//        WHERE jmeno_remove=''
+//        -- LIMIT 50");
+//      while ($qr && (list($idg,$jmeno,$x)= pdo_fetch_row($qr))) {
+//        $id= array_search($jmeno,$jmena,1);
+//        if (!$id) {
+//          $jmena[]= $jmeno;
+//          $id= count($jmena)-1;
+//          if ($x) display("$jmeno,$id");
+//        }
+//        $n+= query("UPDATE setkani4.gnucast SET jmeno_id=$id WHERE gnucast=$idg ");
+//      }
+      // a v xucast
+      $qr= pdo_qry("
+        SELECT id_xucast,IF(jmeno_corr!='',TRIM(UPPER(jmeno_corr)),TRIM(UPPER(jmeno)))
+          ,TRIM(UPPER(jmeno)) LIKE TRIM(UPPER('Z.J.Krtek'))
+        FROM chlapi.xucast
+        WHERE jmeno_remove=''
+        -- LIMIT 50");
+      while ($qr && (list($idg,$jmeno,$x)= pdo_fetch_row($qr))) {
+        $id= array_search($jmeno,$jmena,1);
+        if (!$id) {
+          $jmena[]= $jmeno;
+          $id= count($jmena)-1;
+          if ($x) display("$idg,$jmeno,$id");
+        }
+        $n+= query("UPDATE chlapi.xucast SET jmeno_id=$id WHERE id_xucast=$idg ");
+      }
+      $inf->html.= "anonymizováno $n jmen";
+      break;
     case 'n_skupin': // -------------------------------------------------------------------- skupiny
       // přehled
-      list($od,$do,$n)= select('MIN(datum),MAX(datum),COUNT(*)','setkani4.gnucast',"skupina='maximum'");
-      $last_setkani_org= $do;
-      $od= sql_date($od);
-      $do= sql_date($do);
-      $inf->html.= "$n termínů dělených skupin od $od do $do na webu <b>setkani.org</b>";
-      // rozbor tabulky GNUCAST
+//      list($od,$do,$n)= select('MIN(datum),MAX(datum),COUNT(*)','setkani4.gnucast',"skupina='maximum'");
+//      $last_setkani_org= $do;
+//      $od= sql_date($od);
+//      $do= sql_date($do);
+//      $inf->html.= "$n termínů dělených skupin od $od do $do na webu <b>setkani.org</b>";
+//      // rozbor tabulky GNUCAST
       $dny= array();
       $roky= array();
       $roky2= array();
       $roky3= array();
       $roky4= array();
-      $qr= pdo_qry("
-        SELECT datum,skupina, jmeno_id
-        FROM setkani4.gnucast
-        WHERE jmeno_remove=''
-        ORDER BY datum");
-      while ($qr && (list($den,$skupina,$jmeno_id)= pdo_fetch_row($qr))) {
-        if (!isset($dny[$den][$skupina])) $dny[$den][$skupina]= 0;
-        $dny[$den][$skupina]++;
-        $rok= substr($den,0,4);
-        if (!isset($roky2[$rok])) $roky2[$rok]= array(); // různí
-        if (!in_array($jmeno_id,$roky2[$rok])) $roky2[$rok][]= $jmeno_id;
-        if (!isset($roky3[$rok])) $roky3[$rok]= array(); // seznam
-        $roky3[$rok][]= $jmeno_id;
-        $roky4[]= $jmeno_id;
-      }
+//      $qr= pdo_qry("
+//        SELECT datum,skupina, jmeno_id
+//        FROM setkani4.gnucast
+//        WHERE jmeno_remove=''
+//        ORDER BY datum");
+//      while ($qr && (list($den,$skupina,$jmeno_id)= pdo_fetch_row($qr))) {
+//        if (!isset($dny[$den][$skupina])) $dny[$den][$skupina]= 0;
+//        $dny[$den][$skupina]++;
+//        $rok= substr($den,0,4);
+//        if (!isset($roky2[$rok])) $roky2[$rok]= array(); // různí
+//        if (!in_array($jmeno_id,$roky2[$rok])) $roky2[$rok][]= $jmeno_id;
+//        if (!isset($roky3[$rok])) $roky3[$rok]= array(); // seznam
+//        $roky3[$rok][]= $jmeno_id;
+//        $roky4[]= $jmeno_id;
+//      }
       // rozbor tabulky XUCAST
       ezer_connect('setkani');
       $od= '9999-99-99';
       $do= '0000-00-00';
       $n= 0;
       $qr= pdo_qry("
-        SELECT datum_od,u.skupina,jmeno_id -- COUNT(*) AS _pocet
+        SELECT IF(gnucast=0,a.datum_od,g.datum) AS _den,IF(gnucast=0,u.skupina,g.skupina) AS _skup,
+          u.jmeno_id -- COUNT(*) AS _pocet
         FROM xucast AS u
-        JOIN xakce AS a ON xelems=CONCAT('aclanek=',id_xclanek)
-        WHERE jmeno_remove='' AND datum_od>'$last_setkani_org'
+        LEFT JOIN xakce AS a ON xelems=CONCAT('aclanek=',id_xclanek)
+        LEFT JOIN setkani4.gnucast AS g USING (gnucast)
+        WHERE u.jmeno_remove='' -- AND datum_od>'$last_setkani_org'
         -- GROUP BY datum_od,u.skupina 
         -- HAVING _pocet>1 
-        ORDER BY datum_od");
+        ORDER BY _den");
       while ($qr && (list($den,$skupina,$jmeno_id)= pdo_fetch_row($qr))) {
         if (!isset($dny[$den][$skupina])) $dny[$den][$skupina]= 0;
         $dny[$den][$skupina]++;
@@ -153,9 +174,10 @@ function stat_brno($par) {  //trace();
 //        $do= max($do,$den);
 //        $n++;
 //      }
-      $od= sql_date($od);
-      $do= sql_date($do);
-      $inf->html.= "<br>$n termínů dělených skupin od $od do $do na webu <b>chlapi.cz</b>";
+      $od= sql_date1($od);
+      $do= sql_date1($do);
+      $inf->html.= "<br>$n termínů dělených skupin od $od na webu <b>setkani.org</b> 
+        a od léta 2020 do $do na webu <b>chlapi.cz</b>";
 //      debug($dny);
       foreach ($dny as $den=>$skupiny) {
         if (count($skupiny)>1) {
