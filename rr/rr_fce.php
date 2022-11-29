@@ -7,16 +7,71 @@ function stat_brno($par) {  //trace();
   global $abs_root;
   $inf= (object)array('html'=>'');
   switch ($par->fce) {
+    case 'survey': // --------------------------------------------------------- přehled identifikace
+      $radku= select('COUNT(*)','chlapi.xucast',"jmeno_remove=''");
+      $celkem= select('COUNT(DISTINCT jmeno_id)','chlapi.xucast',"jmeno_id>0");
+      $answer= select('COUNT(DISTINCT id_osoba)','chlapi.xucast',"id_osoba>0");
+      $lst= '';
+      $n= 0;
+      $qr= pdo_qry("
+        SELECT TRIM(IF(jmeno_corr='',jmeno,jmeno_corr)) AS _jmeno,COUNT(*) AS _pocet
+        FROM chlapi.xucast 
+        WHERE jmeno_id>0 AND id_osoba=0
+        GROUP BY jmeno_id
+        ORDER BY _jmeno
+      ");
+      while ($qr && (list($jmeno,$pocet)= pdo_fetch_row($qr))) {
+        $n++;
+        list($nidos,$idos,$obce)= select('COUNT(*),GROUP_CONCAT(id_osoba),GROUP_CONCAT(obec)','ezer_db2.osoba',
+            "'$jmeno' LIKE CONCAT(TRIM(jmeno),' ',TRIM(prijmeni)) AND deleted='' ");   
+        $je= $nidos ? " v Answeru {$nidos}x ($idos-$obce)" : '';
+        $lst.= "{$pocet}x $jmeno$je<br>";
+      }
+      $inf->html.= "Na setkáních se do tabulky účasti na $radku řádků zapsalo
+        <br> celkem $celkem chlapů
+        <br> z toho $answer chlapů je v Answeru
+        <br> a $n není, jsou to tito:<hr>$lst ";
+      break;
+    case 'jmeno_id.csv':  // ------------------------------------ opravy jmen podle doc/jmeno_id.csv 4.
+      $fp= fopen("$abs_root/doc/jmeno_id.csv",'r'); // jmeno,jmeno_corr
+//      fgetcsv($fp,0,';'); 
+      $n= $r= $d= 0;
+      while (($row= fgetcsv($fp,0,';')) !== false) {
+        list($jmeno,$id_osoba)= $row;
+        if ($id_osoba) {
+          display("$jmeno => id_osoba=$id_osoba");
+          $n+= query("UPDATE chlapi.xucast SET jmeno_corr='$corr' 
+            WHERE TRIM(UPPER(jmeno)) LIKE TRIM(UPPER('$jmeno')) 
+              OR  TRIM(UPPER(jmeno))=TRIM(UPPER('$jmeno')) ");
+        }
+        else {
+          display("$jmeno => $corr");
+          $n+= query("UPDATE chlapi.xucast SET jmeno_corr='$corr' 
+            WHERE TRIM(UPPER(jmeno)) LIKE TRIM(UPPER('$jmeno')) 
+              OR  TRIM(UPPER(jmeno))=TRIM(UPPER('$jmeno')) ");
+        }
+      }
+      fclose($fp);
+      $inf->html.= "JMENO_CORR.CSV: opraveno $n překlepů ";
+      break;
     case 'jmeno_corr.csv':  // -------------------------------- opravy jmen podle doc/jmeno_corr.csv 2.
       $fp= fopen("$abs_root/doc/jmeno_corr.csv",'r'); // jmeno,jmeno_corr
 //      fgetcsv($fp,0,';'); 
       $n= $r= $d= 0;
       while (($row= fgetcsv($fp,0,';')) !== false) {
-        list($jmeno,$corr)= $row;
-        display("$jmeno => $corr");
-        $n+= query("UPDATE chlapi.xucast SET jmeno_corr='$corr' 
-          WHERE TRIM(UPPER(jmeno)) LIKE TRIM(UPPER('$jmeno')) 
-            OR  TRIM(UPPER(jmeno))=TRIM(UPPER('$jmeno')) ");
+        list($jmeno,$corr,$id_osoba)= $row;
+        if ($id_osoba) {
+          display("$jmeno => id_osoba=$id_osoba");
+          $n+= query("UPDATE chlapi.xucast SET jmeno_corr='$corr' 
+            WHERE TRIM(UPPER(jmeno)) LIKE TRIM(UPPER('$jmeno')) 
+              OR  TRIM(UPPER(jmeno))=TRIM(UPPER('$jmeno')) ");
+        }
+        else {
+          display("$jmeno => $corr");
+          $n+= query("UPDATE chlapi.xucast SET jmeno_corr='$corr' 
+            WHERE TRIM(UPPER(jmeno)) LIKE TRIM(UPPER('$jmeno')) 
+              OR  TRIM(UPPER(jmeno))=TRIM(UPPER('$jmeno')) ");
+        }
       }
       fclose($fp);
       $inf->html.= "JMENO_CORR.CSV: opraveno $n překlepů ";
@@ -78,62 +133,91 @@ function stat_brno($par) {  //trace();
       $inf->html.= "<br>XUCAST.CSV: opraveno $n překlepů a zrušeno $r řádků a $d označeno jako pomocných";
       break;
     case 'id_jmeno':  // -------------------------------------------------------- anonymizovat jména 3.
-      $jmena= array(0);
-      query("UPDATE chlapi.xucast SET jmeno_id=0 ");
-      $n= $n_no= $n_more= 0;
-      $msg= $msg_more= $msg_no= '';
+                      // a předvyplnění id_osoba ze souboru jmeno_id.csv
+      query("UPDATE chlapi.xucast SET jmeno_id=0, id_osoba=0 ");
+      $fp= fopen("$abs_root/doc/jmeno_id.csv",'r'); // jmeno,id_osoba
+      $nid= 0;
+      while (($row= fgetcsv($fp,0,';')) !== false) {
+        list($jmeno,$id_osoba)= $row;
+        display("$jmeno => id_osoba=$id_osoba");
+        $nid+= query("UPDATE chlapi.xucast SET id_osoba=$id_osoba 
+          WHERE IF(jmeno_corr!='',TRIM(UPPER(jmeno_corr)),TRIM(UPPER(jmeno))) LIKE TRIM(UPPER('$jmeno')) 
+            OR  IF(jmeno_corr!='',TRIM(UPPER(jmeno_corr)),TRIM(UPPER(jmeno)))=TRIM(UPPER('$jmeno')) ");
+      }
+      fclose($fp);
+      $inf->html.= "JMENO_ID.CSV: doplněno $nid x id_osoba ";
+      $jmena= array(); // jmeno->[jmeno_id,id_osoba]
+      $n_ok= $n= $n_no= $n_more= 0;
+      $msg= $msg_more= $msg_no= $msg_ok= '';
       // ve sjednoceném xucast
       $qr= pdo_qry("
         SELECT gnucast,id_xucast,
-          IF(jmeno_corr!='',TRIM(UPPER(jmeno_corr)),TRIM(UPPER(jmeno))) AS _jmeno
+          IF(jmeno_corr!='',TRIM(UPPER(jmeno_corr)),TRIM(UPPER(jmeno))) AS _jmeno, id_osoba
         FROM chlapi.xucast
-        WHERE jmeno_remove='' AND jmeno_id=0
-        ORDER BY _jmeno
+        WHERE jmeno_remove='' -- AND jmeno_id=0
+        -- AND jmeno='Petr Jílek'
+        ORDER BY 1000*gnucast+id_xucast -- _jmeno
         -- LIMIT 50
       ");
-      while ($qr && (list($idg,$idx,$jmeno)= pdo_fetch_row($qr))) {
+      while ($qr && (list($idg,$idx,$jmeno,$ido)= pdo_fetch_row($qr))) {
         $jmeno= str_replace('  ',' ',$jmeno);
-        $id= array_search($jmeno,$jmena,1);
-        $ido= 0;
-        $nidos2= -1;
-        if (!$id) {
-          $jmena[]= $jmeno;
-          $id= count($jmena)-1;
-          // zjisti jednoznačné jméno, ohlaš nejednoznačná
-          list($nidos,$idos)= select('COUNT(*),GROUP_CONCAT(id_osoba)','ezer_db2.osoba',
-              "'$jmeno' LIKE CONCAT(TRIM(jmeno),' ',TRIM(prijmeni)) AND deleted='' AND iniciace>0");
-          if (!$nidos) {
-            list($nidos2,$idos2)= select('COUNT(*),GROUP_CONCAT(id_osoba)','ezer_db2.osoba',
-                "'$jmeno' LIKE CONCAT(TRIM(jmeno),' ',TRIM(prijmeni)) AND deleted='' AND iniciace=0");
-            if ($nidos2==1) { 
-              $idos= $idos2; $nidos= $nidos2;            
+        if (isset($jmena[$jmeno])) {
+          $id= $jmena[$jmeno][0];
+          $ido= $jmena[$jmeno][1];
+        }
+        else {
+          $nidos2= -1;
+          $n++;
+          $id= $n;
+          $jmena[$jmeno]= array($id,$ido);
+          if (!$ido) {
+            // zjisti jednoznačné jméno, ohlaš nejednoznačná
+            list($nidos,$idos)= select('COUNT(*),GROUP_CONCAT(id_osoba)','ezer_db2.osoba',
+                "'$jmeno' LIKE CONCAT(TRIM(jmeno),' ',TRIM(prijmeni)) AND deleted='' AND iniciace>0");
+            if (!$nidos) {
+              list($nidos2,$idos2)= select('COUNT(*),GROUP_CONCAT(id_osoba)','ezer_db2.osoba',
+                  "'$jmeno' LIKE CONCAT(TRIM(jmeno),' ',TRIM(prijmeni)) AND deleted='' AND iniciace=0");
+              if ($nidos2==1) { 
+                $idos= $idos2; $nidos= $nidos2;            
+              }
+              elseif ($nidos2>1) {
+                $msg_no.= "<br>$idx/$idg: $jmeno není iniciován a není jednoznačný: $idos2";
+              }
             }
-            elseif ($nidos2>1) {
-              $msg_no.= "<br>$idx/$idg: $jmeno není iniciován a není jednoznačný: $idos2";
-            }
-          }
-          if ($nidos==1) {
-            $ido= $idos;
-          }
-          else {
-            $nn= select('COUNT(*)','chlapi.xucast',
-                "IF(jmeno_corr!='',TRIM(UPPER(jmeno_corr)),TRIM(UPPER(jmeno)))='$jmeno'");
-            $nn= $nn>=5 ? "<span style='color:red'>($nn x)</span>" : "$nn x)";
-            if ($nidos>1) {
-              $n_more++;
-              $msg_more.= "<br>$idx/$idg: $jmeno není jednoznačné: $idos $nn ";
+            if ($nidos==1) {
+              $ido= $idos;
+              $n_ok++;
             }
             else {
-              $n_no++;
-              if ($nidos2<=0) $msg_no.= "<br>$idx/$idg: $jmeno nebylo nalezeno $nn ";
+              $nn= select('COUNT(*)','chlapi.xucast',
+                  "IF(jmeno_corr!='',TRIM(UPPER(jmeno_corr)),TRIM(UPPER(jmeno)))='$jmeno'");
+              $nn= $nn>=5 ? "<span style='color:red'>($nn x)</span>" : "($nn x)";
+              if ($nidos>1) {
+                $n_more++;
+                $msg_more.= "<br>$idx/$idg: $jmeno není jednoznačné: $idos $nn ";
+              }
+              else {
+                $n_no++;
+                if ($nidos2<=0) $msg_no.= "<br>$idx/$idg: $jmeno nebylo nalezeno $nn ";
+              }
+            }
+            $ido= $nidos==1 ? $idos : 0;
+            if ($ido) {
+              $n_ok++;
+              $jmena[$jmeno][1]= $ido;
+              $msg_ok.= "<br>$idx/$idg: $jmeno bylo nalezeno ";
             }
           }
-          $ido= $nidos==1 ? $idos : 0;
+          else {
+            $n_ok++;
+            $msg_ok.= "<br>$idx/$idg: $jmeno bylo nalezeno ručně ";
+          }
         }
-        $n+= query("UPDATE chlapi.xucast SET jmeno_id=$id WHERE id_xucast=$idx ");
+        query("UPDATE chlapi.xucast SET jmeno_id=$id, id_osoba=$ido WHERE id_xucast=$idx ");
       }
-      $inf->html.= "anonymizováno $n jmen, $n_more je nejednoznačných a $n_no je neznámých <hr>
-          $msg_more<hr>$msg_no";
+   
+      $inf->html.= "<br>zpracováno $n jmen, $n_ok je známých, $n_more je nejednoznačných a $n_no je neznámých 
+          <hr>$msg_ok<hr>$msg_more<hr>$msg_no";
       break;
     case 'n_skupin': // -------------------------------------------------------------------- skupiny
       // přehled
@@ -163,6 +247,7 @@ function stat_brno($par) {  //trace();
       $roky3= array();
       $roky4= array();
       $roky5= array(); // neidentifikovaní v Answeru
+      $roky6= array(); // identifikovaní v Answeru
       // rozbor tabulky XUCAST
       $od= '9999-99-99';
       $do= '0000-00-00';
@@ -183,11 +268,15 @@ function stat_brno($par) {  //trace();
         $rok= substr($den,0,4);
         if (!isset($roky2[$rok])) $roky2[$rok]= array(); // různí
         if (!isset($roky5[$rok])) $roky5[$rok]= array(); // nejsou v Answeru
+        if (!isset($roky6[$rok])) $roky6[$rok]= array(); // jsou v Answeru
         if (!in_array($jmeno_id,$roky2[$rok])) $roky2[$rok][]= $jmeno_id;
         if (!isset($roky3[$rok])) $roky3[$rok]= array(); // seznam
         $roky3[$rok][]= $jmeno_id;
         $roky4[]= $jmeno_id;
         if (!$ido) $roky5[$rok][]= $jmeno_id;
+        if ($ido) {
+          if (!in_array($ido,$roky6[$rok])) $roky6[$rok][]= $ido;
+        }
         $od= min($od,$den);
         $do= max($do,$den);
         $n++;
@@ -196,40 +285,50 @@ function stat_brno($par) {  //trace();
       $do= sql_date1($do);
       $inf->html.= "<br>$n termínů dělených skupin od $od na webu <b>setkani.org</b> 
         a od léta 2020 do $do na webu <b>chlapi.cz</b>";
-//                                        debug($roky5[2006]);
+//                                        debug($roky5[2006],"2006 - neznáme");
+//                                        debug($roky6[2022],"2022 - známe");
       foreach ($dny as $den=>$skupiny) {
-//        if (count($skupiny)>1) {
-          $rok= substr($den,0,4);
-          $skupin= count($skupiny);
+        $rok= substr($den,0,4);
+        $skupin= count($skupiny);
 //          display("$rok $skupin");
-          if (!isset($roky[$rok])) $roky[$rok]= array(0,0,0); // počet: setkání, skupin, účastí
-          $roky[$rok][0]++; 
-          $roky[$rok][1]+= $skupin; 
-          $roky[$rok][2]+= array_sum($skupiny); 
-//        }
+        if (!isset($roky[$rok])) $roky[$rok]= array(0,0,0,0); // počet: setkání, skupin, účastí, stáří
+        $roky[$rok][0]++; 
+        $roky[$rok][1]+= $skupin; 
+        $roky[$rok][2]+= array_sum($skupiny); 
+        // průměr stáří
+        $idos= implode(',',$roky6[$rok]);
+        $roky[$rok][3]= select1("AVG(TIMESTAMPDIFF(YEAR,narozeni,'$rok-06-30'))",'ezer_db2.osoba',
+            "id_osoba IN ($idos)");
+                                        display("$rok - věk={$roky[$rok][3]}");
       }
       // zobrazení
       $inf->html.= "<h3>Přehled dělených skupin brněnských chlapů podle let</h3>";
       $legenda= "<ol>
-        <li>počet setkání s přihlašovací tabulkou
-        <li>průměrně skupin - průměrný počet skupinek na jeden termín
-        <li>průměrně chlapů v jedné skupině
-        <li>počet účastí = v podstatě (1)*(2)*(3)
-        <li>různých chlapů - kolik chlapů se v roce zúčastnilo setkání 
-        <li>většinou - kolik chlapů se zúčastnilo všech nebo všech až na jedno
+        <li>&sum; setkání: počet setkání s přihlašovací tabulkou
+        <li>&Oslash; skupin: průměrně skupin - průměrný počet skupinek na jeden termín
+        <li>&Oslash; chlapů: průměrně chlapů v jedné skupině
+        <li>&sum; účastí: počet účastí = v podstatě (1)*(2)*(3)
+        <li>X chlapů: různých chlapů - kolik chlapů se v roce zúčastnilo setkání 
+        <li>@ chlapů: X chlapi, kteří jsou v Answeru
+        <li>? chlapů: X chlapi, kteří nejsou v Answeru
+        <li>&#10084; chlapů: průměrný věk @ chlapů
+        <li>většinou: kolik X chlapů se zúčastnilo všech nebo všech až na jedno
         <li>poprvé a naposled - kolik chlapů přišlo na dělené setkání poprvé a pak už nikdy
         <li>dtto v procentech vzhledem k (5)
         </ol>";
       $td= "td style='text-align:right'";
-      $inf->html.= "<table class='systable'><tr><th>rok</th><th>&sum; setkání</th><th>&Oslash; skupin</th>"
-          . "<th>&Oslash; chlapů</th><th>&sum; účastí</th><th>X chlapů</th><th>? chlapů</th>"
-          . "<th>většinou</th><th colspan=2>poprvé a naposled</th></tr>";
+      $inf->html.= "<table class='systable'><tr><th>rok</th>"
+          . "<th>&sum; setkání</th><th>&Oslash; skupin</th>"
+          . "<th>&Oslash; chlapů</th><th>&sum; účastí</th><th>X chlapů</th><th>@ chlapů</th><th>? chlapů</th>"
+          . "<th>&#10084; chlapů</th><th>většinou</th><th colspan=2>poprvé a naposled</th></tr>";
       $hist4= array_count_values($roky4);
-      foreach ($roky as $rok=>list($setkani,$skupin,$ucasti)) {
+      foreach ($roky as $rok=>list($setkani,$skupin,$ucasti,$stari)) {
         $p_skupin= number_format($skupin/$setkani,1);
         $p_ucast= number_format($ucasti/$skupin,1);
         $n_ucast= number_format($ucasti,0);
+        $v_ucast= number_format($stari,0);
         $i_ucast= count($roky2[$rok]); // různí
+        $a_ucast= count($roky6[$rok]); // identifikovaní v Answeru
         $na_ucast= count($roky5[$rok]); // neidentifikovaní v Answeru
         $x1_ucast= $xx_ucast= 0;
         $hist= array_count_values($roky3[$rok]);
@@ -241,9 +340,10 @@ function stat_brno($par) {  //trace();
           $x1_ucast+= $hist4[$id]==1 ? 1 : 0;
         }
         $x1_proc= round(100*$x1_ucast/$i_ucast);
-        $inf->html.= "<tr><th>$rok</th><$td>$setkani</td><$td>$p_skupin</td>"
-            . "<$td>$p_ucast</td><$td>$n_ucast</td><$td>$i_ucast</td><$td>$na_ucast</td>"
-            . "<$td>$xx_ucast</td><$td>$x1_ucast</td><$td>$x1_proc%</td></tr>";
+        $inf->html.= "<tr><th>$rok</th>"
+            . "<$td>$setkani</td><$td>$p_skupin</td>"
+            . "<$td>$p_ucast</td><$td>$n_ucast</td><$td>$i_ucast</td><$td>$a_ucast</td><$td>$na_ucast</td>"
+            . "<$td>$v_ucast</td><$td>$xx_ucast</td><$td>$x1_ucast</td><$td>$x1_proc%</td></tr>";
         
       }
       $inf->html.= "</table>$legenda";

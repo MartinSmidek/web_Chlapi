@@ -194,6 +194,7 @@ menu rr { type:'main', active:rr.richard
         menu d {title:'Brněnská setkání',type:'group'
           item p {title:'[fa-question] Dělené skupiny'    par:{fce:'n_skupin',delena:1,confirm:0} }
           item   {title:'[fa-question] Společná setkání'  par:{fce:'n_skupin',delena:0,confirm:0} }
+          item   {title:'[fa-question] Přehled chlapů'    par:{fce:'survey',confirm:0} }
         }
         menu {title:'Dělená setkání - výpočty', type:'group', active:no
           item {title:'[fa-exclamation] Přesun gnucast do xucast' par:{fce:'copy_gnucast',confirm:1} }
