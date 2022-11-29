@@ -141,8 +141,8 @@ function stat_brno($par) {  //trace();
         list($jmeno,$id_osoba)= $row;
         display("$jmeno => id_osoba=$id_osoba");
         $nid+= query("UPDATE chlapi.xucast SET id_osoba=$id_osoba 
-          WHERE IF(jmeno_corr!='',TRIM(UPPER(jmeno_corr)),TRIM(UPPER(jmeno))) LIKE TRIM(UPPER('$jmeno')) 
-            OR  IF(jmeno_corr!='',TRIM(UPPER(jmeno_corr)),TRIM(UPPER(jmeno)))=TRIM(UPPER('$jmeno')) ");
+          WHERE TRIM(UPPER(IF(jmeno_corr!='',jmeno_corr,jmeno))) LIKE TRIM(UPPER('$jmeno')) 
+            OR  TRIM(UPPER(IF(jmeno_corr!='',jmeno_corr,jmeno)))=TRIM(UPPER('$jmeno')) ");
       }
       fclose($fp);
       $inf->html.= "JMENO_ID.CSV: doplněno $nid x id_osoba ";
