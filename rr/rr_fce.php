@@ -101,11 +101,13 @@ function stat_brno($par) {  //trace();
         list($id,$pocet,$jmeno,$corr,$delete)= $row;
         if ($corr) {
           $n+= query("UPDATE chlapi.xucast SET jmeno_corr='$corr' 
-            WHERE TRIM(UPPER(jmeno)) LIKE TRIM(UPPER('$jmeno')) ");
+            WHERE TRIM(UPPER(jmeno)) LIKE TRIM(UPPER('$jmeno')) 
+              OR TRIM(UPPER(jmeno))=TRIM(UPPER('$jmeno')) ");
         }
         if ($delete) {
           $r+= query("UPDATE chlapi.xucast SET jmeno_remove='x' 
-            WHERE TRIM(UPPER(jmeno)) LIKE TRIM(UPPER('$jmeno')) ");
+            WHERE TRIM(UPPER(jmeno)) LIKE TRIM(UPPER('$jmeno')) 
+              OR TRIM(UPPER(jmeno))=TRIM(UPPER('$jmeno'))");
         }
         $d+= query("UPDATE chlapi.xucast SET jmeno_remove='o' 
           WHERE jmeno='max' OR skupina='maximum' OR LENGTH(jmeno)=1");
@@ -120,11 +122,13 @@ function stat_brno($par) {  //trace();
         list($pocet,$jmeno,$corr,$delete)= $row;
         if ($corr) {
           $n+= query("UPDATE chlapi.xucast SET jmeno_corr='$corr' 
-            WHERE TRIM(UPPER(jmeno)) LIKE TRIM(UPPER('$jmeno')) ");
+            WHERE TRIM(UPPER(jmeno)) LIKE TRIM(UPPER('$jmeno')) 
+              OR TRIM(UPPER(jmeno))=TRIM(UPPER('$jmeno'))");
         }
         if ($delete) {
           $r+= query("UPDATE chlapi.xucast SET jmeno_remove='x' 
-            WHERE TRIM(UPPER(jmeno)) LIKE TRIM(UPPER('$jmeno')) ");
+            WHERE TRIM(UPPER(jmeno)) LIKE TRIM(UPPER('$jmeno')) 
+              OR TRIM(UPPER(jmeno))=TRIM(UPPER('$jmeno'))");
         }
         $d+= query("UPDATE chlapi.xucast SET jmeno_remove='o' 
           WHERE jmeno='max' ");
