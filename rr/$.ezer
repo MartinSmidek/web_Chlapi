@@ -1,20 +1,20 @@
 menu rr { type:'main', active:rr.richard
   func onstart() { php.table_lock('none'); } // uvolni všechny zámky řádků tabulek přihlášeného 
   # ===================================================================================> RR
-  tabs richard {title:"Myšlenky", _sys:'*', skill:'rr'
-    panel rohr {type:'right', title:'Rozesílání'
+  tabs richard {title:"[fa-lightbulb-o] Myšlenky", _sys:'*', skill:'rr'
+    panel rohr {type:'right', title:'[fa-send-o] Rozesílání'
       menu myslenka {type:'left'
         menu ukazat {title:'Zobrazení',type:'group'
-          item dnesni {title:'dnešní myšlenky', par:{den:0,poslat:0} }
-          item {title:'včerejší myšlenky', par:{den:-1,poslat:0} }
-          item {title:'zítřejší myšlenky', par:{den:1,poslat:0} }
+          item dnesni {title:'[fa-arrow-down] dnešní myšlenky', par:{den:0,poslat:0} }
+          item {title:'[fa-arrow-left] včerejší myšlenky', par:{den:-1,poslat:0} }
+          item {title:'[fa-arrow-right] zítřejší myšlenky', par:{den:1,poslat:0} }
         }
         menu poslat {title:'Rozeslání',type:'group'
-          item dnesni {title:'dnešní myšlenky', par:{den:0,poslat:1,opakovat:0} }
+          item dnesni {title:'[fa-send-o] dnešní myšlenky', par:{den:0,poslat:1,opakovat:0} }
           item {title:' ... znovu', par:{den:0,poslat:1,opakovat:1} }
           item {title:' ... na martin@smidek.eu', 
                   par:{den:0,poslat:1,opakovat:0,test:'martin@smidek.eu'}, skill:'m'}
-          item {title:'včerejší myšlenky', par:{den:-1,poslat:1,opakovat:0} }
+          item {title:'[fa-send] včerejší myšlenky', par:{den:-1,poslat:1,opakovat:0} }
           item {title:' ... znovu', par:{den:-1,poslat:1,opakovat:1} }
         }
         func onclick (i:ezer) {
@@ -25,15 +25,15 @@ menu rr { type:'main', active:rr.richard
       }
       use info: form right [12,4,,]
     }
-    panel plan {type:'right', title:'Opravy'
+    panel plan {type:'right', title:'[fa-calendar] Kalendář a opravy'
       use f: form _f [12,4,,] { format:'n' }
       use g: form _g [12,4,,] { format:'n' }
       menu nastav {type:'left', format:'f'
         menu obdobi {title:'Opravy',type:'group'
-          item od {title:'Nastavení období'
+          item od {title:'[fa-exclamation] Nastavení období'
             func onclick (i:ezer) { f.display(1); g.display(0); }
           }
-          item {title:'Inicializace období'
+          item {title:'[fa-times] Inicializace období', active:no
             func onclick (i:ezer) { 
               f.display(1); g.display(0); 
               if(confirm("opravdu chceš smazat všechny nastavené datumy a vymazat stav?")) {
@@ -41,7 +41,15 @@ menu rr { type:'main', active:rr.richard
                 f.b.browse_refresh(1);
               }
           }}
-          item {title:'Oprava překladu'
+          item {title:'... jen starší než dnešní', active:no
+            func onclick (i:ezer) { 
+              f.display(1); g.display(0); 
+              if(confirm(`opravdu chceš smazat datumy a stav starší než dnešní?`)) {
+                php.query("UPDATE rr SET datum='0000-00-00',state='' WHERE datum<NOW()");
+                f.b.browse_refresh(1);
+              }
+          }}
+          item {title:'[fa-edit] Oprava překladu'
             func onclick (i:ezer) { f.display(0); g.display(1); }
           }
         }
@@ -115,9 +123,9 @@ menu rr { type:'main', active:rr.richard
     }
   }
   # ===================================================================================> CAC
-  tabs uvahy {title:"CAC", _sys:'*', skill:'cac', include:'onload'}
+  tabs uvahy {title:"[fa-graduation-cap] CAC", _sys:'*', skill:'cac', include:'onload'}
   # ===================================================================================> Maily
-  tabs maily {title:"Maily", _sys:'*', skill:'mail'
+  tabs maily {title:"[fa-send-o] Maily", _sys:'*', skill:'mail'
     panel maily { type:'right', title:'Upomínací maily'
       use info: form right [12,4,,]
       menu m {type:'left', format:'f'
@@ -155,7 +163,7 @@ menu rr { type:'main', active:rr.richard
     }
   }
   # ===================================================================================> Bans
-  tabs bans {title:"BANs", _sys:'*', skill:'ban'
+  tabs bans {title:"[fa-exclamation] BANs", _sys:'*', skill:'ban'
     panel maily { type:'right', title:'Správa BANů v konferencích'
       use info: form right {
         select mail [10,40,150,] { type:'auto', par:{fce:'ban_maily_auto'}, format:'t'
@@ -260,7 +268,7 @@ menu rr { type:'main', active:rr.richard
       use info: form right [12,4,,]     { tag:'i' }
     }
   }
-  tabs doc  {title:"Nápověda", _sys:'*',  include:'onclick,ezer2.help' active:*, skill:'a' }
+  tabs doc  {title:"[fa-question] Nápověda", _sys:'*',  include:'onclick,ezer2.help' active:*, skill:'a' }
   tabs off  {type:'logoff', title:"[fa-power-off] Odhlásit"}
   # ------------------------------------------------------------------ tables
   table rr {
