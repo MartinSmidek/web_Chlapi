@@ -4,6 +4,9 @@
   $kernel= "ezer3.1"; 
   $_GET['pdo']= 2;
 
+  // verze použitého jádra Ezeru
+  $ezer_version= isset($_GET['ezer']) ? $_GET['ezer'] : '3.1'; 
+
   // základní údaje o aplikaci
   $app=      'rr';
   $app_name= 'Myšlenky Richarda Rohra / CAC';
