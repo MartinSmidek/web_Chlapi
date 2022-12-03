@@ -3,9 +3,10 @@
 # ======================================================================================> STATISTIKA
 # ---------------------------------------------------------------------------------------- stat brno
 # pokud fce=n_skupin pak par.delena=1|1
+# pokud par.fce=n_skupin vrátí pole inf.roky:rok=>{vek:věk}
 function stat_brno($par) {  //trace();
   global $abs_root;
-  $inf= (object)array('html'=>'');
+  $inf= (object)array('html'=>'','roky'=>array());
   switch ($par->fce) {
     case 'survey': // --------------------------------------------------------- přehled identifikace
       $radku= select('COUNT(*)','chlapi.xucast',"jmeno_remove=''");
@@ -303,7 +304,7 @@ function stat_brno($par) {  //trace();
         $idos= implode(',',$roky6[$rok]);
         $roky[$rok][3]= select1("AVG(TIMESTAMPDIFF(YEAR,narozeni,'$rok-06-30'))",'ezer_db2.osoba',
             "id_osoba IN ($idos)");
-                                        display("$rok - věk={$roky[$rok][3]}");
+//                                        display("$rok - věk={$roky[$rok][3]}");
       }
       // zobrazení
       $inf->html.= "<h3>Přehled dělených skupin brněnských chlapů podle let</h3>";
@@ -327,10 +328,12 @@ function stat_brno($par) {  //trace();
           . "<th>&#10084; chlapů</th><th>většinou</th><th colspan=2>poprvé a naposled</th></tr>";
       $hist4= array_count_values($roky4);
       foreach ($roky as $rok=>list($setkani,$skupin,$ucasti,$stari)) {
+        if (!isset($inf->roky[$rok])) $inf->roky[$rok]= (object)array('vek'=>0);
         $p_skupin= number_format($skupin/$setkani,1);
         $p_ucast= number_format($ucasti/$skupin,1);
         $n_ucast= number_format($ucasti,0);
-        $v_ucast= number_format($stari,0);
+        $v_ucast= number_format($stari,0); // věk
+        $inf->roky[$rok]->vek= $stari;
         $i_ucast= count($roky2[$rok]); // různí
         $a_ucast= count($roky6[$rok]); // identifikovaní v Answeru
         $na_ucast= count($roky5[$rok]); // neidentifikovaní v Answeru
@@ -351,11 +354,132 @@ function stat_brno($par) {  //trace();
         
       }
       $inf->html.= "</table>$legenda";
-//      debug($roky);
+//      debug($inf->roky);
       break;
   }
 //                                                      debug($inf,"stat_brno");
   return $inf;
+}
+# ----------------------------------------------------------------------------------==> . chart brno
+# infografika údajů o LK podle db resp. pro YS podle dotazníku
+# graf=line|bar|bar%|pie, x=od-do, y=vek|pocet [,z=typ-ucasti]
+function chart_brno($par) { debug($par,'chart_akce2');
+  $y= (object)array('err'=>'','note'=>'');
+  $chart= (object)array('chart'=>(object)array());
+  $regression= 0;
+  switch ($par->graf) {
+    case 'spline/regression':
+      $chart->chart= 'spline';
+      $regression= 1;
+      break;
+    case 'column':
+      $chart->chart= 'column';
+      $chart->plotOptions= (object)array();
+      $chart->plotOptions->column= (object)array('stacking'=>$par->prc ? 'percent' : 'value');
+      break;
+    case 'pie':
+      $chart->chart= 'pie';
+      break;
+    default:
+      $chart->chart= $par->graf;
+      break;
+  }
+  if ($par->rok=='od-do') { $od= $par->od; $do= $par->do; }
+  $brno_s= stat_brno((object)array('fce'=>'n_skupin','delena'=>0)); unset($brno_s->html);
+  $brno_d= stat_brno((object)array('fce'=>'n_skupin','delena'=>1)); unset($brno_d->html);
+  $data= array('delena'=>array(),'spolecna'=>array());
+  $roky= array();
+  for ($rok= $od; $rok<=$do; $rok++) {
+    $data['delena'][]= (float)number_format($brno_d->roky[$rok]->vek,1);
+    $data['spolecna'][]= (float)number_format($brno_s->roky[$rok]->vek,1);
+    $roky[]= $rok;
+  }
+  debug($data,'data');
+  // názvy kategorií
+  $names= array(
+      'typ-ucasti'  => array('delena'=>"věk na dělených",'spolecna'=>"věk na společných")
+  );
+  $colors= array(
+      'typ-ucasti'  => array('delena'=>'','spolecna'=>'')
+  );
+  $notes= array(
+      'typ-ucasti'  => ""
+  );
+  $y->note= $notes[$par->z] ?: ' ';
+  // zobrazený interval
+  $chart->series= array();
+  // popis os
+  list($yTitle,$yMin,$yMax,$yTicks)= explode(',',$par->yaxis);
+  foreach ($data as $id=>$serie) {
+    $name= $names[$par->z][$id];
+    $color= $colors[$par->z][$id] ? $colors[$par->z][$id] : null;
+    $desc= (object)array('name'=>$name,'data'=>$serie);
+    if ($color) $desc->color= $color;
+    $chart->series[]= $desc;
+    if ($regression && count($roky)>1) {
+      $last_x= count($serie)-1;
+      $lr= linear_regression(range(0,$last_x),$serie); $m= $lr['m']; $b= $lr['b']; 
+      $desc= (object)array('name'=>"$name - trend", 
+          'dashStyle'=>'Dash',
+          'marker'=>(object)array('enabled'=>0),
+          'data'=>array(array(0,round($b,1)),array($last_x,round($b+$m*$last_x,1))), 'color'=>'grey');
+      if ($color) $desc->color= $color;
+      $chart->series[]= $desc; 
+    }
+  }
+//  goto end;
+  $chart->title= $par->title;
+  switch ($chart->chart) {
+    case 'column':
+      $chart->tooltip= (object)array(
+        'pointFormat'=>"<span>{series.name}</span>: <b>{point.y}</b> ({point.percentage:.0f}%)<br/>");
+    case 'line':
+    case 'spline':
+      $chart->xAxis= (object)array('categories'=>$roky,
+          'title'=>(object)array('text'=>'rok'));  
+      $chart->yAxis= (object)array(
+          'title'=>(object)array('text'=>$yTitle),
+          'min'=>$yMin,'max'=>$yMax,'tickAmount'=>$yTicks);
+      break;
+    case 'pie':
+      $chart->tooltip= (object)array(
+        'pointFormat'=>"<span>{series.name}</span>: <b>{point.y}</b> ({point.percentage:.0f}%)<br/>");
+      break;
+  }
+  $y->chart= $chart;
+  debug($y);
+end:
+  return $y;
+}
+# --------------------------------------------------------------------------------==> . sta2 ms stat
+/** https://stackoverflow.com/questions/4563539/how-do-i-improve-this-linear-regression-function
+ * linear regression function
+ * @param $x array x-coords
+ * @param $y array y-coords
+ * @returns array() m=>slope, b=>intercept
+ */
+function linear_regression($x, $y) {
+  // calculate number points
+  $n = count($x);
+  // ensure both arrays of points are the same size
+  if ($n != count($y)) {
+    trigger_error("linear_regression(): Number of elements in coordinate arrays do not match.", E_USER_ERROR);
+  }
+  // calculate sums
+  $x_sum = array_sum($x);
+  $y_sum = array_sum($y);
+  $xx_sum = 0;
+  $xy_sum = 0;
+  for($i = 0; $i < $n; $i++) {
+    $xy_sum+=($x[$i]*$y[$i]);
+    $xx_sum+=($x[$i]*$x[$i]);
+  }
+  // calculate slope
+  $m = (($n * $xy_sum) - ($x_sum * $y_sum)) / (($n * $xx_sum) - ($x_sum * $x_sum));
+  // calculate intercept
+  $b = ($y_sum - ($m * $x_sum)) / $n;
+  // return result
+  return array("m"=>$m, "b"=>$b);
 }
 # =============================================================================================> BAN
 # ----------------------------------------------------------------------------------- ban maily_auto

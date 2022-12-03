@@ -196,22 +196,43 @@ menu rr { type:'main', active:rr.richard
   # ===================================================================================> Statistika
   tabs stat {title:"[fa-line-chart] Statistika", _sys:'*'
     panel maily { type:'right', title:'Brněnská skupina'
-      func onfirstfocus() { m.d.p.click() }
       use info: form right
+      var last_par:object, last_menu:ezer
+      func onfirstfocus() { info.Init(); js.highcharts_load();  }
       menu m {type:'left', format:'f'
         menu d {title:'Brněnská setkání',type:'group'
           item p {title:'[fa-question] Dělené skupiny'    par:{fce:'n_skupin',delena:1,confirm:0} }
           item   {title:'[fa-question] Společná setkání'  par:{fce:'n_skupin',delena:0,confirm:0} }
           item   {title:'[fa-question] Přehled chlapů'    par:{fce:'survey',confirm:0} }
         }
-        menu {title:'Dělená setkání - výpočty', type:'group', active:no, skill:'x'
+        // fa-?-chart: area|bar|line|pie
+        // graf=line|bar|bar%|pie, x=od-do, y=vek|pocet [,z=typ-ucasti]
+        menu s2 {title:'Infografika',type:'group'
+          item  {title:"[fa-line-chart] Stáří registrovaných účastníků", par:{
+              graf:'spline/regression', yaxis:'věk známých,40,60,10', rok:'od-do',y:'vek',z:'typ-ucasti'}}
+          func onclick(i:ezer) { var y:object
+            clear();
+            info.header(i); 
+            if (i) { last_par= i.par; last_menu= i; }
+            info.header(last_menu); 
+//            info.spinner(1);
+            last_par.od= 2006; last_par.do= 2022; last_par.prc= 0; 
+            last_par.title= replace_fa(i.title,1);
+            last_par.org= 0;
+            y= php.chart_brno(last_par);
+            if (y.err) alert(y.err)
+            else { js.highcharts_show(y.chart); info.fill('',y.note); }
+//            info.spinner(0);
+          }
+        }
+        menu {title:'Dělená setkání - výpočty', type:'group', active:no, skill:'m'
           item {title:'[fa-exclamation] Přesun gnucast do xucast' par:{fce:'copy_gnucast',confirm:1} }
           item {title:'[fa-exclamation] Oprava překlepů podle *.csv'  par:{fce:'corr_jmeno',confirm:1} }
           item {title:'[fa-exclamation] ... a podle jmeno_corr.csv'   par:{fce:'jmeno_corr.csv',confirm:1} }
           item {title:'[fa-exclamation] Anonymizace jmen'         par:{fce:'id_jmeno',confirm:1} }
         }
         func onclick(i:ezer) { var graf:object
-          clear(); 
+          clear(); js.highcharts_clear(); info.note= '';
           if (i.par.confirm 
             && !confirm(`Opravdu mám přepočítat údaje podle ${i.par.fce}?`)) return;
           info.header(i); 
@@ -291,7 +312,11 @@ menu rr { type:'main', active:rr.richard
 form right [,,*,50] { style:'width:calc(100% - 24px)'
   label head [0,0,*,50]  { title:'' }
   label msg  [0,35,*,20] { title:'' }
+  label chart [10,50,800,400] { title:'' }
   label note [0,55,*,] { title:'' }
+  func Init() {
+    chart= `<div id="container" style="width:800px; height:400px;"></div>`;
+  }
   func header(i:ezer) { var i_owner:ezer
     clear(); i_owner= i.owner();
     msg= ''; note= '';

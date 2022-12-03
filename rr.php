@@ -11,7 +11,7 @@
   $app=      'rr';
   $app_name= 'Myšlenky Richarda Rohra / CAC';
   $app_root=  'rr';
-  $app_js=    array();
+  $app_js=    array("rr/rr_fce.js");
   $app_css=   array("rr/rr.css");
   $skin=     'default';
   $skin=     'ch';
