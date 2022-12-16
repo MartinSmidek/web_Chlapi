@@ -1056,6 +1056,7 @@ __EOJ;
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=11" />
     <meta name="viewport" content="width=device-width,user-scalable=yes,initial-scale=1" />
+    <meta name="google-site-verification" content="xFZh7Tcq758NyaEit8MFFVxzq605l3hKFQXJwD53nOo" />
     <title>chlapi.cz</title>
     <link rel="shortcut icon" href="/man/img/$icon" />
     <style>body{background-image:url(man/css/wall/$wall);}</style>
