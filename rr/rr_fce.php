@@ -4,7 +4,7 @@
 # ---------------------------------------------------------------------------------------- stat brno
 # pokud fce=n_skupin pak par.delena=1|1
 # pokud par.fce=n_skupin vrátí pole inf.roky:rok=>{vek:věk}
-function stat_brno($par) {  //trace();
+function stat_brno($par) {  trace();
   global $abs_root;
   $inf= (object)array('html'=>'','roky'=>array());
   switch ($par->fce) {
@@ -253,20 +253,22 @@ function stat_brno($par) {  //trace();
       $roky4= array();
       $roky5= array(); // neidentifikovaní v Answeru
       $roky6= array(); // identifikovaní v Answeru
+      $chlapi_ido= array(); // jmeno=>id_osoba
+      $chlapi_idj= array(); // jmeno=>id_osoba
       // rozbor tabulky XUCAST
       $od= '9999-99-99';
       $do= '0000-00-00';
       $n= 0;
       $qr= pdo_qry("
         SELECT IF(gnucast=0,a.datum_od,g.datum) AS _den,IF(gnucast=0,u.skupina,g.skupina) AS _skup,
-          u.jmeno_id,u.id_osoba
+          u.jmeno_id,u.id_osoba,u.id_xucast,TRIM(u.jmeno)
         FROM xucast AS u
         LEFT JOIN xakce AS a ON xelems=CONCAT('aclanek=',id_xclanek)
         LEFT JOIN setkani4.gnucast AS g USING (gnucast)
         WHERE u.jmeno_remove='' 
         ORDER BY _den
       ");
-      while ($qr && (list($den,$skupina,$jmeno_id,$ido)= pdo_fetch_row($qr))) {
+      while ($qr && (list($den,$skupina,$jmeno_id,$ido,$idu,$jmeno)= pdo_fetch_row($qr))) {
         if (!isset($setkani[$den])) continue;
         if (!isset($dny[$den][$skupina])) $dny[$den][$skupina]= 0;
         $dny[$den][$skupina]++;
@@ -274,24 +276,39 @@ function stat_brno($par) {  //trace();
         if (!isset($roky2[$rok])) $roky2[$rok]= array(); // různí
         if (!isset($roky5[$rok])) $roky5[$rok]= array(); // nejsou v Answeru
         if (!isset($roky6[$rok])) $roky6[$rok]= array(); // jsou v Answeru
-        if (!in_array($jmeno_id,$roky2[$rok])) $roky2[$rok][]= $jmeno_id;
+        if (!$jmeno_id && isset($chlapi_idj[$jmeno])) {
+          $jmeno_id= $chlapi_idj[$jmeno];
+          query("UPDATE chlapi.xucast SET jmeno_id=$jmeno_id WHERE id_xucast=$idu");
+        }
+        if ($jmeno_id) {
+          if (!in_array($jmeno_id,$roky2[$rok])) $roky2[$rok][]= $jmeno_id;
+          if (!isset($chlapi_idj[$jmeno])) $chlapi_idj[$jmeno]= $jmeno_id;
+        }
         if (!isset($roky3[$rok])) $roky3[$rok]= array(); // seznam
         $roky3[$rok][]= $jmeno_id;
         $roky4[]= $jmeno_id;
-        if (!$ido) $roky5[$rok][]= $jmeno_id;
+        if (!$ido && isset($chlapi_ido[$jmeno])) {
+          $ido= $chlapi_ido[$jmeno];
+          query("UPDATE chlapi.xucast SET id_osoba=$ido WHERE id_xucast=$idu");
+        }
         if ($ido) {
           if (!in_array($ido,$roky6[$rok])) $roky6[$rok][]= $ido;
+          if (!isset($chlapi_ido[$jmeno])) $chlapi_ido[$jmeno]= $ido;
+        }
+        else {
+          $roky5[$rok][]= $jmeno_id;
         }
         $od= min($od,$den);
         $do= max($do,$den);
         $n++;
       }
+//      debug($chlapi_ido,"chlapi v Answeru");
       $od= sql_date1($od);
       $do= sql_date1($do);
       $inf->html.= "<br>$n termínů dělených skupin od $od na webu <b>setkani.org</b> 
         a od léta 2020 do $do na webu <b>chlapi.cz</b>";
-//                                        debug($roky5[2006],"2006 - neznáme");
-//                                        debug($roky6[2022],"2022 - známe");
+                                        debug($roky5[2022],"2022 - neznáme ($par->delena)");
+                                        debug($roky6[2022],"2022 - známe ($par->delena)");
       foreach ($dny as $den=>$skupiny) {
         $rok= substr($den,0,4);
         $skupin= count($skupiny);
@@ -307,7 +324,8 @@ function stat_brno($par) {  //trace();
 //                                        display("$rok - věk={$roky[$rok][3]}");
       }
       // zobrazení
-      $inf->html.= "<h3>Přehled dělených skupin brněnských chlapů podle let</h3>";
+      $inf->html.= "<h3>Přehled ".($par->delena ? "dělených skupin" : "společných setkání")
+          ." brněnských chlapů podle let</h3><i>jsou zahrnuta pouze setkání s přihlašovací tabulkou</i><br><br>";
       $legenda= "<ol>
         <li>&sum; setkání: počet setkání s přihlašovací tabulkou
         <li>&Oslash; skupin: průměrně skupin - průměrný počet skupinek na jeden termín
@@ -387,17 +405,19 @@ function chart_brno($par) { debug($par,'chart_akce2');
   if ($par->rok=='od-do') { $od= $par->od; $do= $par->do; }
   $brno_s= stat_brno((object)array('fce'=>'n_skupin','delena'=>0)); unset($brno_s->html);
   $brno_d= stat_brno((object)array('fce'=>'n_skupin','delena'=>1)); unset($brno_d->html);
-  $data= array('delena'=>array(),'spolecna'=>array());
+  $data= array('delena'=>array(),'spolecna'=>array(),'zakladatele'=>array());
   $roky= array();
   for ($rok= $od; $rok<=$do; $rok++) {
     $data['delena'][]= (float)number_format($brno_d->roky[$rok]->vek,1);
     $data['spolecna'][]= (float)number_format($brno_s->roky[$rok]->vek,1);
+    $data['zakladatele'][]= $rok-1961;
     $roky[]= $rok;
   }
-  debug($data,'data');
+//  debug($data,'data');
   // názvy kategorií
   $names= array(
-      'typ-ucasti'  => array('delena'=>"věk na dělených",'spolecna'=>"věk na společných")
+      'typ-ucasti'  => array('delena'=>"věk na dělených",'spolecna'=>"věk na společných",
+          'zakladatele'=>"stárnutí jednotlivce")
   );
   $colors= array(
       'typ-ucasti'  => array('delena'=>'','spolecna'=>'')
@@ -416,7 +436,7 @@ function chart_brno($par) { debug($par,'chart_akce2');
     $desc= (object)array('name'=>$name,'data'=>$serie);
     if ($color) $desc->color= $color;
     $chart->series[]= $desc;
-    if ($regression && count($roky)>1) {
+    if ($regression && count($roky)>1 && $id!='zakladatele') {
       $last_x= count($serie)-1;
       $lr= linear_regression(range(0,$last_x),$serie); $m= $lr['m']; $b= $lr['b']; 
       $desc= (object)array('name'=>"$name - trend", 
