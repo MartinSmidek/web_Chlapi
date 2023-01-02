@@ -21,7 +21,7 @@ function stat_brno($par) {  trace();
         FROM xucast AS u
         LEFT JOIN xakce AS a ON xelems=CONCAT('aclanek=',id_xclanek)
         LEFT JOIN setkani4.gnucast AS g USING (gnucast)
-        WHERE u.jmeno_remove=''
+        WHERE u.jmeno_remove='' AND u.jmeno!='max'
         GROUP BY _den,_skupina
         -- HAVING YEAR(_den)>2020
         ORDER BY u.id_xclanek DESC       
@@ -462,8 +462,10 @@ function chart_brno($par) { debug($par,'chart_akce2');
   $data= array('delena'=>array(),'spolecna'=>array(),'zakladatele'=>array());
   $roky= array();
   for ($rok= $od; $rok<=$do; $rok++) {
-    $data['delena'][]= (float)number_format($brno_d->roky[$rok]->vek,1);
-    $data['spolecna'][]= (float)number_format($brno_s->roky[$rok]->vek,1);
+    if (isset($brno_d->roky[$rok]->vek))
+      $data['delena'][]= (float)number_format($brno_d->roky[$rok]->vek,1);
+    if (isset($brno_s->roky[$rok]->vek))
+      $data['spolecna'][]= (float)number_format($brno_s->roky[$rok]->vek,1);
     $data['zakladatele'][]= $rok-1961;
     $roky[]= $rok;
   }

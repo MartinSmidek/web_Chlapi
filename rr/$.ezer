@@ -217,7 +217,8 @@ menu rr { type:'main', active:rr.richard
             if (i) { last_par= i.par; last_menu= i; }
             info.header(last_menu); 
 //            info.spinner(1);
-            last_par.od= 2006; last_par.do= 2022; last_par.prc= 0; 
+            last_par.od= 2006; last_par.do= fdate('Y'); 
+            last_par.prc= 0; 
             last_par.title= replace_fa(i.title,1);
             last_par.org= 0;
             y= php.chart_brno(last_par);
