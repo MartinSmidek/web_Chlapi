@@ -290,7 +290,7 @@ function stat_brno($par) {  trace();
         FROM xucast AS u
         LEFT JOIN xakce AS a ON xelems=CONCAT('aclanek=',id_xclanek)
         LEFT JOIN setkani4.gnucast AS g USING (gnucast)
-        WHERE u.jmeno_remove=''
+        WHERE u.jmeno_remove='' AND u.jmeno!='max'
         GROUP BY _den
         HAVING _delene=$par->delena
         ORDER BY _den          
@@ -319,7 +319,7 @@ function stat_brno($par) {  trace();
         FROM xucast AS u
         LEFT JOIN xakce AS a ON xelems=CONCAT('aclanek=',id_xclanek)
         LEFT JOIN setkani4.gnucast AS g USING (gnucast)
-        WHERE u.jmeno_remove='' 
+        WHERE u.jmeno_remove='' AND u.jmeno!='max'
         ORDER BY _den
       ");
       while ($qr && (list($den,$skupina,$jmeno_id,$ido,$idu,$jmeno)= pdo_fetch_row($qr))) {
