@@ -204,6 +204,7 @@ menu rr { type:'main', active:rr.richard
           item p {title:'[fa-question] Dělené skupiny'    par:{fce:'n_skupin',delena:1,confirm:0} }
           item   {title:'[fa-question] Společná setkání'  par:{fce:'n_skupin',delena:0,confirm:0} }
           item   {title:'[fa-question] Přehled chlapů'    par:{fce:'survey',confirm:0} }
+          item   {title:'[fa-question] Přehled setkání'   par:{fce:'setkani',confirm:0} }
         }
         // fa-?-chart: area|bar|line|pie
         // graf=line|bar|bar%|pie, x=od-do, y=vek|pocet [,z=typ-ucasti]

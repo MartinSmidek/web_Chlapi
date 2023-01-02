@@ -8,6 +8,60 @@ function stat_brno($par) {  trace();
   global $abs_root;
   $inf= (object)array('html'=>'','roky'=>array());
   switch ($par->fce) {
+    case 'setkani': // ------------------------------------------------------------- přehled setkání
+      ezer_connect('setkani');
+      $setkani= array(); 
+      $od= 9999; $do= 0;
+      $qr= pdo_qry("
+        SELECT 
+          a.id_xakce,u.id_xclanek,
+          IF(gnucast=0,u.skupina,g.skupina) AS _skupina,
+          IF(gnucast=0,a.datum_od,g.datum) AS _den,
+          SUM(IF(id_osoba,1,0)) AS _znami,SUM(IF(id_osoba,0,1)) AS _neznami
+        FROM xucast AS u
+        LEFT JOIN xakce AS a ON xelems=CONCAT('aclanek=',id_xclanek)
+        LEFT JOIN setkani4.gnucast AS g USING (gnucast)
+        WHERE u.jmeno_remove=''
+        GROUP BY _den,_skupina
+        -- HAVING YEAR(_den)>2020
+        ORDER BY u.id_xclanek DESC       
+      ");
+      while ($qr && (list($ida,$idc,$skup,$den,$znami,$neznami)= pdo_fetch_row($qr))) {
+        if (!isset($setkani[$den])) $setkani[$den]= array();
+        $setkani[$den][]= (object)array('idc'=>$idc,'skupiny'=>$skup,'znami'=>$znami,'neznami'=>$neznami);
+        $od= min($od,0+substr($den,0,4));
+        $do= max($do,0+substr($den,0,4));
+      }
+//                                      debug($setkani,"$od-$do");
+      $inf->html.= "<h3>Přehled setkání v letech $od - $do</h3>
+          <i>datum je odkaz na článek s tabulkou účasti, 
+          myš podržená na místě setkání ukáže počet známých/neznámých chlapů</i>
+          <br>kurzívou jsou dělená setkání, tučně společná - ta mají tabulku účasti jen někdy";
+      for ($rok= $do; $rok>=$od; $rok--) {
+        $inf->html.= "<br><br><b>$rok</b>";
+        foreach ($setkani as $den=>$lsts) {
+          $dm= substr(sql_date1($den),0,-4);
+          if ($rok==0+substr($den,0,4)) {
+            if (($idc= $lsts[0]->idc)) {
+              $url= "https://chlapi.cz/skupiny!brno!$rok,$idc,1#$idc";
+              $inf->html.= "<br>&nbsp;&nbsp;<a href='$url' target='web'>$dm</a> ";
+            }
+            else
+              $inf->html.= "<br>&nbsp;&nbsp;$dm ";
+            $del= '';
+            $tg= '<i>'; $gt= '</i>';
+            if (count($lsts)==1) {
+              $tg= '<b>'; $gt= '</b>';
+            }
+            foreach($lsts as $lst) {
+              $atr= "{$lst->znami}/{$lst->neznami}";
+              $inf->html.= "$del$tg<span title='$atr'>{$lst->skupiny}</span>$gt";
+              $del= ", ";
+            }
+          }
+        }
+      }
+      break;
     case 'survey': // --------------------------------------------------------- přehled identifikace
       $radku= select('COUNT(*)','chlapi.xucast',"jmeno_remove=''");
       $celkem= select('COUNT(DISTINCT jmeno_id)','chlapi.xucast',"jmeno_id>0");
