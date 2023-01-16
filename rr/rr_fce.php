@@ -55,7 +55,8 @@ function stat_brno($par) {  trace();
             }
             foreach($lsts as $lst) {
               $atr= "{$lst->znami}/{$lst->neznami}";
-              $inf->html.= "$del$tg<span title='$atr'>{$lst->skupiny}</span>$gt";
+              $skupiny= str_replace('_',' ',$lst->skupiny);
+              $inf->html.= "$del$tg<span title='$atr'>$skupiny</span>$gt";
               $del= ", ";
             }
           }

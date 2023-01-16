@@ -1,7 +1,7 @@
 <?php
 
   // vnucení parametrů
-  $kernel= "ezer3.1"; 
+//  $kernel= "ezer3.1"; 
   $_GET['pdo']= 2;
 
   // verze použitého jádra Ezeru
@@ -13,7 +13,7 @@
   $app_root=  'rr';
   $app_js=    array("rr/rr_fce.js");
   $app_css=   array("rr/rr.css");
-  $skin=     'default';
+//  $skin=     'default';
   $skin=     'ch';
   
   // skryté definice, cesty, databáze, detekce serveru
@@ -74,6 +74,7 @@
   }
   else {
     // je to standardní aplikace se startem v kořenu
-    require_once("$kernel/ezer_main.php");
+    require_once("ezer$ezer_version/ezer_main.php");
+//    require_once("$kernel/ezer_main.php");
   }
 ?>

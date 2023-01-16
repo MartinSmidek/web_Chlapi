@@ -61,10 +61,10 @@ menu rr { type:'main', active:rr.richard
       # ---------------------------------------------------------------------------- opravy překladu
       form _g [,,*,100] {
         browse b [0,0,,] { rows:7, qry_rows:1, css_rows:'barva,1:yellow'
-          show id_rr { data:rr.id_rr, format:'qs' }
-          show [,,40,] { title:'den', data:rr.day, format:'qrs' }
-          show [,,70,] { title:'datum', data:rr.datum, format:'qs' }
-          show [,,270,] { title:'název', data:rr.subject, format:'qs' }
+          show id_rr { data:rr.rr.id_rr, format:'qs' }
+          show [,,40,] { title:'den', data:rr.rr.day, format:'qrs' }
+          show [,,70,] { title:'datum', data:rr.rr.datum, format:'qs' }
+          show [,,270,] { title:'název', data:rr.rr.subject, format:'qs' }
           show barva { expr:"IF(errata='',0,1)" }
           func onrowclick () { nacti() }
           func nacti() { g.load(id_rr) } }
@@ -73,23 +73,23 @@ menu rr { type:'main', active:rr.richard
             b.browse_seek(`datum='${now_sql()}'`);
             b.nacti()
         }}
-        field czt [0,181,404,] { data:rr.title_cz }
-        field ent [422,181,401,] { data:rr.title_en }
+        field czt [0,181,404,] { data:rr.rr.title_cz }
+        field ent [422,181,401,] { data:rr.rr.title_en }
         button [778,6,,] { title:'Uložit' func onclick() { g.save(); g.load() } }
-        edit cz [0,209,405,548] { type:'html', data:rr.text_cz, par:{toolbar:'Minimal'} }
-        edit en [421,209,405,548] { type:'html', data:rr.text_en, par:{toolbar:'Minimal'} }
+        edit cz [0,209,405,548] { type:'html', data:rr.rr.text_cz, par:{toolbar:'Minimal'} }
+        edit en [421,209,405,548] { type:'html', data:rr.rr.text_en, par:{toolbar:'Minimal'} }
         label [423,19,,] { title:'Důvod pozměnění překladu' }
-        edit errata [421,39,402,131] { data:rr.errata }
+        edit errata [421,39,402,131] { data:rr.rr.errata }
       }
       # --------------------------------------------------------------------------- nastavení období
       form _f [,,*,500] {
         browse b [0,0,,] { rows:24, qry_rows:1
-          show id_rr { data:rr.id_rr, format:'qs' }
-          show den [,,30,] { title:'pořadí', data:rr.day_n, format:'rqs' }
-          show [,,40,] { title:'den', data:rr.day, format:'rqs' }
-          show [,,20,] { title:'ps', data:rr.state, format:'qs' }
-          show datum [,,70,] { title:'datum', data:rr.datum, format:'rqs' }
-          show [,,140,] { title:'název', data:rr.subject, format:'tqs' }
+          show id_rr { data:rr.rr.id_rr, format:'qs' }
+          show den [,,30,] { title:'pořadí', data:rr.rr.day_n, format:'rqs' }
+          show [,,40,] { title:'den', data:rr.rr.day, format:'rqs' }
+          show [,,20,] { title:'ps', data:rr.rr.state, format:'qs' }
+          show datum [,,70,] { title:'datum', data:rr.rr.datum, format:'rqs' }
+          show [,,140,] { title:'název', data:rr.rr.subject, format:'tqs' }
           func onsubmit() {
             form.den= den; form.datum= datum; } 
         }
@@ -196,9 +196,9 @@ menu rr { type:'main', active:rr.richard
   # ===================================================================================> Statistika
   tabs stat {title:"[fa-line-chart] Statistika", _sys:'*'
     panel maily { type:'right', title:'Brněnská skupina'
-      use info: form right
+      use info: form right [12,4,,]
       var last_par:object, last_menu:ezer
-      func onfirstfocus() { info.Init(); js.highcharts_load();  }
+      func onfirstfocus() { info.Init(); }
       menu m {type:'left', format:'f'
         menu d {title:'Brněnská setkání',type:'group'
           item p {title:'[fa-question] Dělené skupiny'    par:{fce:'n_skupin',delena:1,confirm:0} }
@@ -214,6 +214,7 @@ menu rr { type:'main', active:rr.richard
           func onclick(i:ezer) { var y:object
             clear();
             info.header(i); 
+            js.highcharts_load();
             if (i) { last_par= i.par; last_menu= i; }
             info.header(last_menu); 
 //            info.spinner(1);
