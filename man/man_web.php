@@ -5,6 +5,23 @@
 // CMS/Ezer                                             (c) 2018 Martin Šmídek <martin@smidek.eu> //
 // ---------------------------------------------------------------------------------------------- //
 
+/** ==========================================================================================> LANG */
+# ----------------------------------------------------------------------------------------- set lang
+# zapíše aktuální jazyk webu en/cs do SESSION  a COOKIE
+function set_lang ($lang) {
+  setcookie('lang',$lang);
+  $_SESSION['web']['lang']= $lang;
+}
+# ----------------------------------------------------------------------------------------- get lang
+# zjistí aktuální jazyk webu en/cs v pořadí GET > SESSION > COOKIE > 'cs'
+function get_lang () {
+  $lang= '';
+  if (!$lang && isset($_GET['lang'])) $lang= $_GET['lang'];
+  if (!$lang && isset($_SESSION['web']['lang'])) $lang= $_SESSION['web']['lang'];
+  if (!$lang && isset($_COOKIE['lang'])) $lang= $_COOKIE['lang'];
+  if (!$lang) $lang= 'cs';
+  return $lang;
+}
 /** =========================================================================================> BIBLE */
 # ------------------------------------------------------------------------------------ bib transform
 # transformuje text oživením biblických odkazů ozávorkovaných jako <span class='bible>...</span>

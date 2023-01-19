@@ -1052,7 +1052,7 @@ function menu_copy_foto($fid,$test=1) {
 # ----------------------------------------------------------------------------------- menu copy_elem
 # zkopíruje ze setkani.org článek nebo knihu
 function menu_copy_elem($co,$pid,$mid,$test=true) {
-  global $s, $abs_root;
+  global $wid, $s, $abs_root;
   $fileadmin= get_fileadmin();
   $msg= '?';
   $elems= '';
@@ -1179,7 +1179,7 @@ function menu_copy_elem($co,$pid,$mid,$test=true) {
         fce_error("chybný tag kapitoly $xpid");
     }
   }
-  $elem= select("elem","menu","wid=2 AND mid=$mid");
+  $elem= select("elem","menu","wid=$wid AND mid=$mid");
   if ( $aid ) {
     // zapiš jen do hlavičky akce
     if ( $test ) {
@@ -1200,7 +1200,7 @@ function menu_copy_elem($co,$pid,$mid,$test=true) {
     else {
       // přidej do menu.elem, kniha.elem
       query("UPDATE xkniha SET xelems='$elems' WHERE id_xkniha=$kid");
-      query("UPDATE menu SET elem='$elem' WHERE wid=2 AND mid=$mid");
+      query("UPDATE menu SET elem='$elem' WHERE wid=$wid AND mid=$mid");
     }
   }
   else {
@@ -1211,7 +1211,7 @@ function menu_copy_elem($co,$pid,$mid,$test=true) {
     }
     else {
       // přidej do menu.elem
-      query("UPDATE menu SET elem='$elem' WHERE wid=2 AND mid=$mid");
+      query("UPDATE menu SET elem='$elem' WHERE wid=$wid AND mid=$mid");
     }
   }
                                                       display($msg);
@@ -1238,7 +1238,7 @@ function menu_clanek2kniha($mid,$typ,$cid) {
 }
 # ------------------------------------------------------------------------------------ menu add_elem
 # přidá do menu další element, resp. pro xakce vytvoří novou akci roku daného $mid
-function menu_add_elem($mid,$table,$first=0,$id_user=0) {
+function menu_add_elem($wid,$mid,$table,$first=0,$id_user=0) {
   switch ($table) {
   case 'pozvanka':     // ---------------------------------- pozvánka na novou akci skupiny mid
     query("INSERT INTO xclanek (editors,cms_skill) VALUES ('$id_user',4)");
@@ -1256,7 +1256,7 @@ function menu_add_elem($mid,$table,$first=0,$id_user=0) {
     query("INSERT INTO xakce (xelems,datum_od,datum_do) VALUES ('aclanek=$idc','$ymd','$ymd')");
     break;
   case 'xkniha':       // ---------------------------------- nová kniha s prvním článkem
-    $elem= select("elem","menu","wid=2 AND mid=$mid");
+    $elem= select("elem","menu","wid=$wid AND mid=$mid");
     query("INSERT INTO xclanek (editors,cms_skill) VALUES ('$id_user',4)");
     $cid= pdo_insert_id();
     log_obsah('i','c',$cid);
@@ -1266,7 +1266,7 @@ function menu_add_elem($mid,$table,$first=0,$id_user=0) {
       $elem= "xkniha=$kid" . ($elem ? ";$elem" : '');
     else
       $elem= ($elem ? "$elem;" : '') . "xkniha=$kid";
-    query("UPDATE menu SET elem='$elem' WHERE wid=2 AND mid=$mid");
+    query("UPDATE menu SET elem='$elem' WHERE wid=$wid AND mid=$mid");
     break;
   case 'xkniha.elem':  // ---------------------------------- nový článek knihy 
     $elem= select("xelems","xkniha","id_xkniha=$mid");
@@ -1282,7 +1282,7 @@ function menu_add_elem($mid,$table,$first=0,$id_user=0) {
   case 'xclanek':     // ----------------------------------- nový článek
     $vzor= "<h1>Název (abstrakt tučně)</h1><h2>Nadpis (abstrakt kurzíva)</h2><hr />"
       . "<p>Po dokončení nezapomeň zrušit omezení</p>";
-    $elem= select("elem","menu","wid=2 AND mid=$mid");
+    $elem= select("elem","menu","wid=$wid AND mid=$mid");
     query("INSERT INTO xclanek (editors,cms_skill,web_text) VALUES ('$id_user',4,\"$vzor\")");
     $id= pdo_insert_id();
     log_obsah('i','c',$id);
@@ -1290,7 +1290,7 @@ function menu_add_elem($mid,$table,$first=0,$id_user=0) {
       $elem= "aclanek=$id" . ($elem ? ";$elem" : '');
     else
       $elem= ($elem ? "$elem;" : '') . "aclanek=$id";
-    query("UPDATE menu SET elem='$elem' WHERE wid=2 AND mid=$mid");
+    query("UPDATE menu SET elem='$elem' WHERE wid=$wid AND mid=$mid");
     break;
   }
   return 1;
@@ -1298,14 +1298,15 @@ function menu_add_elem($mid,$table,$first=0,$id_user=0) {
 # ----------------------------------------------------------------------------------- menu chng_elem
 # přidá do menu další element
 function menu_chng_elem($mid,$typ1,$id,$typ2) {
-  $desc= select("elem","menu","wid=2 AND mid=$mid");
+  global $wid;
+  $desc= select("elem","menu","wid=$wid AND mid=$mid");
   $elems= explode(';',$desc);
   for ($i= 0; $i<count($elems); $i++) {
     list($typx,$idx)= explode('=',$elems[$i]);
     if ( $typx==$typ1 && $idx==$id ) {
       $elems[$i]= "$typ2=$id";
       $desc= implode(';',$elems);
-      query("UPDATE menu SET elem='$desc' WHERE wid=2 AND mid=$mid");
+      query("UPDATE menu SET elem='$desc' WHERE wid=$wid AND mid=$mid");
       break;
     }
   }
@@ -1314,6 +1315,7 @@ function menu_chng_elem($mid,$typ1,$id,$typ2) {
 # ---------------------------------------------------------------------------------- menu shift_elem
 # posune element o jedno dolů (pro down=0 nahoru)
 function menu_shift_elem($typ0,$mid,$id,$down) {
+  global $wid;
   // zjistíme seznam elementů
   if ( $typ0=='xkniha.elem' ) {
     $elems= select("xelems","xkniha","id_xkniha=$mid");
@@ -1346,18 +1348,18 @@ function menu_shift_elem($typ0,$mid,$id,$down) {
     query("UPDATE xkniha SET xelems='$elems' WHERE id_xkniha=$mid");
   }
   else {
-    query("UPDATE menu SET elem='$elems' WHERE wid=2 AND mid=$mid");
+    query("UPDATE menu SET elem='$elems' WHERE wid=$wid AND mid=$mid");
   }
   return 1;
 }
 # --------------------------------------------------------------------------------------- menu shift
 # posune menu o jedno dolů (pro down=0 nahoru)
-function menu_shift($mid,$down) {
+function menu_shift($wid,$mid,$down) {
   // zjistíme všechna menu na stejné úrovni
   list($mid_top,$typ)= select("mid_top,abs(typ)","menu","mid=$mid");
   $cond= $typ==2 && $mid_top ? "mid_top=$mid_top" : (
     $typ==1 || $typ==0 ? "typ=$typ" : 0 );
-  $ms= select("GROUP_CONCAT(mid ORDER BY rank)","menu","wid=2 AND $cond");
+  $ms= select("GROUP_CONCAT(mid ORDER BY rank)","menu","wid=$wid AND $cond");
 //                                              display("x:$ms");
   $ms= explode(',',$ms);
   $i= array_search($mid,$ms);
@@ -1377,7 +1379,7 @@ function menu_shift($mid,$down) {
 //                                              display("y:".implode(',',$ms));
   foreach ($ms as $i=>$mi) {
     $i1= $i+1;
-    query("UPDATE menu SET rank=$i1 WHERE wid=2 AND mid=$mi");
+    query("UPDATE menu SET rank=$i1 WHERE wid=$wid AND mid=$mi");
   }
   return 1;
 }
@@ -1420,7 +1422,7 @@ function menu_undo($wid) {
   return 1;
 }
 # ---------------------------------------------------------------------------------------- menu tree
-function menu_tree($wid) {
+function menu_tree($wid) { trace();
   //{prop:°{id:'ONE'},down:°[°{prop:°{id:'TWO'}},°{prop:°{id:'THREE'}}]}
   $data= (object)array('mid'=>0);
   $menu= 

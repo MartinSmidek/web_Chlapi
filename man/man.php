@@ -99,7 +99,7 @@
   require_once("../$kernel/ezer_main.php");
   
 function specific(&$template_meta,&$template) {
-  global $app_root;
+  global $app_root, $lang;
   $debugger= '';
   if ( isset($_GET['dbg']) && $_GET['dbg'] ) {
     $dbg_script= isset($_SESSION[$app_root]['dbg_script'])

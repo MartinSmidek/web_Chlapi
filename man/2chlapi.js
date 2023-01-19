@@ -60,6 +60,12 @@ function bar_menu(e,x) {
   }
   else {
     switch (x) {
+    case 'lang-cs':
+      ask({cmd:'lang',lang:'cs'},_bar_menu,'lang-cs');
+      break;
+    case 'lang-en':
+      ask({cmd:'lang',lang:'en'},_bar_menu,'lang-en');
+      break;
     case 'wallpaper':
       let back= jQuery('body').css('background-image');
       ask({cmd:'wallpaper',wall:back},_bar_menu,'wallpaper');
@@ -75,6 +81,14 @@ function bar_menu(e,x) {
 }
 function _bar_menu(y,cmd) {
   switch (cmd) {
+    case 'lang-cs': // voláno po předchozím volání php funkce set_lang('en'|'cs')
+      if ( Ezer.run!==undefined ) Ezer.run.$.part.p._call(0,'set_lang',2);
+      refresh();
+      break;
+    case 'lang-en':
+      if ( Ezer.run!==undefined ) Ezer.run.$.part.p._call(0,'set_lang',1);
+      refresh();
+      break;
     case 'wallpaper':
       // jQuery('body').css('background-image',y.wall); ztratí !important
       jQuery('body').attr('style','background-image:'+y.wall+'!important');

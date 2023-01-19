@@ -57,16 +57,18 @@ function page($a,$b) {
 //   2) pokud _user.skill neobsahuje 't' vynechají se záznamy z menu.redakce=2 (tester)
 // přidá položku has_subs pokud má hlavní menu submenu
 function read_menu() { 
-  global $menu, $REDAKCE, $KLIENT;
+  global $wid, $menu, $amenu, $REDAKCE, $KLIENT;
   // připoj databázi
   db_connect();
-  // načtení menu
+  // načtení menu ve vybraném lazyce
+  $lang= get_lang();
+  $wid= $lang=='en' ? 1 : 2;
   $menu= array();
   $amenu= (object)array('top'=>array(),'main'=>array(),'sub'=>array());
   $mn= pdo_qry("
     SELECT nazev,elem,mid,mid_top,mid_sub,ref,typ,level,redakce,klient,
       TO_DAYS(NOW())-IFNULL(TO_DAYS(ch_date),0) AS _zmena
-    FROM menu WHERE wid=2 ORDER BY typ,rank");
+    FROM menu WHERE wid=$wid ORDER BY typ,rank");
   while ($mn && ($m= pdo_fetch_object($mn))) {
     // má se upozornit na změnu?
     $m->_zmena= $m->_zmena < ZMENA ? 1 : 0;
@@ -83,6 +85,7 @@ function read_menu() {
     if ( $m->typ==2 && isset($menu[$m->mid_top]) ) 
       $menu[$m->mid_top]->has_subs= true;
   }
+  debug($menu,"lang=$lang");
 }
 # -------------------------------------------------------------------------------------==> eval menu
 # path = [ mid, ...]
@@ -287,7 +290,7 @@ function title_menu($title,$items,$id=0,$idk=0,$idm=0) {
 // ids  :: id1 [ / id2 ] , ...    -- id2 je klíč v lokální db pro ladění
 // $counts je pole sčítající skutečně renderované (viditelné) elementy
 function eval_elem($desc,$book=null) { //trace();
-  global $REDAKCE, $KLIENT, $ezer_server_ostry, $index, $load_ezer, $curr_menu, $top, 
+  global $wid, $REDAKCE, $KLIENT, $ezer_server_ostry, $index, $load_ezer, $curr_menu, $top, 
       $prefix, $mobile, $cmenu, $backref, $counts, $rel_root; 
                                                     debug(array($desc,$book),"eval_elem");
   $elems= explode(';',$desc);
@@ -951,7 +954,7 @@ __EOT;
 }
 # -------------------------------------------------------------------------------------==> show_page
 function show_page($html) {
-  global $REDAKCE, $KLIENT, $index, $GET_rok, $mode, $load_ezer, $ezer_server_ostry, $prefix;
+  global $wid, $REDAKCE, $KLIENT, $index, $GET_rok, $mode, $load_ezer, $ezer_server_ostry, $prefix;
   global $bar_menu, $links, $currpage, $tm_active;
   
   // definice do <HEAD>
@@ -1067,6 +1070,11 @@ __EOD;
 
   // menu pro změnu vzhledu, přihlášení ...
   $choice_js= "bar_menu(arguments[0],'menu_on'); return false;";
+  $language= <<<__EOD
+      <span onclick="bar_menu(arguments[0],'lang-cs');" class='separator'><i class='fa fa-image'></i> čeština</span>
+      <span onclick="bar_menu(arguments[0],'lang-en');" ><i class='fa fa-image'></i> ENGLISH</span>
+__EOD;
+  if (!$REDAKCE) $language= '';
   $loginout= $KLIENT->id
     ? "<span onclick=\"be_logout('$currpage');\" class='separator'>
          <i class='fa fa-power-off'></i> odhlásit se</span>"
@@ -1083,6 +1091,7 @@ __EOD;
     </span>
     <div id='bar_items'>
       $loginout
+      $language
       <span onclick="bar_menu(arguments[0],'wallpaper');" class='separator'><i class='fa fa-image'></i> použij jiné pozadí</span>
     </div>
 __EOD;
@@ -1155,14 +1164,20 @@ __EOD;
   if (preg_match('~<span class="bible">~',$html)) {
     $html= bib_transform($html);
   }
+  // motto
+  $motto= $wid==1 
+      ? "The young man who cannot cry is a savage, 
+          <br>the old man who cannot laugh is a fool.
+          <br><i>Richard Rohr</i>"
+      : "Mladý muž, který neumí plakat, je barbar.
+          <br>Starý muž, který se neumí smát, je pitomec.
+          <br><i>Richard Rohr</i>";
   // konečná redakce stránky
   $body=  <<<__EOD
     $fb_root
     <div id='page'>
       <a $go_home style="cursor:pointer"><img id='logo' src='/man/img/kriz.png'$logo_title></a>
-      <div id='motto'>Mladý muž, který neumí plakat, je barbar.
-          <br>Starý muž, který se neumí smát, je pitomec.
-          <br><i>Richard Rohr</i>
+      <div id='motto'>$motto
       </div>
       <div id='menu'>
         $bar_menu
@@ -1548,7 +1563,7 @@ function redaktor($id) {
   return $s;
 }
 function ask_server($x) {
-  global $s;
+  global $s, $lang;
 //   $x->cmd= 'test'
   switch ( $x->cmd ) {
   case 'kalendar': // --------------------------------------------------------------------- kalendar
@@ -1729,6 +1744,11 @@ function ask_server($x) {
     }
     $url[1]= "$wall\")";
     $s->wall= implode('/wall/',$url);
+    break;
+  // změna jazyka
+  case 'lang':
+    $lang= $x->lang;
+    set_lang($lang);
     break;
   }
   return 1;

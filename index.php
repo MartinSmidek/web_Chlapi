@@ -7,7 +7,7 @@ date_default_timezone_set('Europe/Prague');
 $microtime_start= microtime();
 
 // skryté definice
-global $ezer_server, $paths_log, $abs_root, $rel_root, $log_path, $db, $dbs;
+global $ezer_server, $paths_log, $abs_root, $rel_root, $log_path, $db, $dbs, $lang;
 $deep_root= "../files/chlapi";
 require_once("$deep_root/man.dbs.php");
 
@@ -19,6 +19,11 @@ if ( isset($_GET['err']) && $_GET['err'] ) error_reporting(E_ERROR); else error_
 ini_set('display_errors', 'On');
 require_once("man/man_web.php");
 require_once("man/2template_ch.php");
+// jazyk
+if (isset($_GET['lang'])) {
+  $lang= $_GET['lang'];
+  set_lang($lang);
+}
 // pro testovací GETs
 $_SESSION['web']['GET']= isset($_SESSION['web']['GET']) 
     ? array_merge($_SESSION['web']['GET'],$_GET) : $_GET;
