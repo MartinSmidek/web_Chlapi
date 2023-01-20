@@ -61,10 +61,10 @@ function bar_menu(e,x) {
   else {
     switch (x) {
     case 'lang-cs':
-      ask({cmd:'lang',lang:'cs'},_bar_menu,'lang-cs');
+      ask({cmd:'lang',lang:'cs'},_bar_menu,'lang');
       break;
     case 'lang-en':
-      ask({cmd:'lang',lang:'en'},_bar_menu,'lang-en');
+      ask({cmd:'lang',lang:'en'},_bar_menu,'lang');
       break;
     case 'wallpaper':
       let back= jQuery('body').css('background-image');
@@ -81,6 +81,15 @@ function bar_menu(e,x) {
 }
 function _bar_menu(y,cmd) {
   switch (cmd) {
+    case 'lang': // voláno po předchozím volání php funkce set_lang('en'|'cs')
+      if ( Ezer.run!==undefined ) {
+        Ezer.run.$.part.p._call(0,'set_lang',y.wid);
+        refresh();
+      }
+      else {
+        window.location.href= y.url;
+      }
+      break;
     case 'lang-cs': // voláno po předchozím volání php funkce set_lang('en'|'cs')
       if ( Ezer.run!==undefined ) Ezer.run.$.part.p._call(0,'set_lang',2);
       refresh();

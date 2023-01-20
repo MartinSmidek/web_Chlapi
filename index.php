@@ -65,8 +65,8 @@ else {
   global $GET_rok, $counts;
   $GET_rok= isset($_GET['rok']) ? $_GET['rok'] : '';
   $counts= array(); // typ -> počet
-  read_menu();
   $path= isset($_GET['page']) ? explode('!',$_GET['page']) : array('home');
+  read_menu($path);
   $elem= eval_menu($path);
   $html= eval_elem($elem);
   show_page($html);

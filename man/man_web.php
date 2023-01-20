@@ -11,6 +11,7 @@
 function set_lang ($lang) {
   setcookie('lang',$lang);
   $_SESSION['web']['lang']= $lang;
+  return $lang=='en' ? 1 : 2;
 }
 # ----------------------------------------------------------------------------------------- get lang
 # zjistí aktuální jazyk webu en/cs v pořadí GET > SESSION > COOKIE > 'cs'

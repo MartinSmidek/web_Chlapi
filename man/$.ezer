@@ -98,84 +98,49 @@ panel p [0,0,*,*] { type:'main', _sys:'$'
   }
 # ----------------------------------------------------------------------------==> emulace událostí
   var page: object // {html,edit,id}
-//  proc cms_go(ref) { echo("přepnutí webu na ",ref); do_go.get; go(ref) }
-  func cms_go(ref) { echo("přepnutí webu na ",ref); if ( do_go ) go(ref) }
-//  proc cms_menu(ref) { clear; echo("přepnutí dle menu ",ref); do_go.get; go_menu(ref) }
-  func cms_menu(ref) { clear(); echo("přepnutí dle menu ",ref); if ( do_go ) go_menu(ref) }
-//  proc refresh() { cms_go(last.get); }
+  func cms_go(ref) { 
+    echo(`přepnutí webu na ${ref} / ${web} `); 
+    if ( do_go ) go(ref) 
+  }
+  func cms_menu(ref) { 
+    clear(); echo("přepnutí dle menu ",ref); 
+    if ( do_go ) go_menu(ref) 
+  }
   func refresh() { cms_go(last) }
   func set_lang(_web) { // je volané z (2chlapi.js funkce _bar_menu) při přepnutí jazyka
     web= _web; 
     echo(`web=${web}`);  
     if (CMS.visible) CMS.Init();
   }
-//  proc ask_page(a,b) {
-//    page.set(ask('page',a,b));
-//    w.page.set(page.get('html'));
-////    f.editace.Init(page.get('edit'));
-//  }
-  func ask_page(a,b) {
-    page= php.page(a,b);
+  func ask_page(ref) {
+    page= php.page(!ref ? (web==1 ? 'en-home' : 'home') : ref);
     w.page= page.html;
   }
-//  proc go(ref) { 
-//    echo('go ',ref);
-//    history.set(last.get);
-//    last.set(ref);
-//    f.verze.set(sys('ezer','version')); 
-//    ask_page(function("return Ezer.app_root;"),ref);
-//    function("return jump_fokus();");
-//  }
   func go(ref) { 
     echo('go ',ref);
     history= last;
     last= ref;
     f.verze= sys('ezer','version'); 
-    ask_page(function("return Ezer.app_root;"),ref);
+    ask_page(ref);
     function("return jump_fokus();");
   }
-//  proc cms_go_case(pid) { var y:object, ref:text
-//    [ has_skill('a'); f.clr.get; clear ];
-//    y.set(ask('pid2menu',pid));
-//    f.verze.set(sys('ezer','version')); 
-//    ask_page(function('mref',"history_push2(mref);return Ezer.app_root;",y.url),y.page);
-//    function("return jump_fokus();");
-//  }
   func cms_go_case(pid) { var y:object, ref:text
     if ( has_skill('a') /*&& f.clr*/ ) clear();
     y= php.pid2menu(pid);
     f.verze= sys('ezer','version'); 
-    ask_page(function('mref',"history_push2(mref);return Ezer.app_root;",y.url),y.page);
+    ask_page(y.page);
     js.jump_fokus();
   }
-//  proc go_menu(ref) { echo('go_menu ',ref);
-//    history.set(last.get);
-//    last.set(ref);
-//    f.verze.set(sys('ezer','version')); 
-//    ask_page(function("return Ezer.app_root;"),ref);
-//  }
   func go_menu(ref) { echo('go_menu ',ref);
     history= last;
     last= ref;
     f.verze= sys('ezer','version'); 
-    ask_page(function("return Ezer.app_root;"),ref);
+    ask_page(ref);
   }
   # --------------------------------------------------------------------------==> stnd.funkce
   # on=1 => nastaví class=obligatory pro elementy s par.obligatory=1
   # on=0 => zruší ...
   # pokud je f proměnná (use), musí se použít f.get
-//  proc form_obligatory(f,on) {
-//    on;      foreach(f,form_obligatory_do)
-//  | not(on); foreach(f,form_obligatory_od)
-//  }
-//  proc form_obligatory_do(e) {
-//    eq(e.par); eq(e.par.obligatory,1);
-//    e.set_css('obligatory');
-//  }
-//  proc form_obligatory_od(e) {
-//    eq(e.par); eq(e.par.obligatory,1);
-//    e.set_css('','obligatory');
-//  }
   func form_obligatory(f,on) { var e:ezer
     for (e of f) {
       if ( e.par )
@@ -192,17 +157,6 @@ panel p [0,0,*,*] { type:'main', _sys:'$'
     }
     return(n);
   }
-//  var form_obligatory_n:number
-//  proc form_obligatory_test(f) {
-//    form_obligatory_n.set(0);
-//    foreach(f,form_obligatory_test_do);
-//    return(form_obligatory_n.get);
-//  }
-//  proc form_obligatory_test_do(e) {
-//    eq(e.par); eq(e.par.obligatory,1);
-//    [ e.get | form_obligatory_n.set(sum(form_obligatory_n.get,1)) ]
-//  }
-
   func item_title (i:ezer):text { var ow: ezer
     ow= i.owner();
     return(`${ow.title} - ${replace_fa(i.title)}`);
@@ -236,9 +190,9 @@ panel p [0,0,*,*] { type:'main', _sys:'$'
     button [-100,5,,] { skill:'r|a', title:"[fa-gears] menu" 
       func onclick() { hide_all(); CMS.Init(); CMS.modal(10,40);  } }
     label [-68,6,,] { skill:'r|r', title:"<img src='man/img/cz.png'>"
-      func onclick() { php.set_lang('cs'); CMS.Init(); p.refresh() } }
+      func onclick() { php.set_lang('cs'); CMS.Init(); p.go('') } }
     label [-40,6,,] { skill:'r|r', title:"<img src='man/img/gb.png'>"
-      func onclick() { php.set_lang('en'); CMS.Init(); p.refresh() } }
+      func onclick() { php.set_lang('en'); CMS.Init(); p.go('') } }
     button [-10,5,,] { skill:'r|r', title:"[fa-bars]"           
       func onclick() { hide_all(); OPTIONS.modal(10,115) } }
   }
@@ -269,8 +223,12 @@ panel CMS [0,0,610,400] { type:'popup',  title:'CMS - definice menu',
     title:"<div id='tree' style='width:206px;height:400px;overflow:auto'></div>"
     var curr_id:text, curr_data:object // index a data nastaveného node
     menu { type:'context'                                                                skill:'a|m'
+      // ----------------------------- render menu item
+      item { title:'zobraz obsah menu' func onclick() { 
+        p.go(u.ref)
+      }}
       // ----------------------------- nový článek
-      item { title:'nový článek tohoto menu' func onclick() { 
+      item { title:'-nový článek tohoto menu' func onclick() { 
         php.menu_add_elem(p.web,u.mid,'xclanek'); a.menu(); p.refresh()
       }}
       item { title:'nová kniha tohoto menu' func onclick() { 
@@ -304,29 +262,9 @@ panel CMS [0,0,610,400] { type:'popup',  title:'CMS - definice menu',
           }
           else warning("napřed je třeba menu uložit do tabulky")
         }
-//        proc onclick() { var root:object, root_id:text, node:object
-//          root.set(curr_data.get); root_id.set(curr_id.get);
-//          echo('root ',curr_id.get,debug(curr_data.get));
-//          // vkládat lze buďto nové top|main menu nebo submenu pod uložený root (s definovaným mid)
-//          or(eq(curr_id.get,'menu.top menu','menu.main menu'),root.mid);
-//          node.set(a.tree_insert(curr_id.get));
-//          curr_id.set(node.id); 
-//          a.tree_select(curr_id.get);
-//          curr_data.set(object('wid',web.get,
-//              'mid',0,
-//              'mid_top',root.mid,
-//              'typ',cconc(eq(root_id,'menu.top menu'),0,eq(root_id,'menu.main menu'),1,2),
-//              'level',root.level
-//          ));
-//          a.tree_update(curr_id.get,0,curr_data.get);
-//          copy_by_name(curr_data.get,u);
-//          echo('new ',curr_id.get,debug(curr_data.get));
-//        | warning("napřed je třeba menu uložit do tabulky")
-//        }
       }
       item { title:'odstraň menu' func onclick() { 
         curr_id= a.tree_remove(curr_id) 
-//        curr_id.set(a.tree_remove(curr_id.get)) 
       }}
     }
     func select_curr() {
@@ -347,14 +285,6 @@ panel CMS [0,0,610,400] { type:'popup',  title:'CMS - definice menu',
         u.enable(0)
       }
     }
-//    proc tree_onclick(fid,id,dat,com,x,txt,txts) { var i:text
-//      u.init; 
-//      { dat; 
-//        curr_id.set(fid); curr_data.set(dat);
-//        copy_by_name(dat,u);
-//      | u.enable(0)
-//      }
-//    }
   }
   form _u [,,400,400] { css:'popup-right'
     label save_info [5,130,578,]  
@@ -365,11 +295,18 @@ panel CMS [0,0,610,400] { type:'popup',  title:'CMS - definice menu',
       func onclick() { a.tree_expand(99); 
     }}
     button [60,10,,] { title:"[fa-database] Ulož do tabulky"                             skill:'a|m'
-      func onclick() {
-        save_info= php.menu_save(p.web,a.tree_dump());
-        u.plain();
-        a.menu();
-        p.refresh();
+      func onclick() { var zmena:object, err:text
+        // kontrola změn
+        zmena= {}; copy_by_name(form,zmena,'',1); // jen změněné
+        clear();
+        err= php.menu_change_ok(u.mid,zmena);
+        if (err) alert(err)
+        else {
+          save_info= php.menu_save(p.web,a.tree_dump());
+          u.plain();
+          a.menu();
+          p.refresh();
+        }
     }}
     button [178,10,,] { title:"[fa-undo] Zpět"                                           skill:'a|m'
       func onclick() {

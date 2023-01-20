@@ -1217,7 +1217,21 @@ function menu_copy_elem($co,$pid,$mid,$test=true) {
                                                       display($msg);
   return $msg;
 }
-/** ===========================================================================================> WEB */
+/** ==========================================================================================> MENU */
+# ----------------------------------------------------------------------------------- menu change_ok
+# posoudí přípustnost změn v menu
+function menu_change_ok($mid,$zmeny) {
+  $err= '';
+  // získej staré hodnoty
+  $old= select_object('*', 'menu', "mid=$mid");
+  debug($zmeny,'new'); debug($old,'old'); 
+  if (($old->ref=='home' || $old->ref=='en-home') && isset($zmeny->ref)) 
+    $err.= "reference 'home' a 'en-home' nesmí být změněny"; 
+  if ($old->wid==1 && substr($zmeny->ref,0,3)!='en-')
+    $err.= "reference anglické verze nechť začínají na 'en-' "; 
+  if ($err) display($err);
+  return $err;
+}
 # -------------------------------------------------------------------------------- menu clanek2kniha
 # vytvoří knihu a přidá článek $id jako první kapitolu
 # ty=aclanek|xclanek

@@ -33,13 +33,13 @@ function get_prefix() {
 }
 # -------------------------------------------------------------------------------------==> page
 // jen pro CMS mod: vrací objekt se stránkou
-function page($a,$b) { 
-  global $amenu, $cmenu, $counts;
+function page($ref) { trace();
+  global $wid, $amenu, $cmenu, $counts;
   $page= '';
   $counts= array(); // typ -> počet
   def_user();
-  read_menu();
-  $path= explode('!',$b);
+  $path= $ref ? explode('!',$ref) : array($wid==1 ? 'en-home' : 'home');
+  read_menu($path);
   $elem= eval_menu($path);
 //                                                  debug($amenu,"amenu");
   $cmenu= array(); // kontextové menu definované v elems
@@ -48,6 +48,7 @@ function page($a,$b) {
   return (object)array('html'=>$page);
 }
 # -------------------------------------------------------------------------------------==> read_menu
+// podle $path[0] určí očekávanou jazykovou mutaci
 // načte některé záznamy z tabulky MENU do pole $menu - výběr je ovlivněn obsahem REDAKCE a KLIENT
 // REDAKCE=null
 //   1) vynechají se záznamy s nenulovým menu.redakce
@@ -56,19 +57,29 @@ function page($a,$b) {
 //   1) pokud _user.skill neobsahuje 'm' vynechají se záznamy z menu.redakce=1 (programátor) 
 //   2) pokud _user.skill neobsahuje 't' vynechají se záznamy z menu.redakce=2 (tester)
 // přidá položku has_subs pokud má hlavní menu submenu
-function read_menu() { 
+function read_menu($path) { trace();
   global $wid, $menu, $amenu, $REDAKCE, $KLIENT;
   // připoj databázi
   db_connect();
+  // zjištění jazykové mutace odkazu
+  $ref= $path[0];
+  $wid_ref= select('wid','menu',"ref='$ref'");
+  if (!$wid_ref) {
+    $wid= get_lang()=='en' ? 1 : 2;
+  }
+  elseif ($wid_ref!=$wid) {
+    $wid= $wid_ref;
+    set_lang($wid==1 ? 'en' : 'cs');
+  }
   // načtení menu ve vybraném lazyce
-  $lang= get_lang();
-  $wid= $lang=='en' ? 1 : 2;
   $menu= array();
   $amenu= (object)array('top'=>array(),'main'=>array(),'sub'=>array());
   $mn= pdo_qry("
     SELECT nazev,elem,mid,mid_top,mid_sub,ref,typ,level,redakce,klient,
       TO_DAYS(NOW())-IFNULL(TO_DAYS(ch_date),0) AS _zmena
-    FROM menu WHERE wid=$wid ORDER BY typ,rank");
+    FROM menu 
+    WHERE wid=$wid 
+    ORDER BY typ,rank");
   while ($mn && ($m= pdo_fetch_object($mn))) {
     // má se upozornit na změnu?
     $m->_zmena= $m->_zmena < ZMENA ? 1 : 0;
@@ -85,7 +96,6 @@ function read_menu() {
     if ( $m->typ==2 && isset($menu[$m->mid_top]) ) 
       $menu[$m->mid_top]->has_subs= true;
   }
-  debug($menu,"lang=$lang");
 }
 # -------------------------------------------------------------------------------------==> eval menu
 # path = [ mid, ...]
@@ -621,6 +631,7 @@ __EOT;
       $obsah= x_cenzura($obsah);
       $menu= $note= '';
       if ( $REDAKCE ) {
+        // náhrada odkazů dovnitř webu voláním fce go
         $obsah= preg_replace_callback("~(href=\"(?:$rel_root/|/|(?!https?://)))(.*)\"~U", 
             function($m) {
               return preg_match('~inc/(c|f)/~',$m[2])
@@ -1074,7 +1085,7 @@ __EOD;
       <span onclick="bar_menu(arguments[0],'lang-cs');" class='separator'><i class='fa fa-image'></i> čeština</span>
       <span onclick="bar_menu(arguments[0],'lang-en');" ><i class='fa fa-image'></i> ENGLISH</span>
 __EOD;
-  if (!$REDAKCE) $language= '';
+//  if (!$REDAKCE) $language= '';
   $loginout= $KLIENT->id
     ? "<span onclick=\"be_logout('$currpage');\" class='separator'>
          <i class='fa fa-power-off'></i> odhlásit se</span>"
@@ -1745,10 +1756,15 @@ function ask_server($x) {
     $url[1]= "$wall\")";
     $s->wall= implode('/wall/',$url);
     break;
-  // změna jazyka
+  // změna jazyka 
   case 'lang':
-    $lang= $x->lang;
-    set_lang($lang);
+    global $REDAKCE, $url_prefix;
+    $page= $x->lang=='en' ? 'en-home' : '';
+    $s->wid= set_lang($x->lang);
+    if ( $REDAKCE )
+      page($page);
+    else 
+      $s->url= "$url_prefix$page";
     break;
   }
   return 1;
