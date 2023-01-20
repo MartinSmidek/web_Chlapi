@@ -1227,7 +1227,7 @@ function menu_change_ok($mid,$zmeny) {
   debug($zmeny,'new'); debug($old,'old'); 
   if (($old->ref=='home' || $old->ref=='en-home') && isset($zmeny->ref)) 
     $err.= "reference 'home' a 'en-home' nesmí být změněny"; 
-  if ($old->wid==1 && substr($zmeny->ref,0,3)!='en-')
+  if ($old->wid==1 && isset($zmeny->ref) && substr($zmeny->ref,0,3)!='en-')
     $err.= "reference anglické verze nechť začínají na 'en-' "; 
   if ($err) display($err);
   return $err;
