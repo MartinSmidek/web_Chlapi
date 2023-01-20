@@ -1085,7 +1085,7 @@ __EOD;
       <span onclick="bar_menu(arguments[0],'lang-cs');" class='separator'><i class='fa fa-image'></i> čeština</span>
       <span onclick="bar_menu(arguments[0],'lang-en');" ><i class='fa fa-image'></i> ENGLISH</span>
 __EOD;
-  if (!$REDAKCE) $language= '';
+  if (!$REDAKCE) $language= ''; // zatím jen redakce
   $loginout= $KLIENT->id
     ? "<span onclick=\"be_logout('$currpage');\" class='separator'>
          <i class='fa fa-power-off'></i> odhlásit se</span>"
