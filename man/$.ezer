@@ -1125,7 +1125,8 @@ panel OPTIONS [0,0,220,220] { title:'Volby zobrazení pro redakci', type:'popup'
   }
 }
 # ----------------------------------------------------------------------------==> EDITOR
-panel EDITOR [0,0,720,550] { type:'popup', style:"min-width:700px", par:{close:'no'}, _sys:'edi'
+panel EDITOR [0,0,720,*] { type:'popup', style:"min-width:700px;height:calc(100% - 100px)", 
+    par:{close:'no'}, _sys:'edi'
   var id:number,
       path:text
   use a: form _a [2,0,,] { tag:'a', format:'n' }  // akce
@@ -1213,7 +1214,7 @@ panel EDITOR [0,0,720,550] { type:'popup', style:"min-width:700px", par:{close:'
   }
   # -----------------------------------------------------------------------------==> edit kalendář
   # úprava kalendáře
-  form _k [10,10,710,460] {
+  form _k [10,10,710,] {
     button [0,5,,]  { title:"[fa-chevron-left]", help:'starší akce'
       func onclick() { next_xakce(1); }}
     button [21,5,,] { title:"[fa-repeat]"          
@@ -1292,7 +1293,7 @@ panel EDITOR [0,0,720,550] { type:'popup', style:"min-width:700px", par:{close:'
   }
   # -----------------------------------------------------------------------------==> edit akce
   # úprava akce
-  form _a [10,10,715,460] {
+  form _a [10,10,715,] {
     view xa: table xakce
     view xc: table xclanek
     field ida { data:xa.id_xakce }
@@ -1339,7 +1340,7 @@ panel EDITOR [0,0,720,550] { type:'popup', style:"min-width:700px", par:{close:'
   }
   # -----------------------------------------------------------------------------==> edit clanek    
   # oprava textu článku
-  form _c [10,10,710,460] {
+  form _c [10,10,710,] {
     field id_editors { data:xclanek.editors }
     edit ch_date [-170,1,47,29] { format:'o' value:'31.12.2018' css:'edit_ch' data:xclanek.ch_date 
       help:'datum poslední podstatné změny textu (lze ovládat tlačítky)' }
