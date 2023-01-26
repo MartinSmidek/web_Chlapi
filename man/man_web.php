@@ -23,6 +23,11 @@ function get_lang () {
   if (!$lang) $lang= 'cs';
   return $lang;
 }
+# ----------------------------------------------------------------------------------------- get menu
+# zjistí aktuální menu
+function get_menu () {
+  return isset($_SESSION['web']['menu']) ? $_SESSION['web']['menu'] : 'old';
+}
 /** =========================================================================================> BIBLE */
 # ------------------------------------------------------------------------------------ bib transform
 # transformuje text oživením biblických odkazů ozávorkovaných jako <span class='bible>...</span>

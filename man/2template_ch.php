@@ -34,18 +34,149 @@ function get_prefix() {
 # -------------------------------------------------------------------------------------==> page
 // jen pro CMS mod: vrací objekt se stránkou
 function page($ref) { trace();
-  global $wid, $amenu, $cmenu, $counts;
+  global $wid, $amenu, $cmenu, $counts, $part;
+  $part= (object)array(); // části výsledné stránky
   $page= '';
   $counts= array(); // typ -> počet
   def_user();
   $path= $ref ? explode('!',$ref) : array($wid==1 ? 'en-home' : 'home');
-  read_menu($path);
-  $elem= eval_menu($path);
-//                                                  debug($amenu,"amenu");
-  $cmenu= array(); // kontextové menu definované v elems
-  $html= eval_elem($elem);
-  $page= show_page($html);
+  // varianty menu
+  $menu_type= get_menu();
+  display("menu=$menu_type");
+  if ($menu_type=='new') {
+    $elem= '';
+    $html= new_menu($path,$elem);
+  }
+  else {
+    read_menu($path);
+    $elem= eval_menu($path);
+  }
+  $html.= eval_elem($elem);
+  $page= show_page($html,$menu_type);
   return (object)array('html'=>$page);
+}
+# --------------------------------------------------------------------------------------==> new menu
+function new_menu($path,&$elem) { trace();
+  global $menu, $REDAKCE, $KLIENT, $prefix, $backhref, $backref, $top, $currpage, $curr_menu, $part;
+  $html= '';
+  $isub= 2;
+  // filtrované načtení tabulky MENU
+  read_menu($path);
+  // vytvoření stromu a rozbor $path
+  $xmenu= array();
+  $top= array_shift($path);
+  $input= '';
+  $main_sub= 0;
+  foreach ($menu as $m) {
+    if ($m->typ==0) {
+      $href= $m->ref;
+      $xmenu[$m->mid]= array($m->nazev,$href);
+      if ( $m->ref===$top ) {
+        $elem= $m->elem;
+        $curr_menu= $m;
+        $backhref= $href;
+        $backref= $REDAKCE 
+          ? "onclick=\"go(arguments[0],'page=$href!*','{$prefix}$href!*','$input',0);\""
+          : "href='{$prefix}$href!*'";
+        $top= array_shift($path);
+        display("0: $href");
+      }
+    }
+    elseif ($m->typ==1) {
+      $href= $m->ref;
+      if ($m->mid_sub) $href.= "!{$menu[$m->mid_sub]->ref}";
+      $xmenu[$m->mid]= array($m->nazev,$href);
+      if ( $m->ref===$top ) {
+        $main_sub= $m->mid_sub;
+        $elem= $m->elem;
+        $curr_menu= $m;
+        $backhref= $href;
+        $backref= $REDAKCE 
+          ? "onclick=\"go(arguments[0],'page=$href!*','{$prefix}$href!*','$input',0);\""
+          : "href='{$prefix}$href!*'";
+        $top= array_shift($path);
+        display("1: $href");
+      }
+    }
+    elseif ($m->typ==2) {
+      $mid_top= $m->mid_top;
+      $href= "{$menu[$mid_top]->ref}!$m->ref";
+      if (!isset($xmenu[$mid_top][$isub])) $xmenu[$mid_top][$isub]= array();
+      $xmenu[$mid_top][$isub][]= array($m->nazev,$href);
+      if ($m->ref===$top) {
+        $elem= $m->elem;
+        $curr_menu= $m;
+        $backhref= $href;
+        $backref= $REDAKCE 
+          ? "onclick=\"go(arguments[0],'page=$href!*','{$prefix}$href!*','$input',0);\""
+          : "href='{$prefix}$href!*'";
+        $top= array_shift($path);
+        display("2: $href");
+      }
+    }
+  }
+//  debug($xmenu,"xmenu, elem=$elem");
+  // generování html 
+  $prefix= get_prefix();
+  $input= '';
+  $top1= $REDAKCE ? "style='top:40px;'" : '';
+  $top2= $REDAKCE ? "style='top:30px;'" : '';
+  $part->menu_open= <<<__EOM
+    <div class="mobile-menu-open" $top1>
+      <i class="fa fa-bars"></i>
+    </div>
+__EOM;
+  $html.= <<<__EOM
+    <nav class="mobile-menu" $top2>
+      <div class="mobile-menu-close">
+        &times;
+      </div>
+      <ul>
+__EOM;
+  foreach ($xmenu as $x) {
+    $href= $x[1];
+    $jmp= $REDAKCE 
+      ? "onclick=\"go(arguments[0],'page=$href','{$prefix}$href','$input',0);\""
+      : "href='{$prefix}$href'";
+    $jmp.= "title='$href'";
+    if (isset($x[$isub])) {
+//      $html.= "\n  <li class='has-children'><a $jmp>$x[0]</a><span class='icon-arrow'></span><ul class='children'>";
+      $html.= "\n  <li class='has-children'>$x[0]<span class='icon-arrow'></span><ul class='children'>";
+      foreach ($x[$isub] as $xx) {
+        $href= "$xx[1]";
+        $jmp= $REDAKCE 
+          ? "onclick=\"go(arguments[0],'page=$href','{$prefix}$href','$input',0);\""
+          : "href='{$prefix}$href'";
+        $jmp.= "title='$href'";
+        $html.= "\n  <li><a $jmp>$xx[0]</a></li>";
+      }
+      $html.= "\n  </ul>";
+    }
+    else {
+      $html.= "\n  <li><a $jmp>$x[0]</a>";
+    }
+    $html.= "</li>";
+  }
+  // specifické položky MENU - přihlášení, jazyl
+  $lang= get_lang();
+  if ($lang=='cs') {
+    $html.= $KLIENT->id
+      ? "<li><a onclick=\"be_logout('$currpage');\" class='separator'>
+           <i class='fa fa-power-off'></i><i> odhlásit se</i></a></li>"
+      : "<li><a onclick=\"bar_menu(arguments[0],'me_login');\" class='separator'>
+           <i class='fa fa-user-secret'></i><i> přihlásit se emailem</i></a></li>";
+    $html.= "<li><a onclick=\"bar_menu(0,'menu-old');\"><i>použij jiný styl menu</i></a></li>";
+    $html.= "<li><a onclick=\"bar_menu(0,'lang-en');change_js('new','close');\"><i>ENGLISH WEB</i></a></li>";
+  }
+  else {
+    $html.= "<li><a onclick=\"bar_menu(0,'lang-cs');change_js('new','close');\"><i>Česká verze</i></a></li>";
+  }
+  $html.= "</ul></nav>";
+//  debug($menu,"menu");
+//  $elem= eval_menu($path);
+//  debug($menu,"2");
+  $part->menu= $html;
+//  return $html;
 }
 # -------------------------------------------------------------------------------------==> read_menu
 // podle $path[0] určí očekávanou jazykovou mutaci
@@ -300,8 +431,8 @@ function title_menu($title,$items,$id=0,$idk=0,$idm=0) {
 // ids  :: id1 [ / id2 ] , ...    -- id2 je klíč v lokální db pro ladění
 // $counts je pole sčítající skutečně renderované (viditelné) elementy
 function eval_elem($desc,$book=null) { //trace();
-  global $wid, $REDAKCE, $KLIENT, $ezer_server_ostry, $index, $load_ezer, $curr_menu, $top, 
-      $prefix, $mobile, $cmenu, $backref, $counts, $rel_root; 
+  global $REDAKCE, $KLIENT, $ezer_server_ostry, $index, $load_ezer, $curr_menu, $top, 
+      $mobile, $cmenu, $backref, $counts, $rel_root; 
                                                     debug(array($desc,$book),"eval_elem");
   $elems= explode(';',$desc);
   $ipad= '';
@@ -964,7 +1095,8 @@ __EOT;
   return $html;
 }
 # -------------------------------------------------------------------------------------==> show_page
-function show_page($html) {
+function show_page($html,$menu_type='old') {
+  global $part;
   global $wid, $REDAKCE, $KLIENT, $index, $GET_rok, $mode, $load_ezer, $ezer_server_ostry, $prefix;
   global $bar_menu, $links, $currpage, $tm_active;
   
@@ -999,6 +1131,12 @@ __EOD;
     $v_app= "?v=$version";
   }
 
+  $script.= <<<__EOJ
+    <script src="$client/licensed/jquery-3.2.1.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="$client/licensed/jquery-ui.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="/man/2chlapi.js$v_app" type="text/javascript" charset="utf-8"></script>
+__EOJ;
+  
   // gmaps
   $api_key= "AIzaSyAq3lB8XoGrcpbCKjWr8hJijuDYzWzImXo"; // Google Maps JavaScript API 'answer-test'
 //    <script src="https://maps.googleapis.com/maps/api/js?key=$api_key&callback=initMap" async defer></script>
@@ -1006,13 +1144,7 @@ __EOD;
 //    <script src="https://maps.googleapis.com/maps/api/js?key=$api_key&callback=skup_mapka" async defer></script>
 //__EOJ;
   $script.= !$load_ezer ? '' : <<<__EOJ
-    <script src="https://maps.googleapis.com/maps/api/js?libraries=places&key=$api_key"></script>
-__EOJ;
-  
-  $script.= <<<__EOJ
-    <script src="$client/licensed/jquery-3.2.1.min.js" type="text/javascript" charset="utf-8"></script>
-    <script src="$client/licensed/jquery-ui.min.js" type="text/javascript" charset="utf-8"></script>
-    <script src="/man/2chlapi.js$v_app" type="text/javascript" charset="utf-8"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?libraries=places&key=$api_key&callback=onmaploaded"></script>
 __EOJ;
   
   $script.= $links!='fotorama' ? '' : <<<__EOJ
@@ -1051,34 +1183,6 @@ __EOJ;
     <script src="$client/ezer_lib3.js"  type="text/javascript" charset="utf-8"></script>
 __EOJ;
 
-//      <link rel="stylesheet" href="./man/web_edit.css" type="text/css" media="screen" charset="utf-8" />
-  $n= isset($_GET['test']) ? $_GET['test'] : '2';
-  $eb_link= <<<__EOJ
-      <link rel="stylesheet" href="/man/css/{$n}chlapi.css$v_app" type="text/css" media="screen" charset="utf-8" />
-      <link rel="stylesheet" href="/man/css/edit.css$v_app" type="text/css" media="screen" charset="utf-8" />
-      <link rel="stylesheet" href="/$client/licensed/font-awesome/css/font-awesome.min.css" type="text/css" media="screen" charset="utf-8" />
-__EOJ;
-
-  // počáteční tapeta pro klientský běh, pro redakční je v man.php ve funkci specific
-  $wall= isset($_COOKIE['wallpaper']) ? $_COOKIE['wallpaper'] : 'foto_home.jpg';
-  // head
-  global $icon;
-  $head=  <<<__EOD
-  <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-  <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en" dir="ltr">
-  <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=11" />
-    <meta name="viewport" content="width=device-width,user-scalable=yes,initial-scale=1" />
-    <meta name="google-site-verification" content="xFZh7Tcq758NyaEit8MFFVxzq605l3hKFQXJwD53nOo" />
-    <title>chlapi.cz</title>
-    <link rel="shortcut icon" href="/man/img/$icon" />
-    <style>body{background-image:url(man/css/wall/$wall);}</style>
-    $script
-    $eb_link
-  </head>
-__EOD;
-
   // menu pro změnu vzhledu, přihlášení ...
   $choice_js= "bar_menu(arguments[0],'menu_on'); return false;";
   $language= <<<__EOD
@@ -1086,52 +1190,28 @@ __EOD;
       <span onclick="bar_menu(arguments[0],'lang-en');" ><i class='fa fa-image'></i> ENGLISH</span>
 __EOD;
   if (!$REDAKCE) $language= ''; // zatím jen redakce
-  $loginout= $KLIENT->id
-    ? "<span onclick=\"be_logout('$currpage');\" class='separator'>
-         <i class='fa fa-power-off'></i> odhlásit se</span>"
-    : "<span onclick=\"bar_menu(arguments[0],'me_login');\" class='separator'>
-         <i class='fa fa-user-secret'></i> přihlásit se emailem</span>";
-//      <span onclick="bar_menu(arguments[0],'new1');"><img src='/man/img/new.png'> změny za den</span>
-//      <span onclick="bar_menu(arguments[0],'new7');"><img src='/man/img/new.png'> změny za týden</span>
-//      <span onclick="bar_menu(arguments[0],'new30');"><img src='/man/img/new.png'> změny za měsíc</span>
-//      <span onclick="bar_menu(arguments[0],'grid');" class='separator'><i class='fa fa-th'></i> akce jako mřížka</span>
-//      <span onclick="bar_menu(arguments[0],'rows');"><i class='fa fa-bars'></i> akce jako řádky</span>
-  $bar_menu= <<<__EOD
-    <span id='bar_menu' data-mode='$mode[1]' onclick="$choice_js" oncontextmenu="$choice_js">
-      <i class='fa fa-bars'></i>
-    </span>
-    <div id='bar_items'>
-      $loginout
-      $language
-      <span onclick="bar_menu(arguments[0],'wallpaper');" class='separator'><i class='fa fa-image'></i> použij jiné pozadí</span>
-    </div>
+  $menus= <<<__EOD
+      <span onclick="bar_menu(arguments[0],'menu-old');" class='separator'><i class='fa fa-image'></i> staré menu</span>
+      <span onclick="bar_menu(arguments[0],'menu-new');" ><i class='fa fa-image'></i> nové menu</span>
 __EOD;
+  if (!$REDAKCE) $menus= ''; // zatím jen redakce
 
-  // menu
-  $topmenu= show_menu('top');
-  $mainmenu= show_menu('main');
-  $submenu= show_menu('sub');
-  $filler= $submenu ? "<div class='filler'></div>" : '';
-  $submenu= $submenu ? "<div id='page_sm'><span>$submenu</span>$filler</div>" : '';
-  $menu= "
-        <div id='page_tm'$tm_active>
-          $topmenu
-        </div>
-        <div id='page_hm' class='x'>$mainmenu</div>
-        $submenu
-    ";
-
-  // body   - vyjmuto onkeydown="if (event.keyCode==13) me_login('$currpage');"
-  // body   - mapa je vložena do BlockMain pod #work
-  $login_display= ($REDAKCE || !isset($_GET['login'])) ? 'none' : 'block';
   $go_home= $REDAKCE 
       ? "onclick=\"go(arguments[0],'page=home','{$prefix}home','',0);\""
       : "href='{$prefix}home'";
 
-  $cookie_email= str_replace("'",'',isset($_COOKIE['email']) ? $_COOKIE['email'] : '');  
-  $cookie_pin= str_replace("'",'',isset($_COOKIE['pin']) ? $_COOKIE['pin'] : '');  
+  // motto
+  $motto= $wid==1 
+      ? "The young man who cannot cry is a savage, 
+          <br>the old man who cannot laugh is a fool.
+          <br><i>Richard Rohr</i>"
+      : "Mladý muž, který neumí plakat, je barbar.
+          <br>Starý muž, který se neumí smát, je pitomec.
+          <br><i>Richard Rohr</i>";
+
+  // logo
   $logo_title= isset($_SESSION['web']['username']) ? " title='{$_SESSION['web']['username']}'" : '';
-  
+
   // informace pro přihlášené = článek NEWS - zobrazí se jen jednou 
   $news= '';
   if ( isset($KLIENT) && $KLIENT->level && $_SESSION['web']['news'] ) {
@@ -1155,6 +1235,98 @@ __EOD;
     }
     $_SESSION['web']['news']= 0;
   }
+  
+  // barmenu
+  $toggle_menu= $menu_type=='old' ? 'new' : 'old';
+  $loginout= $KLIENT->id
+    ? "<span onclick=\"be_logout('$currpage');\" class='separator'>
+         <i class='fa fa-power-off'></i> odhlásit se</span>"
+    : "<span onclick=\"bar_menu(arguments[0],'me_login');\" class='separator'>
+         <i class='fa fa-user-secret'></i> přihlásit se emailem</span>";
+  $bar_menu= <<<__EOD
+    <span id='bar_menu' data-mode='$mode[1]' onclick="$choice_js" oncontextmenu="$choice_js">
+      <i class='fa fa-bars'></i>
+    </span>
+    <div id='bar_items'>
+      $loginout
+      $language
+      $menus
+      <span onclick="bar_menu(arguments[0],'wallpaper');" class='separator'><i class='fa fa-image'></i> použij jiné pozadí</span>
+      <span onclick="bar_menu(arguments[0],'menu-$toggle_menu');"><i class='fa fa-image'></i> použij jný styl menu</span>
+    </div>
+__EOD;
+
+  // --------------------------------------------------------------- NOVÉ MENU
+  if ($menu_type=='new') {
+    $chlapi_css= "3chlapi.css";
+    $headline= "<script type='text/javascript'>change_js('new');</script>
+      <div class='header' style=\"
+            background-image:url('/man/css/wall/MROP_2018_IMG_4897.jpg');
+            background-size: cover;
+            border-bottom: 2px solid #ffffff;
+            background-repeat: no-repeat;
+          \">
+        $part->menu_open
+        $part->menu
+        <img id='logo' src='/man/img/kriz.png'$logo_title>
+        <div id='motto'>$motto</div>
+      </div>";   
+  }
+  // --------------------------------------------------------------- STARÉ MENU
+  elseif ($menu_type=='old') { 
+    $chlapi_css= "2chlapi.css";
+    // menu
+    $topmenu= show_menu('top');
+    $mainmenu= show_menu('main');
+    $submenu= show_menu('sub');
+    $filler= $submenu ? "<div class='filler'></div>" : '';
+    $submenu= $submenu ? "<div id='page_sm'><span>$submenu</span>$filler</div>" : '';
+    $menu= "
+          <div id='page_tm'$tm_active>
+            $topmenu
+          </div>
+          <div id='page_hm' class='x'>$mainmenu</div>
+          $submenu
+      ";    
+    $headline= "<a $go_home style='cursor:pointer'><img id='logo' src='/man/img/kriz.png'$logo_title></a>
+      <div id='motto'>$motto
+      </div>
+      <div id='menu'>
+        $bar_menu
+        $menu
+      </div>
+      $news ";
+  }
+  
+  // ----------------------------------------------------------------- společné
+  // počáteční tapeta pro klientský běh, pro redakční je v man.php ve funkci specific
+  $wall= isset($_COOKIE['wallpaper']) ? $_COOKIE['wallpaper'] : 'foto_home.jpg';
+  // head
+  global $icon;
+  $head=  <<<__EOD
+  <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+  <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en" dir="ltr">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=11" />
+    <meta name="viewport" content="width=device-width,user-scalable=yes,initial-scale=1" />
+    <meta name="google-site-verification" content="xFZh7Tcq758NyaEit8MFFVxzq605l3hKFQXJwD53nOo" />
+    <title>chlapi.cz</title>
+    <link rel="shortcut icon" href="/man/img/$icon" />
+    <style>body{background-image:url(man/css/wall/$wall);}</style>
+    $script
+    <link rel="stylesheet" href="/man/css/$chlapi_css$v_app" type="text/css" media="screen" charset="utf-8" />
+    <link rel="stylesheet" href="/man/css/edit.css$v_app" type="text/css" media="screen" charset="utf-8" />
+    <link rel="stylesheet" href="/$client/licensed/font-awesome/css/font-awesome.min.css" type="text/css" media="screen" charset="utf-8" />
+  </head>
+__EOD;
+
+  // body   - vyjmuto onkeydown="if (event.keyCode==13) me_login('$currpage');"
+  // body   - mapa je vložena do BlockMain pod #work
+  $login_display= ($REDAKCE || !isset($_GET['login'])) ? 'none' : 'block';
+  $cookie_email= str_replace("'",'',isset($_COOKIE['email']) ? $_COOKIE['email'] : '');  
+  $cookie_pin= str_replace("'",'',isset($_COOKIE['pin']) ? $_COOKIE['pin'] : '');  
+  
   $navod= NAVOD;
   $prompt= <<<__EOD
       <div id='msg' class='box' style="display:none">
@@ -1175,26 +1347,11 @@ __EOD;
   if (preg_match('~<span class="bible">~',$html)) {
     $html= bib_transform($html);
   }
-  // motto
-  $motto= $wid==1 
-      ? "The young man who cannot cry is a savage, 
-          <br>the old man who cannot laugh is a fool.
-          <br><i>Richard Rohr</i>"
-      : "Mladý muž, který neumí plakat, je barbar.
-          <br>Starý muž, který se neumí smát, je pitomec.
-          <br><i>Richard Rohr</i>";
   // konečná redakce stránky
   $body=  <<<__EOD
     $fb_root
     <div id='page'>
-      <a $go_home style="cursor:pointer"><img id='logo' src='/man/img/kriz.png'$logo_title></a>
-      <div id='motto'>$motto
-      </div>
-      <div id='menu'>
-        $bar_menu
-        $menu
-      </div>
-      $news
+      $headline
       <div class='neodkaz' style="display:none">
         <div id='clanek2' class='home' style="background:#cfdde6d6">
           <p>Modré <span class='neodkaz'><a class='jump'>odkazy</a></span> 
@@ -1250,10 +1407,10 @@ __EOD;
   // dokončení stránky
   echo <<<__EOD
   $head
-  <body onload="jump_fokus();">
+  <body onload="jump_fokus();change_js('$menu_type');">
     <div title="We stand with Ukraine" id="we-stand-with-ukraine" style="left: -80px; bottom: 20px; 
       transform: rotate(45deg); background: linear-gradient(-180deg, rgb(0, 91, 187) 50%, 
-        rgb(255, 213, 0) 50%); width: 300px; height: 84px; position: fixed; z-index: 999; opacity:0.7"
+        rgb(255, 213, 0) 50%); width: 200px; height: 54px; position: fixed; z-index: 999; opacity:0.7"
         onclick="jQuery('#we-stand-with-ukraine').css('opacity','0.3');"  >
     </div>    
     $demo
@@ -1761,13 +1918,30 @@ function ask_server($x) {
     global $REDAKCE, $url_prefix;
     $page= $x->lang=='en' ? 'en-home' : '';
     $s->wid= set_lang($x->lang);
-    if ( $REDAKCE )
-      page($page);
-    else 
+    if ( !$REDAKCE )
+//      page($page);
+//    else 
       $s->url= "$url_prefix$page";
+    break;
+  // změna menu
+  case 'menu':
+    $rs= set_menu($x->menu);
+    $s->path= $rs->path;
+    $page= $x->lang=='en' ? 'en-home' : '';
+    $s->wid= set_lang($x->lang);
+    $s->url= "$url_prefix$page";
     break;
   }
   return 1;
+}
+# ----------------------------------------------------------------------------------------- set menu
+function set_menu($menu) {
+  global $url_prefix;
+  $rs= (object)array();
+  $_SESSION['web']['menu']= $menu;
+  $rs->path= "$url_prefix/man/css/".($menu=='new'?'3chlapi.css':'2chlapi.css');
+  $rs->menu= $menu;
+  return $rs;
 }
 # --------------------------------------------------------------------------------- url get_contents
 function url_get_contents($url, $useragent='cURL', $headers=false, $follow_redirects=true, $debug=false) {

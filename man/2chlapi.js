@@ -47,6 +47,34 @@ function refresh() {
   }
 }
 // -----------------------------------------------------------------------------------==> . bar menu
+function change_css(s) {
+  var link= jQuery("link#css_chlapi");
+  if (link[0])
+    link.attr({href:s.path}); 
+}
+function change_js(menu,cmd) {
+  // kód pro nové menu
+  if (menu=='new') {
+    if (cmd && cmd=='close') {
+      jQuery('nav.mobile-menu').removeClass('active');
+    }
+    else {
+      jQuery('div.mobile-menu-open').click(function() {
+        jQuery('nav.mobile-menu').addClass('active');
+        return false;
+      })
+      jQuery('div.mobile-menu-close').click(function() {
+        jQuery('nav.mobile-menu').removeClass('active');
+        return false;
+      })
+      jQuery('li.has-children').on('click', function() {
+         jQuery(this).children('ul').slideToggle('slow', 'swing');
+         jQuery('.icon-arrow').toggleClass('open');
+      });
+    }
+  }
+}
+// -----------------------------------------------------------------------------------==> . bar menu
 function bar_menu(e,x) {
   if ( e ) { e.stopPropagation(); e.preventDefault(); }
   var items= jQuery('#bar_items'), body= jQuery(document);
@@ -60,6 +88,12 @@ function bar_menu(e,x) {
   }
   else {
     switch (x) {
+    case 'menu-new':
+      ask({cmd:'menu',menu:'new'},_bar_menu,'menu');
+      break;
+    case 'menu-old':
+      ask({cmd:'menu',menu:'old'},_bar_menu,'menu');
+      break;
     case 'lang-cs':
       ask({cmd:'lang',lang:'cs'},_bar_menu,'lang');
       break;
@@ -81,6 +115,14 @@ function bar_menu(e,x) {
 }
 function _bar_menu(y,cmd) {
   switch (cmd) {
+    case 'menu': 
+      if ( Ezer.run!==undefined ) {
+        change_css(y);
+        refresh();
+      }
+      else 
+        window.location.href= y.url;
+      break; 
     case 'lang': // voláno po předchozím volání php funkce set_lang('en'|'cs')
       if ( Ezer.run!==undefined ) {
         Ezer.run.$.part.p._call(0,'set_lang',y.wid);
@@ -295,7 +337,7 @@ function _table_add(y) {
 // ===========================================================================================> SKUP
 // -------------------------------------------------------------------------------------- ondomready
 var panel, label, geo;
-function ondomready() {
+function onmaploaded() { // ondomready() {
   skup_mapka();
 }
 var code= {

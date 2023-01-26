@@ -16,8 +16,8 @@
   $app_root=  'man';
   $app_js=    array("/man/2chlapi.js$v_app", "/man/man.js$v_app", 
                     "/man/fotorama/fotorama.js$v_app");
-  $app_css=   array("/man/css/mini.css$v_app","/man/css/2chlapi.css$v_app","/man/css/edit.css$v_app",
-                    "/man/fotorama/fotorama.css$v_app");
+  $app_css=   array("/man/css/mini.css$v_app","/man/css/2chlapi.css=css_chlapi$v_app",
+                    "/man/css/edit.css$v_app","/man/fotorama/fotorama.css$v_app");
   $skin=      'ck';
   
   require_once("../$kernel/server/ae_slib.php");

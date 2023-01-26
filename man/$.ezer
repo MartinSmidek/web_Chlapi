@@ -15,6 +15,7 @@ panel p [0,0,*,*] { type:'main', _sys:'$'
     last= cconc(gets.page,gets.page,'home');
     // zapisuj každý klik hned
     function('Ezer.sys.ezer.activity.touch_limit=1; return 1;');
+    set_menu(php.get_menu());
     go_menu(last);
   }
   func opravit(_typ,_id,_idk) { 
@@ -99,6 +100,7 @@ panel p [0,0,*,*] { type:'main', _sys:'$'
 # ----------------------------------------------------------------------------==> emulace událostí
   var page: object // {html,edit,id}
   func cms_go(ref) { 
+    clear();
     echo(`přepnutí webu na ${ref} / ${web} `); 
     if ( do_go ) go(ref) 
   }
@@ -107,6 +109,11 @@ panel p [0,0,*,*] { type:'main', _sys:'$'
     if ( do_go ) go_menu(ref) 
   }
   func refresh() { cms_go(last) }
+  func set_menu(_menu) { var s:object
+    s= php.set_menu(_menu); 
+    js.change_css(s);
+    refresh()  
+  }  
   func set_lang(_web) { // je volané z (2chlapi.js funkce _bar_menu) při přepnutí jazyka
     web= _web; 
     echo(`web=${web}`);  
@@ -170,18 +177,12 @@ panel p [0,0,*,*] { type:'main', _sys:'$'
       func onclick() { hide_all(); clear(); cms_go(last) } }
     button [123,5,,] { skill:'r|r', title:"[fa-chevron-right]", format:'d'
       func onclick() { hide_all() } }
-    button [200,5,,] { skill:'m|m', title:"TEST"
-      func onclick() { php.TEST() } }
-//    button editace [300,5,,] { 
-//      proc Init(edt) {
-//        eq('xclanek',edt); this.enable(1); this.set('[fa-edit] Editovat zobrazený článek')
-//      | eq('kalendar',edt); this.enable(1); this.set('[fa-edit] Editovat kalendář')
-//      | this.set('editace přes www.setkani.org'); this.enable(0)
-//    }
-//      proc onclick() { 
-//        eq('xclanek',page.get('edit')); EDITOR.Clanek(page.get('id')); refresh 
-//      | eq('kalendar',page.get('edit')); EDITOR.Kalendar(page.get('id')); refresh 
-//    }}
+    button [150,5,,] { skill:'m|m', title:"OLD"
+      func onclick() { p.set_menu('old'); } }
+//      func onclick() { php.ask_server({cmd:'menu',menu:'old'}); p.refresh() } }
+    button [190,5,,] { skill:'m|m', title:"NEW"
+      func onclick() { p.set_menu('new'); } }
+//      func onclick() { php.ask_server({cmd:'menu',menu:'new'}); p.refresh()  } }
     label verze [-325,8,40,] { title:'ezer', style:'font-size:10pt;color:white' } 
     button [-243,5,,] { skill:'r|r', title:"[fa-empire] admin" 
       func onclick() { hide_all(); ADMIN.modal(10,40) } }
@@ -341,7 +342,7 @@ panel CMS [0,0,610,400] { type:'popup',  title:'CMS - definice menu',
   }
 }
 # ----------------------------------------------------------------------------==> ADMIN
-panel ADMIN [0,0,600,465] { title:'Nástroje administrátora', type:'popup', css:'dialog_menu', 
+panel ADMIN [0,0,600,500] { title:'Nástroje administrátora', type:'popup', css:'dialog_menu', 
     style:"min-width:590px", _sys:'adm'
     par:{
       infos: [

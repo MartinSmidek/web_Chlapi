@@ -24,6 +24,9 @@ if (isset($_GET['lang'])) {
   $lang= $_GET['lang'];
   set_lang($lang);
 }
+if (isset($_GET['menu'])) {
+  $_SESSION['web']['menu']= $_GET['menu'];
+}
 // pro testovací GETs
 $_SESSION['web']['GET']= isset($_SESSION['web']['GET']) 
     ? array_merge($_SESSION['web']['GET'],$_GET) : $_GET;
@@ -66,10 +69,18 @@ else {
   $GET_rok= isset($_GET['rok']) ? $_GET['rok'] : '';
   $counts= array(); // typ -> počet
   $path= isset($_GET['page']) ? explode('!',$_GET['page']) : array('home');
-  read_menu($path);
-  $elem= eval_menu($path);
-  $html= eval_elem($elem);
-  show_page($html);
+  if ($_GET['menu']=='new' || $_SESSION['web']['menu']=='new') {
+    $elem= '';
+    $html= new_menu($path,$elem);
+    $html.= eval_elem($elem);
+    show_page($html,'new');
+  }
+  else {
+    read_menu($path);
+    $elem= eval_menu($path);
+    $html= eval_elem($elem);
+    show_page($html,'old');
+  }
   exit;
 }
 ?>
