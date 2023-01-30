@@ -98,7 +98,7 @@ function new_menu($path,&$elem) { trace();
         display("1: $href");
       }
     }
-    elseif ($m->typ==2) {
+    elseif ($m->typ==2||$m->typ==3) {
       $mid_top= $m->mid_top;
       $href= "{$menu[$mid_top]->ref}!$m->ref";
       if (!isset($xmenu[$mid_top][$isub])) $xmenu[$mid_top][$isub]= array();

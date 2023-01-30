@@ -1436,7 +1436,7 @@ function menu_undo($wid) {
   return 1;
 }
 # ---------------------------------------------------------------------------------------- menu tree
-function menu_tree($wid) { trace();
+function menu_tree($wid,$menu_type) { trace();
   //{prop:°{id:'ONE'},down:°[°{prop:°{id:'TWO'}},°{prop:°{id:'THREE'}}]}
   $data= (object)array('mid'=>0);
   $menu= 
@@ -1469,7 +1469,7 @@ function menu_tree($wid) { trace();
       $node= (object)array('prop'=>(object)array('id'=>$nazev,'data'=>$m));
       $menu->down[1]->down[]= $node;
     }
-    elseif ( $typ==2 ) {
+    elseif ( $menu_type=='new' ? $typ==2||$typ==3 : $typ==2 ) {
       foreach ( $menu->down[1]->down as $i => $sm ) {
         if ( $sm->prop->data->mid===$mid_top ) {
           $node= (object)array('prop'=>(object)array('id'=>$nazev,'data'=>$m));

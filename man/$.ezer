@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------==> propojení na template
 panel p [0,0,*,*] { type:'main', _sys:'$'
-  var web=2
+  var web=2, menu_type='old'
   var do_go=1
   var last='home'  //'home'
   var history: array, top=-1
@@ -110,6 +110,7 @@ panel p [0,0,*,*] { type:'main', _sys:'$'
   }
   func refresh() { cms_go(last) }
   func set_menu(_menu) { var s:object
+    menu_type= _menu;
     s= php.set_menu(_menu); 
     js.change_css(s);
     refresh()  
@@ -272,7 +273,7 @@ panel CMS [0,0,610,400] { type:'popup',  title:'CMS - definice menu',
       a.tree_select(curr_id);
     }
     func menu() { var obj: object
-      obj= php.menu_tree(p.web);
+      obj= php.menu_tree(p.web,p.menu_type);
       this.tree_show(obj,'tree') 
     }
     // dat=node.data tzn. vše z tx_gnmenu
@@ -323,7 +324,7 @@ panel CMS [0,0,610,400] { type:'popup',  title:'CMS - definice menu',
     field mid [5,164,35,] { title:"^mid" }
     field mid_top [49,164,35,] { title:"^top" }
     field mid_sub [94,164,35,] { title:"^sub" }
-    field typ [153,164,22,17] { title:"^typ" help:'0=top 1=hlavní 2=podmenu'}
+    field typ [153,164,22,17] { title:"^typ" help:'0=top 1=hlavní 2=podmenu (+3=podmenu nového menu)'}
     field rank [186,164,22,17] { title:"^order" help:'pořadí v nadřízeném menu'}
     field level [218,164,22,17] { title:"^level" help:'8=mrop' }
     field redakce [252,164,22,17] { title:"^redakce" help:'0=každý 1=programátor 2=testér 4=redakce'}
