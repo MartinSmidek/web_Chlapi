@@ -392,9 +392,7 @@ div.sloupce div.zmena {
   background-repeat: no-repeat;
 }
 div.sloupce img.zmena {
-  float: right;
-  margin-right: -12px;
-  margin-top: -12px;
+  /*float:right; margin-right: -12px; margin-top: -12px;*/
 }
 div.sloupce a.aclanek,
 div.sloupce a.aclanek_nojump {
@@ -421,10 +419,7 @@ a.home,
 #skup2 {
   background-color: #FFFFFF;
   color: #000000;
-  float: right;
-  margin: 0.4em 1em;
-  max-width: 100%;
-  z-index: 1;
+  /*float: right; margin: .4em 1em; max-width: 100%; z-index: 1;*/
   line-height: 1.5;
   padding: 1em;
   border-radius: 0.5em;
@@ -675,6 +670,7 @@ table.kalendar tr td:nth-child(2) p {
 }
 a.aclanek {
   /*background-color: @abstr_b;*/
+  background: red;
   color: #000000;
   height: 7.7em;
   overflow: hidden;
@@ -756,6 +752,11 @@ div.galery_obal div.galerie {
   text-align: left;
   /*    columns:35em 2; column-rule:1em solid @text_b; column-gap: 2em;
     -moz-column-count:2 35em; -moz-column-rule:1em solid @text_b; -moz-column-gap: 2em; */
+}
+#vlakno table,
+.sloupce table,
+.back table {
+  max-width: 100% !important;
 }
 div.kniha {
   display: flex-inline;
