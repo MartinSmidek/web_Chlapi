@@ -669,8 +669,7 @@ table.kalendar tr td:nth-child(2) p {
   margin: 0;
 }
 a.aclanek {
-  /*background-color: @abstr_b;*/
-  background: red;
+  background-color: #E6E1CF;
   color: #000000;
   height: 7.7em;
   overflow: hidden;
