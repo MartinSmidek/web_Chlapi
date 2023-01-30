@@ -161,15 +161,15 @@ __EOM;
   $lang= get_lang();
   if ($lang=='cs') {
     $html.= $KLIENT->id
-      ? "<li><a onclick=\"be_logout('$currpage');\" class='separator'>
-           <i class='fa fa-power-off'></i><i> odhlásit se</i></a></li>"
-      : "<li><a onclick=\"bar_menu(arguments[0],'me_login');\" class='separator'>
-           <i class='fa fa-user-secret'></i><i> přihlásit se emailem</i></a></li>";
-    $html.= "<li><a onclick=\"bar_menu(0,'menu-old');\"><i>použij jiný styl menu</i></a></li>";
+      ? "<li style='border-top: 1px solid white'><a onclick=\"be_logout('$currpage');\">
+          <i> odhlásit se</i></a></li>"
+      : "<li style='border-top: 1px solid white'><a onclick=\"bar_menu(arguments[0],'me_login');\">
+          <i>přihlásit se emailem</i></a></li>";
+    $html.= "<li><a onclick=\"bar_menu(0,'menu-old');\"><i>použít jiný styl menu</i></a></li>";
     $html.= "<li><a onclick=\"bar_menu(0,'lang-en');change_js('new','close');\"><i>ENGLISH WEB</i></a></li>";
   }
   else {
-    $html.= "<li><a onclick=\"bar_menu(0,'lang-cs');change_js('new','close');\"><i>Česká verze</i></a></li>";
+    $html.= "<li style='border-top: 1px solid white'><a onclick=\"bar_menu(0,'lang-cs');change_js('new','close');\"><i>ČESKÝ WEB</i></a></li>";
   }
   $html.= "</ul></nav>";
 //  debug($menu,"menu");
@@ -1206,7 +1206,7 @@ __EOD;
           <br>the old man who cannot laugh is a fool.
           <br><i>Richard Rohr</i>"
       : "Mladý muž, který neumí plakat, je barbar.
-          <br>Starý muž, který se neumí smát, je pitomec.
+          <br>Starý muž, který se neumí smát, je chudák.
           <br><i>Richard Rohr</i>";
 
   // logo
@@ -1259,6 +1259,7 @@ __EOD;
   // --------------------------------------------------------------- NOVÉ MENU
   if ($menu_type=='new') {
     $chlapi_css= "3chlapi.css";
+    $top_of_page= 360;
     $headline= "<script type='text/javascript'>change_js('new');</script>
       <div class='header' style=\"
             background-image:url('/man/css/wall/MROP_2018_IMG_4897.jpg');
@@ -1275,6 +1276,7 @@ __EOD;
   // --------------------------------------------------------------- STARÉ MENU
   elseif ($menu_type=='old') { 
     $chlapi_css= "2chlapi.css";
+    $top_of_page= 0;
     // menu
     $topmenu= show_menu('top');
     $mainmenu= show_menu('main');
@@ -1400,7 +1402,7 @@ __EOD;
 //        . "text-align: center; font-size: 40px; line-height: 96px; z-index: 16; opacity: .5;";
 //    $demo= "<div id='DEMO' onmouseover=\"$click\" style='$dstyle'>nový server</div>";
 //  }
-
+  
   if ( $REDAKCE ) {
     return $demo.$body;
   }
@@ -1419,7 +1421,7 @@ __EOD;
       $body
       </div>
     </div>
-    <img id='go_up' onclick="jQuery('#menu').Ezer_scrollIntoView();" src='/man/css/backtotop.png'>
+    <img id='go_up' onclick="jQuery('#web').scrollTop($top_of_page);" src='/man/css/backtotop.png'>
   </body>
   </html>
 __EOD;

@@ -277,8 +277,9 @@ div.sloupce {
   /*float: right;*/ 
   margin-top:1.5em;
   div.back {
+    margin:10px 2px;
     /*text-align: left;*/
-    /*display: flex;*/
+    display: flex;
     /*display: inline-block;*/
   }
   // zmena
@@ -290,21 +291,23 @@ div.sloupce {
   img.zmena {
     /*float:right; margin-right: -12px; margin-top: -12px;*/
   }
+  #xclanekfortna { width:100%; }
   a.aclanek,a.aclanek_nojump {
     overflow: hidden;
     text-align: left;
     max-height: 7em;
   }
   a.aclanek {
-    /*background: url(more.png) bottom right no-repeat, linear-gradient(to bottom right, @abstr_b 50%, @activ_b 75%);*/
+    background: url(more.png) bottom right no-repeat;
+    /*, linear-gradient(to bottom right, @abstr_b 50%, @activ_b 75%);*/
     display: inline-block;
     break-inside: avoid;
     page-break-inside: avoid;
   }
   a.aclanek_nojump {
     cursor: pointer;
-/*    background: url(no_more.png) bottom right no-repeat, 
-                linear-gradient(to bottom right, @abstr_b 50%, @activ_b 75%);*/
+    background: url(no_more.png) bottom right no-repeat;
+    /*,linear-gradient(to bottom right, @abstr_b 50%, @activ_b 75%);*/
   }
 }
 // speciální články
