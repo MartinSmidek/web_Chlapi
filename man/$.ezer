@@ -37,12 +37,12 @@ panel p [0,0,*,*] { type:'main', _sys:'$'
   func pridat(_typ,_mid,_first) { var me:number
     me= sys('user','id_user');
     switch (_typ) {
-      case 'xclanek': php.menu_add_elem(_mid,_typ,_first,me); refresh(); break;
-      case 'xkniha': php.menu_add_elem(_mid,_typ,_first,me); refresh(); break; 
-      case 'xkniha.elem': php.menu_add_elem(_mid,_typ,_first,me); refresh(); break;
+      case 'xclanek': php.menu_add_elem(web,_mid,_typ,_first,me); refresh(); break;
+      case 'xkniha': php.menu_add_elem(web,_mid,_typ,_first,me); refresh(); break; 
+      case 'xkniha.elem': php.menu_add_elem(web,_mid,_typ,_first,me); refresh(); break;
       case 'xfotky': FOTKY.novy(_mid); refresh(); break;
-      case 'xakce': php.menu_add_elem(_mid,_typ,0,me); refresh(); break;
-      case 'pozvanka': php.menu_add_elem(_mid,_typ,0,me); refresh(); break;
+      case 'xakce': php.menu_add_elem(web,_mid,_typ,0,me); refresh(); break;
+      case 'pozvanka': php.menu_add_elem(web,_mid,_typ,0,me); refresh(); break;
       case 'xucasti': TABLE.novy(_mid); refresh(); break;
     }
   }
