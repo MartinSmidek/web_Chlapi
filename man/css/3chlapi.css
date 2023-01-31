@@ -186,39 +186,6 @@ div.filler {
   top: 368px;
   width: 80px;
 }
-nav {
-  top: 0;
-}
-.mobile-menu ul {
-  margin: 0;
-  padding: 0;
-}
-.mobile-menu li {
-  font-size: 20px;
-  line-height: 30px;
-  margin: 0;
-  overflow: hidden;
-  padding: 5px;
-  position: relative;
-  text-align: left;
-  /*text-transform: uppercase;*/
-  padding-left: 15px;
-}
-.mobile-menu li:first-child {
-  margin-top: 40px;
-}
-.mobile-menu li:hover {
-  /*background: #CCCCCC;*/
-  background: #888;
-  z-index: 9998;
-}
-.mobile-menu li a {
-  text-decoration: none;
-  /*color: black;*/
-  color: white;
-  display: inline-block;
-  width: 100%;
-}
 .mobile-menu-open {
   height: 29px;
   cursor: pointer;
@@ -236,7 +203,27 @@ nav {
 .mobile-menu-open i {
   font-size: 30px;
 }
-.mobile-menu-close {
+nav {
+  top: 0;
+}
+nav.mobile-menu {
+  right: -320px;
+  width: 320px;
+  max-width: 250px;
+  background: black;
+  color: white;
+  height: 100%;
+  position: fixed;
+  z-index: 9997;
+  overflow-y: auto;
+  transform: translate3d(0, 0, 205px);
+  -webkit-transform: translate3d(0, 0, 205px);
+  -moz-transform: translate3d(0, 0, 205px);
+  transition: all 500ms ease-in-out;
+  -webkit-transition: all 500ms ease-in-out;
+  -moz-transition: all 500ms ease-in-out;
+}
+nav.mobile-menu .mobile-menu-close {
   height: 25px;
   cursor: pointer;
   text-align: right;
@@ -245,74 +232,68 @@ nav {
   top: 10px;
   font-size: 30px;
 }
-.mobile-menu li.has-children {
+nav.mobile-menu.active {
+  right: 0;
+  transform: translate3d(0, 0, 0);
+  -webkit-transform: translate3d(0, 0, 0);
+  -moz-transform: translate3d(0, 0, 0);
+  transition: all 500ms ease-in-out;
+  -webkit-transition: all 500ms ease-in-out;
+  -moz-transition: all 500ms ease-in-out;
+}
+nav.mobile-menu .children {
+  display: none;
+}
+nav.mobile-menu .children li:first-child {
+  margin-top: 0px;
+}
+nav.mobile-menu ul {
+  margin: 0;
+  padding: 0;
+}
+nav.mobile-menu li {
+  font-size: 20px;
+  line-height: 30px;
+  margin: 0;
+  overflow: hidden;
+  padding: 5px;
+  position: relative;
+  text-align: left;
+  /*text-transform: uppercase;*/
+  padding-left: 15px;
+}
+nav.mobile-menu li:first-child {
+  margin-top: 40px;
+}
+nav.mobile-menu li:hover {
+  background: #888;
+  z-index: 9998;
+}
+nav.mobile-menu li a {
+  text-decoration: none;
+  color: white;
+  display: inline-block;
+  width: 100%;
+}
+nav.mobile-menu li a:hover {
+  background: #888;
+  cursor: pointer;
+}
+nav.mobile-menu li.has-children {
   padding-bottom: 0;
   padding-right: 0;
   margin-bottom: 5px;
 }
-.mobile-menu li.has-children ul {
+nav.mobile-menu li.has-children ul {
   background: black;
 }
-.mobile-menu li.has-children:hover {
-  /*background:black;*/
+nav.mobile-menu li.has-children:hover {
   cursor: pointer;
 }
-.mobile-menu li a:hover {
-  background: #888;
-  cursor: pointer;
-}
-/*---------------------
-	Mobiles Menu - Slide IN 
-	----------------------*/
-.mobile-menu {
-  right: -320px;
-  width: 320px;
-  /*top: 15px;*/
-  max-width: 250px;
-  /*  left: -100%;
-  width: 100%;*/
-  /*background: #EBEBEB;*/
-  /*color: black;*/
-  background: black;
-  color: white;
-  height: 100%;
-  position: fixed;
-  z-index: 9997;
-  overflow-y: auto;
-  -webkit-transform: translate3d(0, 0, 205px);
-  -moz-transform: translate3d(0, 0, 205px);
-  transform: translate3d(0, 0, 205px);
-  -webkit-transition: all 500ms ease-in-out;
-  -moz-transition: all 500ms ease-in-out;
-  transition: all 500ms ease-in-out;
-}
-.mobile-menu.active {
-  right: 0;
-  /*left: 0;*/
-  -webkit-transform: translate3d(0, 0, 0);
-  -moz-transform: translate3d(0, 0, 0);
-  transform: translate3d(0, 0, 0);
-  -webkit-transition: all 500ms ease-in-out;
-  -moz-transition: all 500ms ease-in-out;
-  transition: all 500ms ease-in-out;
-}
-/*---------------------
-	Mobiles Menu - Dropdown Submenu
-	----------------------*/
-.has-children:hover {
-  /*cursor:hand;*/
-}
-.children {
-  display: none;
-}
-.mobile-menu .children li:first-child {
-  margin-top: 0px;
-}
-.icon-arrow {
+nav.mobile-menu li.has-children .icon-arrow {
   position: absolute;
   display: block;
   font-size: 0.7em;
-  /*color: black;*/
   color: white;
   top: 5px;
   right: 10px;
@@ -323,10 +304,18 @@ nav {
   -webkit-transition: 0.6s;
   -moz-transition: 0.6s;
 }
-.icon-arrow:after {
+nav.mobile-menu li.has-children .icon-arrow:after {
   content: "\25BC";
 }
-.icon-arrow.open {
+nav.mobile-menu li.has-children .icon-arrow.open {
+  transform: rotate(-180deg);
+  -webkit-transform: rotate(-180deg);
+  -moz-transform: rotate(-180deg);
+  transition: 0.6s;
+  -webkit-transition: 0.6s;
+  -moz-transition: 0.6s;
+}
+nav.mobile-menu li.has-children.open .icon-arrow {
   transform: rotate(-180deg);
   -webkit-transform: rotate(-180deg);
   -moz-transform: rotate(-180deg);
