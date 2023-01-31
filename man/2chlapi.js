@@ -68,6 +68,7 @@ function change_js(menu,cmd) {
         return false;
       })
       jQuery('li.has-children').on('click', function() {
+         jQuery('ul.children[style*="block"]').slideUp('slow', 'swing');
          jQuery(this).children('ul').slideToggle('slow', 'swing');
          jQuery('.icon-arrow').toggleClass('open');
       });
