@@ -647,16 +647,23 @@ function note_send($whos) {
 # ---------------------------------------------------------------------------------------- note text
 # vytvoří dopis pro $who
 function discord_mail($mail) {
-  $pozn= '';
-  $mail= str_replace('.','\\\\.',strtolower(trim($mail)));
-  $rok= select('iniciace','ezer_db2.osoba',
-      "iniciace>0 AND deleted='' AND kontakt=1 AND email RLIKE '(^|[\\\\s,;]+){$mail}([\\\\s,;]+|$)'");
-  if (!$rok) {
+  $text= $pozn= '';
+  $mail= strtolower(trim($mail));
+  if (preg_match('/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/',$mail)) {
+    $mail= str_replace('.','\\\\.',$mail);
     $rok= select('iniciace','ezer_db2.osoba',
-        "iniciace>0 AND deleted='' AND kontakt=1 AND gmail RLIKE '(^|[\\\\s,;]+){$mail}([\\\\s,;]+|$)'");
-    $pozn= ", tento mail používá v konferencích";
+        "iniciace>0 AND deleted='' AND kontakt=1 AND email RLIKE '(^|[\\\\s,;]+){$mail}([\\\\s,;]+|$)'");
+    if (!$rok) {
+      $rok= select('iniciace','ezer_db2.osoba',
+          "iniciace>0 AND deleted='' AND kontakt=1 AND gmail RLIKE '(^|[\\\\s,;]+){$mail}([\\\\s,;]+|$)'");
+      $pozn= ", tento mail používá v konferencích";
+    }
+    $text= $rok ? "Patří, byl iniciován v roce $rok$pozn." : "Nepatří.";
   }
-  return $rok ? "Patří, byl iniciován v roce $rok$pozn." : "Nepatří.";
+  else {
+    $text= "To je chybná emailová adresa.";
+  }
+  return $text;
 }
 # ============================================================================================ BIBLE
 # --------------------------------------------------------------------------------- bib save_aliases
