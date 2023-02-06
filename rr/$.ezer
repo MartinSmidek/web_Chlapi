@@ -172,7 +172,7 @@ menu rr { type:'main', active:rr.richard
           func onclick() { clear(); answ= php.discord_mail(mail); }}
         label answ [100,90,400,50]
       }
-      menu m {type:'left', format:'f'
+      menu m {type:'left', format:'f', active:*
         menu p {title:'Ověření údajů',type:'group'
           item {title:'[fa-question] ověření mailu'
             func onclick(i:ezer) { 
