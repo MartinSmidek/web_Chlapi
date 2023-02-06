@@ -167,10 +167,10 @@ menu rr { type:'main', active:rr.richard
       title:"<img src='rr/img/discord-B.png' style='float:left;height:12px;margin-right:5px'> Discord"
     panel maily { type:'right', title:'propojeni s Answerem'
       use info: form right [12,4,,] {
-        field mail [100,10,200,] { title:"zadej mail:", format:'t' }
-        button [350,10,,] { title:'patří iniciovanému chlapovi?' 
+        field mail [100,60,200,] { title:"zadej mail:", format:'t' }
+        button [350,60,,] { title:'patří iniciovanému chlapovi?' 
           func onclick() { clear(); answ= php.discord_mail(mail); }}
-        label answ [100,40,400,50]
+        label answ [100,90,400,50]
       }
       menu m {type:'left', format:'f'
         menu p {title:'Ověření údajů',type:'group'
