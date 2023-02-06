@@ -24,8 +24,9 @@
   global $icon;
   $add_pars= array(
     'favicon' => $icon,
-    'watch_ip' => 0,    
-    'watch_key' => 0,    
+    'no_local' => 1,    
+    'watch_ip' => 1,    
+    'watch_key' => 1,    
     'watch_pin' => 0,    
     'CKEditor' => "{
       version:'4.6',

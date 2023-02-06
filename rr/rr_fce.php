@@ -643,6 +643,21 @@ function note_send($whos) {
   $html= "odesláno $n mailů z ".count($whos);
   return $html;
 }
+# ========================================================================================== DISCORD
+# ---------------------------------------------------------------------------------------- note text
+# vytvoří dopis pro $who
+function discord_mail($mail) {
+  $text= $pozn= '';
+  $mail= strtolower(trim($mail));
+  $rok= select('iniciace','ezer_db2.osoba',
+      "iniciace>0 AND deleted='' AND kontakt=1 AND email RLIKE '(^|[\\\\s,;]+){$mail}([\\\\s,;]+|$)'");
+  if (!$rok) {
+    $rok= select('iniciace','ezer_db2.osoba',
+        "iniciace>0 AND deleted='' AND kontakt=1 AND gmail RLIKE '(^|[\\\\s,;]+){$mail}([\\\\s,;]+|$)'");
+    $pozn= ", tento mail používá v konferencích";
+  }
+  return $rok ? "Patří, byl iniciován v roce $rok$pozn." : "Nepatří.";
+}
 # ============================================================================================ BIBLE
 # --------------------------------------------------------------------------------- bib save_aliases
 # aktualizuje aliasy dané knihy

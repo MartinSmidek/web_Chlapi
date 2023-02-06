@@ -3,7 +3,7 @@ panel testy { type:'right', title:'Úvahy a meditace'
   use g: form _g [12,38,,] { tag:'g', format:'n' }
   use h: form _h [12,38,,] { tag:'h', format:'n' }
   use b: form _b [12,38,,] { tag:'b', format:'n' }
-  menu m {type:'left', format:'f'
+  menu m {type:'left', format:'f' 
     menu p {title:'Překládání úvah CAC',type:'group'
       item k {title:'[fa-calendar-check-o] Plánovací kalendář'
         func onclick(i:ezer) { 

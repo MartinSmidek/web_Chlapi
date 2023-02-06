@@ -1,7 +1,7 @@
 menu rr { type:'main', active:rr.richard
   func onstart() { php.table_lock('none'); } // uvolni všechny zámky řádků tabulek přihlášeného 
   # ===================================================================================> RR
-  tabs richard {title:"[fa-lightbulb-o] Myšlenky", _sys:'*', skill:'rr'
+  tabs richard {title:"[fa-lightbulb-o] RR - myšlenky", _sys:'*', skill:'rr'
     panel rohr {type:'right', title:'[fa-send-o] Rozesílání'
       menu myslenka {type:'left'
         menu ukazat {title:'Zobrazení',type:'group'
@@ -123,7 +123,7 @@ menu rr { type:'main', active:rr.richard
     }
   }
   # ===================================================================================> CAC
-  tabs uvahy {title:"[fa-graduation-cap] CAC", _sys:'*', skill:'cac', include:'onload'}
+  tabs uvahy {title:"[fa-graduation-cap] CAC - meditace", _sys:'*', skill:'cac', include:'onload'}
   # ===================================================================================> Maily
   tabs maily {title:"[fa-send-o] Maily", _sys:'*', skill:'mail'
     panel maily { type:'right', title:'Upomínací maily'
@@ -162,6 +162,28 @@ menu rr { type:'main', active:rr.richard
       }
     }
   }
+  # ===================================================================================> Discord
+  tabs discord { _sys:'*', skill:'discord'
+      title:"<img src='rr/img/discord-B.png' style='float:left;height:12px;margin-right:5px'> Discord"
+    panel maily { type:'right', title:'propojeni s Answerem'
+      use info: form right [12,4,,] {
+        field mail [100,10,200,] { title:"zadej mail:", format:'t' }
+        button [350,10,,] { title:'patří iniciovanému chlapovi?' 
+          func onclick() { clear(); answ= php.discord_mail(mail); }}
+        label answ [100,40,400,50]
+      }
+      menu m {type:'left', format:'f'
+        menu p {title:'Ověření údajů',type:'group'
+          item {title:'[fa-question] ověření mailu'
+            func onclick(i:ezer) { 
+              info.header(i); clear();
+              info.answ= '';
+            }
+          }
+        }
+      }
+    }
+  }
   # ===================================================================================> Bans
   tabs bans {title:"[fa-exclamation] BANs", _sys:'*', skill:'ban'
     panel maily { type:'right', title:'Správa BANů v konferencích'
@@ -194,7 +216,7 @@ menu rr { type:'main', active:rr.richard
     }
   }
   # ===================================================================================> Statistika
-  tabs stat {title:"[fa-line-chart] Statistika", _sys:'*'
+  tabs stat {title:"[fa-line-chart] Statistika", _sys:'*', skill:'brno'
     panel maily { type:'right', title:'Brněnská skupina'
       use info: form right [12,4,,]
       var last_par:object, last_menu:ezer
