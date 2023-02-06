@@ -647,8 +647,8 @@ function note_send($whos) {
 # ---------------------------------------------------------------------------------------- note text
 # vytvoří dopis pro $who
 function discord_mail($mail) {
-  $text= $pozn= '';
-  $mail= strtolower(trim($mail));
+  $pozn= '';
+  $mail= str_replace('.','\\\\.',strtolower(trim($mail)));
   $rok= select('iniciace','ezer_db2.osoba',
       "iniciace>0 AND deleted='' AND kontakt=1 AND email RLIKE '(^|[\\\\s,;]+){$mail}([\\\\s,;]+|$)'");
   if (!$rok) {
