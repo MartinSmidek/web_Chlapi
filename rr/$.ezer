@@ -176,7 +176,7 @@ menu rr { type:'main', active:rr.richard
         menu p {title:'Ověření údajů',type:'group'
           item {title:'[fa-question] ověření mailu'
             func onclick(i:ezer) { 
-              info.header(i); clear();
+              clear(); info.header(i); 
               info.answ= '';
             }
           }
