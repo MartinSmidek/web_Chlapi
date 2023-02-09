@@ -55,6 +55,15 @@ function change_css(s) {
 function change_js(menu,cmd) {
   // kód pro nové menu
   if (menu=='new') {
+    // ošetření přilepení headeru
+    const stickyElm = document.querySelector('#logo')
+    const observer = new IntersectionObserver( 
+      ([e]) => 
+        e.target.classList.toggle('isSticky', e.intersectionRatio < 1),{threshold: [1]}
+    );
+    if (stickyElm)
+      observer.observe(stickyElm)
+    // úpravy
     if (cmd && cmd=='close') {
       jQuery('nav.mobile-menu').removeClass('active');
     }

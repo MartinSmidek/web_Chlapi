@@ -59,11 +59,12 @@ function page($ref) { trace();
 function new_menu($path,&$elem) { trace();
   global $menu, $REDAKCE, $KLIENT, $prefix, $backhref, $backref, $top, $currpage, $curr_menu, $part;
   $html= '';
-  $isub= 2;
+  $isub= 2; 
   // filtrované načtení tabulky MENU
   read_menu($path);
   // vytvoření stromu a rozbor $path
-  $xmenu= array();
+  $xmenu= array();                    // [nazev,href, ...[sub]
+  $pc_menu1= $pc_menu2= array();      // indexy PC menu pro první a druhý řádek
   $top= array_shift($path);
   $input= '';
   $main_sub= 0;
@@ -71,6 +72,7 @@ function new_menu($path,&$elem) { trace();
     if ($m->typ==0) {
       $href= $m->ref;
       $xmenu[$m->mid]= array($m->nazev,$href);
+      $pc_menu1[]= $m->mid;
       if ( $m->ref===$top ) {
         $elem= $m->elem;
         $curr_menu= $m;
@@ -86,6 +88,7 @@ function new_menu($path,&$elem) { trace();
       $href= $m->ref;
       if ($m->mid_sub) $href.= "!{$menu[$m->mid_sub]->ref}";
       $xmenu[$m->mid]= array($m->nazev,$href);
+      $pc_menu2[]= $m->mid;
       if ( $m->ref===$top ) {
         $main_sub= $m->mid_sub;
         $elem= $m->elem;
@@ -115,17 +118,12 @@ function new_menu($path,&$elem) { trace();
       }
     }
   }
-//  debug($xmenu,"xmenu, elem=$elem");
+  debug($xmenu,"xmenu, elem=$elem");
   // generování html 
   $prefix= get_prefix();
   $input= '';
-  $top1= $REDAKCE ? "style='top:40px;'" : '';
+  $top1= $REDAKCE ? "style='/*top:40px;*/'" : '';
   $top2= $REDAKCE ? "style='top:30px;'" : '';
-  $part->menu_open= <<<__EOM
-    <div class="mobile-menu-open" $top1>
-      <i class="fa fa-bars"></i>
-    </div>
-__EOM;
   $html.= <<<__EOM
     <nav class="mobile-menu" $top2>
       <div class="mobile-menu-close">
@@ -133,12 +131,51 @@ __EOM;
       </div>
       <ul>
 __EOM;
+  $top_menu= '';
+  $cleared= 0;
+  // pc menu
+  $menu1= ''; // horní řádek
+  foreach ($pc_menu1 as $mid) {
+    $nazev= $xmenu[$mid][0];
+    $href= $xmenu[$mid][1];
+    $jmp= $REDAKCE 
+      ? "onclick=\"go(arguments[0],'page=$href','{$prefix}$href','$input',0);\""
+      : "href='{$prefix}$href'";
+    $jmp.= "title='$href'";
+    $menu1= "<a class='box' $jmp>$nazev</a>$menu1";
+  }
+  $menu2= ''; // spodní řádek
+  foreach ($pc_menu2 as $mid) {
+    $nazev= $xmenu[$mid][0];
+    $ul= "<ul>";
+    if (isset($xmenu[$mid][$isub])) {
+      foreach ($xmenu[$mid][$isub] as $xx) {
+        $sub= $xx[0];
+        $href= "$xx[1]";
+        $jmp= $REDAKCE 
+          ? "onclick=\"go(arguments[0],'page=$href','{$prefix}$href','$input',0);\""
+          : "href='{$prefix}$href'";
+        $jmp.= "title='$href'";
+        $ul.= "<li><a $jmp>$sub</a></li>";
+      }
+    }
+    $ul.= "</ul>";
+    $menu2= "<div><a class='box'>$nazev</a>$ul</div>$menu2";
+  }
+  // mobile menu
   foreach ($xmenu as $x) {
     $href= $x[1];
     $jmp= $REDAKCE 
       ? "onclick=\"go(arguments[0],'page=$href','{$prefix}$href','$input',0);\""
       : "href='{$prefix}$href'";
     $jmp.= "title='$href'";
+    if ($x[2]==1 && !$cleared) {
+      $cleared= 1;
+      $clear= ";clear:right;";
+    }
+    $top= $x[2]==1 ? "style='top:70px$clear'" : "style='top:30px$clear'";
+    $clear= '';
+    $top_menu= "<div class='pc-menu-open' $top>$x[0]</div>$top_menu";
     if (isset($x[$isub])) {
 //      $html.= "\n  <li class='has-children'><a $jmp>$x[0]</a><span class='icon-arrow'></span><ul class='children'>";
       $html.= "\n  <li class='has-children'>$x[0]<span class='icon-arrow'></span><ul class='children'>";
@@ -157,6 +194,16 @@ __EOM;
     }
     $html.= "</li>";
   }
+  // hlavní menu a vyvolání mobilnho menu
+  $part->menu_open= <<<__EOM
+    <div class="mobile-menu-open" $top1>
+      <i class="fa fa-bars"></i>
+    </div>
+    <nav class="pc-menu">
+      <div class="pc-menu-top">$menu1</div>
+      <div>$menu2</div>
+    </nav>
+__EOM;
   // specifické položky MENU - přihlášení, jazyl
   $lang= get_lang();
   if ($lang=='cs') {
