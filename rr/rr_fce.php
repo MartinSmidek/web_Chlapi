@@ -643,6 +643,37 @@ function note_send($whos) {
   $html= "odesláno $n mailů z ".count($whos);
   return $html;
 }
+# ---------------------------------------------------------------------------------------- note send
+# pošle dopis pro $who - pokud je to * tak všem
+function note_send2($whos,$to_send=0) {
+  $html= '';
+  list($adr,$replyto,$par,$subj,$txt)= select('adr,replyto,par,subj,txt','cron',"batch='rr-note'");
+  $adresy= (array)json_decode($adr);
+  debug($adresy,'adr');
+  $subst= (array)json_decode($par);
+  debug($subst,'par');
+  $n= 0;
+  $whos= $whos=='*' ? array_keys($adresy) : explode(',',$whos);
+  foreach ($whos as $who) {
+    $par= $subst[$who];
+    $txt_par= str_replace('{poznamka}',$par,$txt);
+    if ($to_send) {
+      $ok= rr_send_mail("Měsíční připomenutí zápisu zůstatků pokladen",$txt_par,
+          $replyto,$adresy[$who],'','mail',$replyto,"pro ".implode(',',$whos));
+      if (!$ok) break;
+      $n++;
+    }
+    else {
+      $html.= "<table class='struc'>
+        <tr><td>ADRESA <b>$who</b>: $adresy[$who]</td></tr>
+        <tr><td>REPLY_TO: $replyto</td></tr>
+        <tr><td>PŘEDMĚT: $subj</td></tr>";
+      $html.= "<tr><td>$txt_par</td></tr></table><br>";
+    }
+  }
+  if ($to_send) $html.= "<br><br>odesláno $n mailů z ".count($whos);
+  return $html;
+}
 # ========================================================================================== DISCORD
 # ---------------------------------------------------------------------------------------- note text
 # vytvoří dopis pro $who
@@ -705,7 +736,7 @@ function stamp_show($typ,$subj='') {
   $rs= pdo_qry("SELECT DATE(kdy),GROUP_CONCAT(TIME(kdy)),pozn  
     FROM stamp WHERE typ='$typ' GROUP BY CONCAT(DATE(kdy),pozn) ORDER BY kdy DESC LIMIT 24");
   while ( $rs && (list($den,$cas,$pozn)= pdo_fetch_row($rs)) ) {
-    $html.= "<dt>$den $cas</dt><dd>$pozn $subj</dd>";
+    $html.= "<dt>$den $cas</dt><dd>$pozn ($subj)</dd>";
   }
   $html.= "</dl>";
   return $html;
@@ -1069,7 +1100,7 @@ function rr_send($par) {
 # ---------------------------------------------------------------------------------------- send mail
 # pošle systémový mail, pokud není určen adresát či odesílatel jde o mail správci aplikace
 # $to může být seznam adres oddělený čárkou
-function rr_send_mail($subject,$html,$from='',$to='',$fromname='',$typ='',$replyto='') { //trace();
+function rr_send_mail($subject,$html,$from='',$to='',$fromname='',$typ='',$replyto='',$lognote='') { //trace();
   global $ezer_path_serv, $EZER, $api_gmail_user, $api_gmail_pass;
   $to= $to ? $to : $EZER->options->mail;
   // poslání mailu
@@ -1105,6 +1136,7 @@ function rr_send_mail($subject,$html,$from='',$to='',$fromname='',$typ='',$reply
   else {
     // zápis do stamp
     $dt= date('Y-m-d H:i:s');
+    if ($lognote) $subject.= " ... $lognote";
     query("INSERT INTO stamp (typ,kdy,pozn) VALUES ('$typ','$dt','$subject')");
   }
   return $ok;

@@ -125,7 +125,74 @@ menu rr { type:'main', active:rr.richard
   # ===================================================================================> CAC
   tabs uvahy {title:"[fa-graduation-cap] CAC - meditace", _sys:'*', skill:'cac', include:'onload'}
   # ===================================================================================> Maily
-  tabs maily {title:"[fa-send-o] Maily", _sys:'*', skill:'mail'
+  tabs maily {title:"[fa-send-o] Maily (new)", _sys:'*', skill:'maily'
+    panel maily { type:'right', title:'Upomínací maily'
+      use msg:  form right [12,4,,] { tag:'R' }
+      use info: form _info [12,4,,] { tag:'E' }
+      form _info [,,*,50] { style:'width:calc(100% - 24px)'
+        // header
+        label head [0,0,*,50]  { title:'' }
+        func header(i:ezer) { var i_owner:ezer
+          clear(); i_owner= i.owner(); 
+          head= replace_fa(`<div class='karta'>${i_owner.title} - ${i.title}</div>`);
+        }
+        // mail
+        field id_cron { data:cron.id_cron }
+        label infox [10,55,622,70] 
+        field info { data:cron.info }
+        edit adr [10,155,800,100] { data:cron.adr, title:'^adresáti ve formátu JSON {skupina:seznam adres,...}' }
+        field replyto [10,285,800,] { data:cron.replyto, title:'^odesílací adresa pro případ odpovědi' }
+        edit pozn [10,330,800,150] { data:cron.par, 
+            title:'^text nahrazující v dopisu {poznamka} ve formátu JSON {skupina:poznámka,...}, poznámky jsou ve formátu HTML' }
+        edit txt [10,510,800,333] { data:cron.txt, title:'^text dopisu obsahující {poznamka}', type:'html' }
+        // akce
+        label [692,63,120,57] { css:'parm' }
+        button [702,70,,] { title:'[fa-save] Uložení změn' 
+          func onclick() { var ok:object
+            ok= json_decode(adr);
+            if (!ok) alert('zápis adresátů nemá validní formát JSON');
+            ok= json_decode(pozn);
+            if (!ok) alert('zápis poznámek nemá validní formát JSON');
+            if (ok) {
+              form.save(1); Load()
+            }
+        }}
+        button [702,94,,] { title:'[fa-undo] Vrácení změn' func onclick() { Load()}}
+        func Load() { form.load(1); infox= info; }
+      }
+      // menu
+      func onfirstfocus() { m.p.i.click() }
+      menu m {type:'left', format:'f', active:m.p.i
+        menu p {title:'Pokladní upozornění',type:'group'
+          item i {title:'[fa-edit] Úprava adresátů a textu'
+            func onclick(i:ezer) { 
+              panel.display(2,'E');
+              info.header(i); clear();
+              info.Load();
+            }
+          }
+          item {title:'[fa-question] ukázat maily bez odeslání',par:{adresy:'*',poslat:0}}
+          item {title:'[fa-send] poslat nyní všem upomínku',    par:{adresy:'*',poslat:1}}
+          item {title:"[fa-send] ... JEN NA ADRESU 'ja' ",      par:{adresy:'ja',poslat:1}}
+          func onclick(i:ezer) { 
+            panel.display(2,'R');
+            msg.header(i); clear();
+            msg.fill('',php.note_send2(i.par.adresy,i.par.poslat));
+          }
+        }
+        menu {title:'Log file',type:'group'
+          item {title:'[fa-question] log odesílání mailů',  par:{typ:'mail',subj:'pokladna'} }
+          func onclick (i:ezer) { 
+            panel.display(2,'R');
+            clear(); msg.header(i); 
+            msg.fill('',php.stamp_show(i.par.typ,i.par.subj));
+          }
+        }
+      }
+    }
+  }
+  # ===================================================================================> Old Maily
+  tabs oldmaily {title:"[fa-send-o] Maily", _sys:'*', skill:'mail'
     panel maily { type:'right', title:'Upomínací maily'
       use info: form right [12,4,,]
       menu m {type:'left', format:'f'
@@ -276,11 +343,14 @@ menu rr { type:'main', active:rr.richard
       par:{
         infos: [
           {title:'[fa-object-group] Schema databáze',
-           html: "tabulky RR a CAC jsou nezávislé"}
+           html: "tabulky RR a CAC jsou nezávislé. CACTHEME je provázána s CAC"}
         ],
         tables: {
-          rr:   "id_rr>*,day_n,day,datum,subject",
-          cac:  "id_cac>*,day_n,day,datum,subject"
+          rr:       "id_rr>*,day_n,day,datum,subject",
+          cac:      "id_cac>*,day_n,day,datum,subject",
+          cactheme: "id_cactheme>*,url_theme,theme_eng,theme_cz",
+          stamp:    "id_stamp>*,typ,kdy,pozn",
+          cron:     "id_cron>*,batch,info,adr,replyto,par,subj,txt"
         },
         css: 'struc' // styl tabulek
     }}
@@ -330,6 +400,16 @@ menu rr { type:'main', active:rr.richard
     text text_en
     text from_en
     text errata
+  }
+  table cron { key_id:'id_cron'
+    number id_cron
+    text batch
+    text info
+    text adr
+    text replyto
+    text par
+    text subj
+    text txt
   }
 }
 // univerzální formulář pro levostranné menu
