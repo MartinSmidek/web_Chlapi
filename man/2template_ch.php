@@ -118,7 +118,7 @@ function new_menu($path,&$elem) { trace();
       }
     }
   }
-  debug($xmenu,"xmenu, elem=$elem");
+//  debug($xmenu,"xmenu, elem=$elem");
   // generování html 
   $prefix= get_prefix();
   $input= '';
@@ -173,9 +173,9 @@ __EOM;
       $cleared= 1;
       $clear= ";clear:right;";
     }
-    $top= $x[2]==1 ? "style='top:70px$clear'" : "style='top:30px$clear'";
+    $top_px= $x[2]==1 ? "style='top:70px$clear'" : "style='top:30px$clear'";
     $clear= '';
-    $top_menu= "<div class='pc-menu-open' $top>$x[0]</div>$top_menu";
+    $top_menu= "<div class='pc-menu-open' $top_px>$x[0]</div>$top_menu";
     if (isset($x[$isub])) {
 //      $html.= "\n  <li class='has-children'><a $jmp>$x[0]</a><span class='icon-arrow'></span><ul class='children'>";
       $html.= "\n  <li class='has-children'>$x[0]<span class='icon-arrow'></span><ul class='children'>";
@@ -1306,6 +1306,7 @@ __EOD;
   // --------------------------------------------------------------- NOVÉ MENU
   if ($menu_type=='new') {
     $chlapi_css= "3chlapi.css";
+    $background= '';
     $top_of_page= 360;
     $headline= "<script type='text/javascript'>change_js('new');</script>
       <div class='header' style=\"
@@ -1323,6 +1324,9 @@ __EOD;
   // --------------------------------------------------------------- STARÉ MENU
   elseif ($menu_type=='old') { 
     $chlapi_css= "2chlapi.css";
+    // počáteční tapeta pro klientský běh, pro redakční je v man.php ve funkci specific
+    $wall= isset($_COOKIE['wallpaper']) ? $_COOKIE['wallpaper'] : 'foto_home.jpg';
+    $background= "<style>body{background-image:url(man/css/wall/$wall);}</style>";
     $top_of_page= 0;
     // menu
     $topmenu= show_menu('top');
@@ -1348,8 +1352,6 @@ __EOD;
   }
   
   // ----------------------------------------------------------------- společné
-  // počáteční tapeta pro klientský běh, pro redakční je v man.php ve funkci specific
-  $wall= isset($_COOKIE['wallpaper']) ? $_COOKIE['wallpaper'] : 'foto_home.jpg';
   // head
   global $icon;
   $head=  <<<__EOD
@@ -1362,7 +1364,7 @@ __EOD;
     <meta name="google-site-verification" content="xFZh7Tcq758NyaEit8MFFVxzq605l3hKFQXJwD53nOo" />
     <title>chlapi.cz</title>
     <link rel="shortcut icon" href="/man/img/$icon" />
-    <style>body{background-image:url(man/css/wall/$wall);}</style>
+    $background
     $script
     <link rel="stylesheet" href="/man/css/$chlapi_css$v_app" type="text/css" media="screen" charset="utf-8" />
     <link rel="stylesheet" href="/man/css/edit.css$v_app" type="text/css" media="screen" charset="utf-8" />

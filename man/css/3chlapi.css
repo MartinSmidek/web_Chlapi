@@ -817,6 +817,7 @@ div.kniha {
   clear: both;
   border-radius: 0.8em;
   text-align: center;
+  padding: 0 10px;
 }
 .kniha_bg > a.jump {
   margin: 1em;
