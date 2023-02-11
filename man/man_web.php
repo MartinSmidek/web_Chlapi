@@ -269,8 +269,12 @@ function cac_meditace($ymd,$jmp,$plny,$par=2) {
       : '';
   $html= "$odkazy<h1>Překlad meditace CAC $z_data <br>na téma: 
       <a href='$x->url_theme' target='cac'>$x->theme_cz</a></h1>
-      $prefix $body $x->reference
+      $prefix $body 
       <hr><i>$postfix</i>";
+//  $html= "$odkazy<h1>Překlad meditace CAC $z_data <br>na téma: 
+//      <a href='$x->url_theme' target='cac'>$x->theme_cz</a></h1>
+//      $prefix $body $x->reference
+//      <hr><i>$postfix</i>";
   return $html;
 }
 ?>
