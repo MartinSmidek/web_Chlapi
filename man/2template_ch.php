@@ -1436,7 +1436,9 @@ __EOD;
         </div>
       </div>
       $filler
-      $html
+      <div class="body">
+        $html
+      </div>
       $prompt
     </div>
   <!-- konec -->

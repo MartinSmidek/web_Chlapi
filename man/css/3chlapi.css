@@ -166,7 +166,7 @@ div.header {
   position: sticky;
   top: -341px;
   z-index: 2;
-  background: #ccc;
+  /*background:black;*/
 }
 div.filler {
   height: 2em;
@@ -872,37 +872,34 @@ div.pdf span.sorry {
   width: -moz-fit-content;
 }
 @media all and (max-width: 600px) {
-  div#web {
-    top: 60px;
-  }
+  /*div#web { top:60px; }*/
   nav.pc-menu {
     display: none;
   }
   div.header {
     top: 0;
     height: 60px;
-    position: fixed;
+    z-index: 3;
+    /*position:relative;*/
     background-image: none !important;
+    background: #ccc;
   }
   div.header #logo {
     left: 0;
     top: 0;
     width: 62px;
-    position: fixed;
+    float: left;
+    /*position:fixed;*/
   }
   div.header #motto {
     left: 0;
-    top: 10px;
+    /*float: left;*/
+    /*top:10px;*/
     font-size: 12px;
     margin-left: 64px;
-    position: fixed;
+    /*position:fixed;*/
+    /*&.isSticky { display:block; }*/
   }
-  div.header #motto.isSticky {
-    display: block;
-  }
-  /*  div.sloupce {
-    margin-top:65px;
-  }*/
 }
 /*
 // ------------------------------------------------------------------------------- počet sloupců
