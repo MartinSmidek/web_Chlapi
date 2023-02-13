@@ -67,10 +67,10 @@
       $stamp= cac_read_medits('AUTO');
       echo "<hr><h2>Daily Meditations from CAC</h2><br>$html";
       break;
-    case 'rr-note':
-      $stamp= note_send('*');
-      echo "<hr><h2>Odeslání připomenutí</h2><br>$html";
-      break;
+//    case 'rr-note': -- přesunuto do answer/db2.php
+//      $stamp= note_send2('*',1);
+//      echo "<hr><h2>Odeslání připomenutí</h2><br>$html";
+//      break;
     }
   }
   else {
