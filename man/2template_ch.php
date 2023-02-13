@@ -932,7 +932,8 @@ __EOT;
         if ( isset($book->tit) ) {
           $obsah= "<b>$book->tit</b> $obsah";
         }
-        $styl= 'aclanek';
+        // k prvnímu abstraktu zobrazenému jako abstrakt knihy přidej styl kniha - třeba dvojitý rám
+        $styl= 'aclanek'.(isset($book->subtyp) && !$book->open ? ' kniha' : '');
         $neodkaz= '';
         if ( $wskill && !($KLIENT->level & $wskill) ) {
           $jmp= '';

@@ -460,6 +460,9 @@ div.sloupce a.aclanek {
   break-inside: avoid;
   page-break-inside: avoid;
 }
+div.sloupce a.aclanek.kniha {
+  border-style: double;
+}
 div.sloupce a.aclanek_nojump {
   cursor: pointer;
   background-image: url(no_more.png);
