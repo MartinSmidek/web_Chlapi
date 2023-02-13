@@ -184,7 +184,7 @@ div.filler {
   margin: 10px;
   top: 10px;
   background: white;
-  box-shadow: -1px 1px 0px #000, 1px -1px 0px #000, -1px -1px 0px #000, 5px 5px 10px #000;
+  box-shadow: -1px 1px 0px #567, 1px -1px 0px #567, -1px -1px 0px #567, 5px 5px 10px #567;
 }
 .mobile-menu-open:hover {
   opacity: 1;
