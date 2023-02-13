@@ -137,7 +137,7 @@ div.filler { height: 2em; }
 nav {
   top:5px;
   &.pc-menu { 
-    position:sticky; 
+    position:sticky; z-index:2;
     div { 
       position: sticky; float:right; 
       a.box {
@@ -326,10 +326,13 @@ div.home, a.home, #user_mail, #skup0, #skup1, #skup2 {
   }
   // články v mapě
   &#skup0 { 
+    position:absolute; z-index:2; top:5px; left:5px;
     width:18em; }
   &#skup1 { 
+    position:absolute; z-index:2; top:5px; left:5px;
     max-width:25em; display:none; } 
   &#skup2 { 
+    position:absolute; z-index:2; top:5px; left:5px;
     max-width:25em; display:none; 
     input { 
       display:block; max-width:24.5em; width:100%;
@@ -460,6 +463,9 @@ div.pdf {
     #motto { left:0; top:10px; font-size: 12px; margin-left: 64px; position:fixed; 
        &.isSticky { display:block; }
     }
+  }
+  div.sloupce {
+    margin-top:65px;
   }
 }
 

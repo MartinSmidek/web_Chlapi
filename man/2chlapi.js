@@ -378,6 +378,8 @@ var code= {
 // -------------------------------------------------------------------------------------- skup mapka
 function skup_mapka() {
   if ( typeof(Ezer)=='undefined' || !Ezer.App ) return;
+  header= jQuery('div.header');
+  header.css({position:'unset'});
   label= jQuery('div.cms_mapa');
   if ( label[0] ) {
     label.css({display:'block'});
@@ -418,7 +420,7 @@ function skup_dialog(mark) {
     <span>Chci se zeptat organizátorů</span></a></div>"
   );
 }
-// ------------------------------------------------------------------------------------- skup dialog
+// ------------------------------------------------------------------------------------- skup dialog2
 function skup_dialog2(mark) {
   jQuery('#skup1').css({display:'none'});
   jQuery('#skup2').css({display:'block'}).html(
@@ -427,7 +429,7 @@ function skup_dialog2(mark) {
     + "  <input class='skup_x' type='text' id='skup_from' placeholder='tvůj email'>"
     + "  <textarea class='skup_x' id='skup_body' placeholder='dotaz na organizátory'></textarea>"
     + "<a class='skup_x jump' onclick=\"skup_sendmail('"+mark.id+"','"+mark.title+"');\">Poslat mail</a>"
-    + "<a class='skup_x jump' onclick=\"jQuery('#skup2').css({display:'none'});\">Zpět</a>"
+    + "<a class='skup_x jump' onclick=\"jQuery('#skup2').css({display:'none'});jQuery('#skup0').css({display:'block'});\">Zpět</a>"
     + "<div id='skup_msg'></div>"
     + "</div>"
   );

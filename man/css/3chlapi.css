@@ -218,6 +218,7 @@ nav {
 }
 nav.pc-menu {
   position: sticky;
+  z-index: 2;
 }
 nav.pc-menu div {
   position: sticky;
@@ -590,6 +591,10 @@ a.home#skup0,
 #skup0#skup0,
 #skup1#skup0,
 #skup2#skup0 {
+  position: absolute;
+  z-index: 2;
+  top: 5px;
+  left: 5px;
   width: 18em;
 }
 div.home#skup1,
@@ -598,6 +603,10 @@ a.home#skup1,
 #skup0#skup1,
 #skup1#skup1,
 #skup2#skup1 {
+  position: absolute;
+  z-index: 2;
+  top: 5px;
+  left: 5px;
   max-width: 25em;
   display: none;
 }
@@ -607,6 +616,10 @@ a.home#skup2,
 #skup0#skup2,
 #skup1#skup2,
 #skup2#skup2 {
+  position: absolute;
+  z-index: 2;
+  top: 5px;
+  left: 5px;
   max-width: 25em;
   display: none;
 }
@@ -884,6 +897,9 @@ div.pdf span.sorry {
   }
   div.header #motto.isSticky {
     display: block;
+  }
+  div.sloupce {
+    margin-top: 65px;
   }
 }
 /*
