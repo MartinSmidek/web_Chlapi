@@ -24,8 +24,13 @@ if (isset($_GET['lang'])) {
   $lang= $_GET['lang'];
   set_lang($lang);
 }
+// menu
 if (isset($_GET['menu'])) {
   $_SESSION['web']['menu']= $_GET['menu'];
+}
+else {
+  $isMob= is_numeric(strpos(strtolower($_SERVER["HTTP_USER_AGENT"]), "mobile")); 
+  if ($isMob) $_SESSION['web']['menu']= 'new';
 }
 // pro testovací GETs
 $_SESSION['web']['GET']= isset($_SESSION['web']['GET']) 

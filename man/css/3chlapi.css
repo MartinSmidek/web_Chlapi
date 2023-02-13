@@ -5,6 +5,9 @@
 .shadow-box {
   box-shadow: -1px 1px 0px #567, 1px -1px 0px #567, -1px -1px 0px #567, 5px 5px 10px #567;
 }
+.shadow-black-box {
+  box-shadow: -1px 1px 0px #000, 1px -1px 0px #000, -1px -1px 0px #000, 5px 5px 10px #000;
+}
 .shadow-txt {
   text-shadow: 3px 3px 3px #567, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
 }
@@ -181,6 +184,7 @@ div.filler {
   margin: 10px;
   top: 10px;
   background: white;
+  box-shadow: -1px 1px 0px #000, 1px -1px 0px #000, -1px -1px 0px #000, 5px 5px 10px #000;
 }
 .mobile-menu-open:hover {
   opacity: 1;
@@ -236,6 +240,7 @@ nav.pc-menu div a.box {
   opacity: 0.75;
   text-decoration: none;
   color: black;
+  box-shadow: -1px 1px 0px #000, 1px -1px 0px #000, -1px -1px 0px #000, 5px 5px 10px #000;
 }
 nav.pc-menu div a.box:hover {
   opacity: 1;
@@ -244,20 +249,29 @@ nav.pc-menu div div ul {
   display: none;
   position: absolute;
   width: 150px;
-  background: white;
   top: 30px;
   list-style-type: none;
-  padding: 0 10px;
-  border: solid 1px black;
+  padding: 0;
+  box-shadow: -1px 1px 0px #000, 1px -1px 0px #000, -1px -1px 0px #000, 5px 5px 10px #000;
+  /*border: solid 1px black;*/
 }
 nav.pc-menu div div ul li {
   border-top: solid 1px black;
   line-height: 20px;
-  padding: 10px 0;
+  padding: 10px;
+  display: block;
+  background: white;
+  opacity: 0.75;
+}
+nav.pc-menu div div ul li:hover {
+  opacity: 1;
 }
 nav.pc-menu div div ul li a {
   text-decoration: none;
   color: black;
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 nav.pc-menu div div ul li:first-child {
   border-top: 0;

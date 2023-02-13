@@ -16,6 +16,12 @@
      1px -1px 0px #567, 
     -1px -1px 0px #567,
     5px 5px 10px #567; }
+.shadow-black-box { 
+  box-shadow:  
+    -1px  1px 0px #000, 
+     1px -1px 0px #000, 
+    -1px -1px 0px #000,
+    5px 5px 10px #000; }
 .shadow-txt { 
   text-shadow: 3px 3px 3px #567,
     -1px -1px 0 #000,
@@ -117,6 +123,7 @@ div.filler { height: 2em; }
   height:29px; cursor: pointer; position:sticky; float:right; z-index:3;
   padding:5px 10px; margin:10px; 
   top:10px; background:white; //opacity:.75;
+  .shadow-black-box;
   &:hover { opacity:1; }
   i { font-size:30px; } 
 }
@@ -148,15 +155,23 @@ nav {
         padding:10px 10px 0px 10px; margin:5px 10px; 
         top:10px; background:white; opacity:.75;
         text-decoration: none; color:black; 
+        .shadow-black-box;
         &:hover { opacity:1; }
       }
       div {
         ul {
-          display:none; position:absolute; width:150px; background: white;
-          top:30px; list-style-type: none; padding: 0 10px; border: solid 1px black;
+          display:none; position:absolute; width:150px; 
+          top:30px; list-style-type: none; padding: 0; 
+          .shadow-black-box;
+          /*border: solid 1px black;*/
           li {
-            border-top:solid 1px black; line-height: 20px; padding: 10px 0;
-            a { text-decoration: none; color:black; }
+            border-top:solid 1px black; line-height: 20px; padding: 10px;
+            display:block; background: white; opacity:.75;
+            &:hover { opacity:1;  }
+            a { 
+              text-decoration: none; color:black; 
+              display: block; width: 100%; height: 100%; 
+            }
           }
           li:first-child {
             border-top:0; 
