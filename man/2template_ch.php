@@ -1307,12 +1307,12 @@ __EOD;
   if ($menu_type=='new') {
     $chlapi_css= "3chlapi.css";
     $background= '';
-    $top_of_page= 360;
+    $top_of_page= 0;
     $headline= "<script type='text/javascript'>change_js('new');</script>
       <div class='header' style=\"
             background-image:url('/man/css/wall/MROP_2018_IMG_4897.jpg');
             background-size: cover;
-            border-bottom: 2px solid #ffffff;
+            border-bottom: 10px solid #ffffffaa;
             background-repeat: no-repeat;
           \">
         $part->menu_open
