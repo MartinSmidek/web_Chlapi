@@ -33,6 +33,11 @@ function jump_fokus() {
     jump= jQuery('#fokus_page');
   if ( jump.length ) {
     jump[0].scrollIntoView(true);
+    if (jQuery('nav.pc-menu').length) {
+      let web= document.getElementById("web"),
+          bot= jQuery('#logo').offset().top+jQuery('#logo').height()+11;
+      web.scrollBy(0,-bot);
+    }
   }
   return 1;
 }
