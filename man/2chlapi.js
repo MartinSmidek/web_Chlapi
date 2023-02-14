@@ -36,6 +36,10 @@ function jump_fokus() {
     if (jQuery('nav.pc-menu').length) {
       let web= document.getElementById("web"),
           bot= jQuery('#logo').offset().top+jQuery('#logo').height()+11;
+      if (!web) {  // pokud je redakční mod
+        web= jQuery('div.cms_page')[0];
+        bot+= 80;
+      }
       web.scrollBy(0,-bot);
     }
   }
