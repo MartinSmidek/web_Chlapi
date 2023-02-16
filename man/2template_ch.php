@@ -34,7 +34,7 @@ function get_prefix() {
 # -------------------------------------------------------------------------------------==> page
 // jen pro CMS mod: vrací objekt se stránkou
 function page($ref) { trace();
-  global $wid, $amenu, $cmenu, $counts, $part;
+  global $wid, $amenu, $cmenu, $counts, $part, $path;
   $part= (object)array(); // části výsledné stránky
   $page= '';
   $counts= array(); // typ -> počet
@@ -62,6 +62,7 @@ function new_menu($path,&$elem) { trace();
   $isub= 2; 
   // filtrované načtení tabulky MENU
   read_menu($path);
+  $currpage= implode('!',$path);
   // vytvoření stromu a rozbor $path
   $xmenu= array();                    // [nazev,href, ...[sub]
   $pc_menu1= $pc_menu2= array();      // indexy PC menu pro první a druhý řádek
@@ -236,7 +237,7 @@ __EOM;
 //   2) pokud _user.skill neobsahuje 't' vynechají se záznamy z menu.redakce=2 (tester)
 // přidá položku has_subs pokud má hlavní menu submenu
 function read_menu($path) { trace();
-  global $wid, $menu, $amenu, $REDAKCE, $KLIENT;
+  global $wid, $menu, $amenu, $REDAKCE, $KLIENT, $path;
   // připoj databázi
   db_connect();
   // zjištění jazykové mutace odkazu
@@ -478,7 +479,7 @@ function title_menu($title,$items,$id=0,$idk=0,$idm=0) {
 // ids  :: id1 [ / id2 ] , ...    -- id2 je klíč v lokální db pro ladění
 // $counts je pole sčítající skutečně renderované (viditelné) elementy
 function eval_elem($desc,$book=null) { //trace();
-  global $REDAKCE, $KLIENT, $ezer_server_ostry, $index, $load_ezer, $curr_menu, $top, 
+  global $REDAKCE, $KLIENT, $ezer_server_ostry, $index, $load_ezer, $curr_menu, $top, $path,
       $mobile, $cmenu, $backref, $counts, $rel_root; 
                                                     debug(array($desc,$book),"eval_elem");
   $elems= explode(';',$desc);
@@ -544,7 +545,9 @@ __EOT;
       break; 
     
     case 'pozvanky':  # --------------------------------------------- . pozvánky skupiny $id
-      // seznam aktuálních pozvánek
+      // seznam aktuálních pozvánek - bude mít fokus pouze, pokud není v cestě referovaný konkrétní článek
+      // tzn. když cesta nekončí číslem - to musí mít přednost
+      $has_focus= !is_numeric(str_replace(',','',$path[count($path)-1]));      
       $ra= pdo_qry("SELECT id_xakce,xelems,datum_od,datum_do,nazev FROM xakce 
           WHERE datum_od>=DATE(NOW()) AND xelems!='' AND skupina='$id'
           ORDER BY datum_od ASC");
@@ -556,7 +559,7 @@ __EOT;
           $tit= "$oddo $nazev";
           $header= "<h1>$oddo $nazev</h1><hr>";
           foreach ( explode(';',$elems) as $elem ) {
-            $html.= eval_elem($elem,(object)array('subtyp'=>'pozvanka',
+            $html.= eval_elem($elem,(object)array('subtyp'=>'pozvanka', 'fokus'=>$has_focus,
                 'open'=>true,'idk'=>'','ida'=>$a,'tit'=>$tit,'header'=>$header,
                 'first'=>$first,'first_open'=>1));
             $first= false;
@@ -852,9 +855,11 @@ __EOT;
       $jmp= str_replace('*',$idn,$backref);
       if ( $plny ) {
         // zobrazit jako plný článek
+        $fokus= $id==$top || $book && ($book->subtyp!=='pozvanka' || $book->fokus) 
+            ? "id='fokus_part'" : '';
         $html.= "
           <div class='back' $menu>
-            <div id='fokus_part' class='home$redakce_style$zmena'>
+            <div $fokus class='home$redakce_style$zmena'>
               $book->header
               $ipad
               $obsah
@@ -878,7 +883,7 @@ __EOT;
               </div>"
             : "
               <div class='back' $menu>
-                <div id='fokus_part' class='home$redakce_style$zmena'>
+                <div $fokus class='home$redakce_style$zmena'>
                   $t
                 </div>
               </div>";
@@ -886,7 +891,7 @@ __EOT;
         }
         // pokud jsou fotky, přidáme
         $rf= pdo_qry("SELECT id_xfotky,nazev,seznam,path,autor FROM xfotky WHERE id_xclanek=$id");
-        while ($rf && list($fid,$nazev,$seznam,$path,$podpis)=pdo_fetch_row($rf)) {
+        while ($rf && list($fid,$nazev,$seznam,$fotopath,$podpis)=pdo_fetch_row($rf)) {
           if ( $REDAKCE ) {
             $note= "<span style='float:right;color:red;font-style:italic;font-size:x-small'>
                   ... zjednodušené zobrazení fotogalerie pro editaci</span>";
@@ -993,9 +998,10 @@ __EOT;
             <i class='fa fa-bars'></i></span>";
         }
       }
+      $fokus= $id==$top ? "id='fokus_part'" : '';
       $html.= "
         <div class='back' $menu>
-          <div id='xclanek$id' class='home$redakce_style$zmena'>
+          <div $fokus id='xclanek$id' class='home$redakce_style$zmena'>
             $ipad
             $obsah
           </div>
