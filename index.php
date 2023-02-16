@@ -19,18 +19,24 @@ if ( isset($_GET['err']) && $_GET['err'] ) error_reporting(E_ERROR); else error_
 ini_set('display_errors', 'On');
 require_once("man/man_web.php");
 require_once("man/2template_ch.php");
-// jazyk
-if (isset($_GET['lang'])) {
-  $lang= $_GET['lang'];
-  set_lang($lang);
-}
+
+// pokud se stránka jmenuje en-* přepni na angličtinu a nové menu
+$path= isset($_GET['page']) ? explode('!',$_GET['page']) : array('home');
 // menu
 if (isset($_GET['menu'])) {
   $_SESSION['web']['menu']= $_GET['menu'];
 }
-else {
-  $isMob= is_numeric(strpos(strtolower($_SERVER["HTTP_USER_AGENT"]), "mobile")); 
-  if ($isMob) $_SESSION['web']['menu']= 'new';
+elseif (preg_match('/^en\\-.*$/',$path[0])) {
+  $_SESSION['web']['menu']= 'new';
+  $_GET['lang']= 'en';
+}
+elseif (is_numeric(strpos(strtolower($_SERVER["HTTP_USER_AGENT"]), "mobile"))) {
+  $_SESSION['web']['menu']= 'new';
+}
+// jazyk
+if (isset($_GET['lang'])) {
+  $lang= $_GET['lang'];
+  set_lang($lang);
 }
 // pro testovací GETs
 $_SESSION['web']['GET']= isset($_SESSION['web']['GET']) 
@@ -63,17 +69,12 @@ if ( $REDAKCE ) {
 else {
   require_once("man/2mini.php");
   # ------------------------------------------ zobraz prostý web
-
   $href= $_SERVER['REQUEST_SCHEME'].'://'.$_SERVER['SERVER_NAME'].':'.$_SERVER['SERVER_PORT'].
     $_SERVER['SCRIPT_NAME'].'?page=';
-  $path= isset($_GET['page']) ? explode('!',$_GET['page']) : array('home');
-//  $ezer_local= preg_match('/^\w+\.bean/',$_SERVER["SERVER_NAME"]);
-
-  // pamatování GET
+    // pamatování GET
   global $GET_rok, $counts;
   $GET_rok= isset($_GET['rok']) ? $_GET['rok'] : '';
   $counts= array(); // typ -> počet
-  $path= isset($_GET['page']) ? explode('!',$_GET['page']) : array('home');
   if ($_GET['menu']=='new' || $_SESSION['web']['menu']=='new') {
     $elem= '';
     $html= new_menu($path,$elem);
