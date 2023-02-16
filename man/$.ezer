@@ -1135,6 +1135,9 @@ panel EDITOR [0,0,720,*] { type:'popup', style:"min-width:700px;height:calc(100%
   use c: form _c [2,0,,] { tag:'c', format:'n' }  // článek
   use b: form _b [2,0,,] { tag:'b', format:'n' }  // kniha 
   use k: form _k [2,0,,] { tag:'k', format:'n' }  // kalendář
+  func onfocus{
+    js.edit_height();
+  }
   proc Kalendar(_key) {
     id.set(_key);
     panel.display(2,'k'); 

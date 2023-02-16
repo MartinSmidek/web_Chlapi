@@ -64,6 +64,13 @@ function bez_embeded(_id) {
   Ezer.run.$.part.p._call(0,'bez_embeded',_id);
   return 1;
 }
+// ------------------------------------------------------------------------------------- edit height
+// opraví výšku editoru podle jeho panelu
+function edit_height() {
+  let x=jQuery('div#cke_2_contents');
+  if (x.length)
+    x.height(x.parents('.pop_body').height()-110)
+}
 // =========================================================================================> COMMON
 // --------------------------------------------------------------------------------------- date2unix
 // převede datum na timestamp
