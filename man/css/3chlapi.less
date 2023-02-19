@@ -104,7 +104,7 @@ span.neodkaz a.jump {
 /*div.text { 
   padding: .4em; }*/
 div.podpis { 
-  text-align: right; font-style: italic; clear: both; }
+  text-align: right; font-style: italic; clear: both; padding:5px; }
 // ------------------------------------------------------------------------------------- redakce
 *.redakce4 { outline: 3px dotted @jump_b; }     // redakce
 *.redakce2 { outline: 3px dotted lightgreen; }  // testér
@@ -416,10 +416,11 @@ a.aclanek {
 }
 // galerie
 div.galery_obal {
-  clear: both; display: inline-grid; 
-  /*margin: 1em;*/ width:100%;
+  clear: both; display: inline-grid; border-radius: .5em;
+  margin:10px 2px;
+  width:100%; .shadow-box;  
   div.detail {
-    display: block; width: 115px; float: right; background: orange; border-radius: .5em; 
+    display: block; width: 115px; float: right; background: orange;  
     label { vertical-align: text-bottom; }
   }
   div.galerie {

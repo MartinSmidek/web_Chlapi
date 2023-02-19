@@ -480,7 +480,7 @@ function title_menu($title,$items,$id=0,$idk=0,$idm=0) {
 // $counts je pole sčítající skutečně renderované (viditelné) elementy
 function eval_elem($desc,$book=null) { //trace();
   global $REDAKCE, $KLIENT, $ezer_server_ostry, $index, $load_ezer, $curr_menu, $top, $path,
-      $mobile, $cmenu, $backref, $counts, $rel_root; 
+      $mobile, $cmenu, $backref, $counts, $rel_root, $links, $backref; 
                                                     debug(array($desc,$book),"eval_elem");
   $elems= explode(';',$desc);
   $ipad= '';
@@ -658,7 +658,6 @@ __EOT;
     case 'xkniha':  
       // ?kniha=idk,ida,[,z]] =>
       //    z/0=max.počet zobrazených kapitol (0 bez omezení)
-      global $backref;
       list($idk,$ida)= explode(',',$top);
       list($exists,$nazev,$xelems,$wskill)= 
           select("id_xkniha,nazev,xelems,web_skill","xkniha","id_xkniha=$id");
@@ -748,7 +747,6 @@ __EOT;
       break;
     
     case 'myslenka':# ----------------------------------------------- . myšlenka
-      global $backref;
       $obsah= rr_myslenka();
       $obsah.= '<p><i>Pokud chceš tyto denní meditace Richarda Rohra z knihy "Radikální milost" '
           . 'dostávat do své mailové schránky, napiš na iv.hudec(et)gmail.com </i></p>';
@@ -778,9 +776,6 @@ __EOT;
       break;
     
     case 'aclanek': # ------------------------------------------------ . ačlánek - abstrakt
-      global $backref, $links;
-      $links= "fotorama";
-      $html.= "<script>jQuery('.fotorama').fotorama();</script>";
       $idn= $id;
       list($exists,$obsah,$wskill,$cskill,$zmena)= 
           select("id_xclanek,web_text,web_skill,cms_skill,TO_DAYS(NOW())-IFNULL(TO_DAYS(ch_date),0)",
@@ -823,7 +818,7 @@ __EOT;
         if ( !$book  ) {
           $div_id= "c$id";
           $namiru= $plny ? "eo;xo;" : '';
-          $menu= title_menu("$co $idn","ec;{$namiru}-zc;-pf;-mcn;mcd;-pcn;pcd;-pkn;pkd;tak",$id,0,$curr_menu->mid);
+          $menu= title_menu("$co $idn","ec;pf;{$namiru}-zc;-mcn;mcd;-pcn;pcd;-pkn;pkd;tak",$id,0,$curr_menu->mid);
           if ( $mobile ) {
             $ipad= "<span class='ipad_menu' onclick=\"arguments[0].stopPropagation();$kod\">
               <i class='fa fa-bars'></i></span>";
@@ -836,7 +831,7 @@ __EOT;
             $pridat_akci= $book->idk ? ";pa" 
                 : (select('COUNT(*)','xucast',"id_xclanek=$id") ? ';eu' : ';pu');
             $title= ($plny?'':'abstrakt ')."akce $book->idk: $book->ida/$id";
-            $menu= title_menu($title,"ea,{$book->ida};{$namiru}-pf{$pridat_akci}",$id,$book->idk,0).
+            $menu= title_menu($title,"ea,{$book->ida};pf;{$namiru}{$pridat_akci}",$id,$book->idk,0).
                  " id='$div_id'";
             if ( $mobile ) {
               $ipad= "<span class='ipad_menu' onclick=\"arguments[0].stopPropagation();$kod\">
@@ -845,7 +840,7 @@ __EOT;
         }
         else {
             $menu= title_menu(($plny?'kapitola ':'abstrakt kapitoly ').$book->ida/$idn,
-                "ec;eo,fokus_part;xo;zc;-pf;-msn;msd;-mkn;mkd;-psn;psd",$id,$book->idk,$curr_menu->mid);
+                "ec;pf;eo,fokus_part;xo;zc;-msn;msd;-mkn;mkd;-psn;psd",$id,$book->idk,$curr_menu->mid);
             if ( $mobile ) {
               $ipad= "<span class='ipad_menu' onclick=\"arguments[0].stopPropagation();$kod\">
                 <i class='fa fa-bars'></i></span>";
@@ -890,45 +885,11 @@ __EOT;
           }
         }
         // pokud jsou fotky, přidáme
-        $rf= pdo_qry("SELECT id_xfotky,nazev,seznam,path,autor FROM xfotky WHERE id_xclanek=$id");
-        while ($rf && list($fid,$nazev,$seznam,$fotopath,$podpis)=pdo_fetch_row($rf)) {
-          if ( $REDAKCE ) {
-            $note= "<span style='float:right;color:red;font-style:italic;font-size:x-small'>
-                  ... zjednodušené zobrazení fotogalerie pro editaci</span>";
-            $menu= title_menu("fotky $fid","ef,$fid");
-            if ( $mobile ) {
-              $ipad= "<span class='ipad_menu' onclick=\"arguments[0].stopPropagation();$kod\">
-                <i class='fa fa-bars'></i></span>";
-            }
-          }
-          // přepínač HD / FullHD -- zrušeno do fotorama přidán atribut data-full=originál
-          $foto_hd= $foto_fullhd= $details= '';
-//          $foto_msg= "Pro uplatnění změny podrobnosti zobrazení fotografií rozlišení obnov stránku";
-//          if (isset($_COOKIE['fullhd']) && $_COOKIE['fullhd']) 
-//            $foto_fullhd= 'checked';
-//          else 
-//            $foto_hd= 'checked';
-//          $foto_on= "onchange=\"set_cookie('fullhd',this.value);setTimeout(function(){"
-//              . "alert('$foto_msg')},100*24);\"";
-//          $details= "
-//            <div class='detail'>
-//              <input type='radio' name='hd$fid' value='0' $foto_hd $foto_on><label>HD</label>
-//              <input type='radio' name='hd$fid' value='1' $foto_fullhd $foto_on><label>FullHD</label>
-//           </div>
-//            ";
-          $galery= show_fotky2($fid,$seznam);
-          $html.= "
-            <div class='galery_obal' $menu>
-              <div id='xfotky$fid' class='galerie'>
-                <div class='text'>
-                  $ipad $details
-                  <h1>&nbsp;&nbsp;&nbsp;$nazev $note</h1>
-                  $galery
-                  <div class='podpis'>$podpis</div>
-                </div>
-              </div>
-            </div>
-          ";
+        $fotky= pridej_fotky($id);
+        if ($fotky) {
+          $html.= $fotky;
+          $links= "fotorama";
+//          $html.= "<script>jQuery('.fotorama').fotorama();</script>";
         }
       }
       else {
@@ -992,7 +953,7 @@ __EOT;
             }, 
             $obsah);
         $div_id= "c$id";
-        $menu= title_menu("článek $id","ec;eo,$div_id;xo;-za;-pcn;pcd;-pkn;pkd;tck",$id,0,$curr_menu->mid);
+        $menu= title_menu("článek $id","ec;pf;eo,$div_id;xo;-za;-pcn;pcd;-pkn;pkd;tck",$id,0,$curr_menu->mid);
         if ( $mobile ) {
           $ipad= "<span class='ipad_menu' onclick=\"arguments[0].stopPropagation();$kod\">
             <i class='fa fa-bars'></i></span>";
@@ -1007,6 +968,13 @@ __EOT;
           </div>
         </div>
       ";
+      // pokud jsou fotky, přidáme
+      // pokud jsou fotky, přidáme
+      $fotky= pridej_fotky($id);
+      if ($fotky) {
+        $html.= $fotky;
+        $links= "fotorama";
+      }
       break;
 
     case 'kalendar': # ----------------------------------------------- . kalendar
@@ -1130,7 +1098,7 @@ __EOT;
 
     // kniha=cid -- samostatně zobrazený rozvinutý case
     case 'kniha':  # ------------------------------------------------ . kniha
-      global $s, $backref, $top, $links;
+      global $s, $top;
       ask_server((object)array('cmd'=>'kniha','back'=>$backref,
           'cid'=>$ids,'kapitola'=>1)); //isset($path[0]) ? $path[0] : 0)); 
       $fileadmin= get_fileadmin(); 
@@ -1148,6 +1116,37 @@ __EOT;
   }
   return $html;
 }
+function pridej_fotky($id) {
+  global $REDAKCE, $mobile;
+  $html= '';
+  $rf= pdo_qry("SELECT id_xfotky,nazev,seznam,path,autor FROM xfotky WHERE id_xclanek=$id");
+  while ($rf && list($fid,$nazev,$seznam,$fotopath,$podpis)=pdo_fetch_row($rf)) {
+    if ( $REDAKCE ) {
+      $note= "<span style='float:right;color:red;font-style:italic;font-size:x-small'>
+            ... zjednodušené zobrazení fotogalerie pro editaci</span>";
+      $menu= title_menu("fotky $fid","ef,$fid");
+      if ( $mobile ) {
+        $ipad= "<span class='ipad_menu' onclick=\"arguments[0].stopPropagation();$kod\">
+          <i class='fa fa-bars'></i></span>";
+      }
+    }
+    $details= '';
+    $galery= show_fotky2($fid,$seznam);
+    $html.= "
+      <div class='galery_obal' $menu>
+        <div id='xfotky$fid' class='galerie'>
+          <div class='text'>
+            $ipad $details
+            <h1>&nbsp;&nbsp;&nbsp;$nazev $note</h1>
+            $galery
+            <div class='podpis'>$podpis</div>
+          </div>
+        </div>
+      </div>
+    ";
+  }
+  return $html;  
+}
 # -------------------------------------------------------------------------------------==> show_page
 function show_page($html,$menu_type='old') {
   global $part;
@@ -1161,6 +1160,7 @@ function show_page($html,$menu_type='old') {
   $client= "./ezer3.1/client";
   
   // Facebook
+  $fb_script= '';
 //  $fb_root= "<div id='fb-root'></div>";      
 //  $fb_script= <<<__EOD
 //      <script async defer crossorigin="anonymous" src="https://connect.facebook.net/cs_CZ/sdk.js#xfbml=1&version=v6.0"></script>'
