@@ -828,8 +828,8 @@ __EOT;
         elseif ( $book->open && $book->ida ) {
             $div_id= "a{$book->ida}-$id";
             $namiru= $plny ? "eo;xo;" : '';
-            $pridat_akci= $book->idk ? ";pa" 
-                : (select('COUNT(*)','xucast',"id_xclanek=$id") ? ';eu' : ';pu');
+            $pridat_akci= $book->idk ? "pa" 
+                : (select('COUNT(*)','xucast',"id_xclanek=$id") ? 'eu' : 'pu');
             $title= ($plny?'':'abstrakt ')."akce $book->idk: $book->ida/$id";
             $menu= title_menu($title,"ea,{$book->ida};pf;{$namiru}{$pridat_akci}",$id,$book->idk,0).
                  " id='$div_id'";
