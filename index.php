@@ -33,6 +33,9 @@ elseif (preg_match('/^en\\-.*$/',$path[0])) {
 elseif (is_numeric(strpos(strtolower($_SERVER["HTTP_USER_AGENT"]), "mobile"))) {
   $_SESSION['web']['menu']= 'new';
 }
+else {
+  $_SESSION['web']['menu']= 'new';
+}
 // jazyk
 if (isset($_GET['lang'])) {
   $lang= $_GET['lang'];
