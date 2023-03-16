@@ -1407,6 +1407,7 @@ __EOD;
   }
   // konečná redakce stránky
   $body=  <<<__EOD
+    $background
     $fb_root
     <div id='page'>
       $headline

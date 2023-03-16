@@ -416,29 +416,24 @@ a.aclanek {
 }
 // galerie
 div.galery_obal {
-  clear: both; display: inline-grid; border-radius: .5em;
-  margin:10px 2px;
-  width:100%; .shadow-box;  
-  div.detail {
-    display: block; width: 115px; float: right; background: orange;  
-    label { vertical-align: text-bottom; }
+  clear: both; display: flex; border-radius: .5em;
+  margin:10px 2px; .shadow-box;  
+  div.text {
+    text-align: center; 
+    h1 { text-align: left; }
   }
   div.galerie {
     width: 100%; 
     background-color: @text_b; color: @text_c; 
-    /*display: table;*/
-    overflow: hidden; margin: 0; position: relative; border-radius: .5em; }
+    overflow: hidden; margin: 0; position: relative; border-radius: .5em; 
+  }
 }
 // vlákno
 #vlakno, .sloupce, .back {
   clear: both;     
-  /*text-align: left;*/
-  /*padding-right: 1em;*/  
   div.clanek {
     background-color: @text_b; color: @text_c;
     overflow: auto; margin: 0.5em; position: relative; .shadow-box; text-align: left;
-/*    columns:35em 2; column-rule:1em solid @text_b; column-gap: 2em;
-    -moz-column-count:2 35em; -moz-column-rule:1em solid @text_b; -moz-column-gap: 2em; */
   }
   table { max-width: 100% !important }
 }

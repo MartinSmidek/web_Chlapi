@@ -794,26 +794,21 @@ a.aclanek:hover {
 }
 div.galery_obal {
   clear: both;
-  display: inline-grid;
+  display: flex;
   border-radius: 0.5em;
   margin: 10px 2px;
-  width: 100%;
   box-shadow: -1px 1px 0px #567, 1px -1px 0px #567, -1px -1px 0px #567, 5px 5px 10px #567;
 }
-div.galery_obal div.detail {
-  display: block;
-  width: 115px;
-  float: right;
-  background: orange;
+div.galery_obal div.text {
+  text-align: center;
 }
-div.galery_obal div.detail label {
-  vertical-align: text-bottom;
+div.galery_obal div.text h1 {
+  text-align: left;
 }
 div.galery_obal div.galerie {
   width: 100%;
   background-color: #FFFFFF;
   color: #000000;
-  /*display: table;*/
   overflow: hidden;
   margin: 0;
   position: relative;
@@ -823,8 +818,6 @@ div.galery_obal div.galerie {
 .sloupce,
 .back {
   clear: both;
-  /*text-align: left;*/
-  /*padding-right: 1em;*/
 }
 #vlakno div.clanek,
 .sloupce div.clanek,
@@ -836,8 +829,6 @@ div.galery_obal div.galerie {
   position: relative;
   box-shadow: -1px 1px 0px #567, 1px -1px 0px #567, -1px -1px 0px #567, 5px 5px 10px #567;
   text-align: left;
-  /*    columns:35em 2; column-rule:1em solid @text_b; column-gap: 2em;
-    -moz-column-count:2 35em; -moz-column-rule:1em solid @text_b; -moz-column-gap: 2em; */
 }
 #vlakno table,
 .sloupce table,
