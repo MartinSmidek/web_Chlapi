@@ -213,7 +213,7 @@ __EOM;
           <i> odhlásit se</i></a></li>"
       : "<li style='border-top: 1px solid white'><a onclick=\"bar_menu(arguments[0],'me_login');\">
           <i>přihlásit se emailem</i></a></li>";
-    $html.= "<li><a onclick=\"bar_menu(0,'menu-old');\"><i>použít jiný styl menu</i></a></li>";
+    $html.= "<li><a onclick=\"bar_menu(0,'menu-old');\"><i>použít starý styl menu</i></a></li>";
     $html.= "<li><a onclick=\"bar_menu(0,'lang-en');change_js('new','close');\"><i>ENGLISH WEB</i></a></li>";
   }
   else {
@@ -1306,7 +1306,7 @@ __EOD;
       $language
       $menus
       <span onclick="bar_menu(arguments[0],'wallpaper');" class='separator'><i class='fa fa-image'></i> použij jiné pozadí</span>
-      <span onclick="bar_menu(arguments[0],'menu-$toggle_menu');"><i class='fa fa-image'></i> použij jný styl menu</span>
+      <span onclick="bar_menu(arguments[0],'menu-$toggle_menu');"><i class='fa fa-image'></i> použij nové menu</span>
     </div>
 __EOD;
 
@@ -1791,7 +1791,7 @@ function redaktor($id) {
   return $s;
 }
 function ask_server($x) {
-  global $s, $lang;
+  global $s, $lang, $REDAKCE, $url_prefix;
 //   $x->cmd= 'test'
   switch ( $x->cmd ) {
   case 'kalendar': // --------------------------------------------------------------------- kalendar
@@ -1975,7 +1975,6 @@ function ask_server($x) {
     break;
   // změna jazyka 
   case 'lang':
-    global $REDAKCE, $url_prefix;
     $page= $x->lang=='en' ? 'en-home' : '';
     $s->wid= set_lang($x->lang);
     if ( !$REDAKCE )
@@ -1989,7 +1988,7 @@ function ask_server($x) {
     $s->path= $rs->path;
     $page= $x->lang=='en' ? 'en-home' : '';
     $s->wid= set_lang($x->lang);
-    $s->url= "$url_prefix$page";
+    $s->url= "$url_prefix$page?menu=$x->menu";
     break;
   }
   return 1;

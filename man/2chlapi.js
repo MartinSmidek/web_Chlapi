@@ -97,11 +97,11 @@ function change_js(menu,cmd) {
 function bar_menu(e,x) {
   if ( e ) { e.stopPropagation(); e.preventDefault(); }
   var items= jQuery('#bar_items'), body= jQuery(document);
-  var off= function(e) {
-    items.css({display:'none'});
-    body.off("click contextmenu");
-  };
-  if ( x==='menu_on' ) {
+  if ( items && x==='menu_on' ) {
+    var off= function(e) {
+      items.css({display:'none'});
+      body.off("click contextmenu");
+    };
     items.css({display:'block'});
     body.on({click:off,contextmenu:off});
   }
@@ -128,7 +128,7 @@ function bar_menu(e,x) {
       jQuery('#user_mail').css({display:'block'}).addClass('key_in').attr('data-login','me');
       break;
     }
-    items.css({display:'none'});
+    if (items) items.css({display:'none'});
   }
   return false;
 }
