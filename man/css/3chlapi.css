@@ -117,7 +117,7 @@ span.bible {
 }
 a.jump {
   box-shadow: -1px 1px 0px #567, 1px -1px 0px #567, -1px -1px 0px #567, 5px 5px 10px #567;
-  margin: 0em 0.3em;
+  margin: 0em 0.3em 0.5em !important;
   background-color: #E6CF73;
   color: #000000;
   text-align: center;
@@ -490,7 +490,8 @@ a.home,
 #user_mail,
 #skup0,
 #skup1,
-#skup2 {
+#skup2,
+#temata {
   background-color: #FFFFFF;
   color: #000000;
   /*float: right; margin: .4em 1em; max-width: 100%; z-index: 1;*/
@@ -507,12 +508,14 @@ a.home input,
 #skup0 input,
 #skup1 input,
 #skup2 input,
+#temata input,
 div.home textarea,
 a.home textarea,
 #user_mail textarea,
 #skup0 textarea,
 #skup1 textarea,
-#skup2 textarea {
+#skup2 textarea,
+#temata textarea {
   margin-bottom: 0.5em;
 }
 div.home.home,
@@ -520,7 +523,8 @@ a.home.home,
 #user_mail.home,
 #skup0.home,
 #skup1.home,
-#skup2.home {
+#skup2.home,
+#temata.home {
   width: 100%;
   min-height: 7.7em;
 }
@@ -529,10 +533,11 @@ a.home#user_mail,
 #user_mail#user_mail,
 #skup0#user_mail,
 #skup1#user_mail,
-#skup2#user_mail {
+#skup2#user_mail,
+#temata#user_mail {
   max-width: 29em;
   padding: 0;
-  position: absolute;
+  position: fixed;
   right: 0em;
   top: 1.5em;
   z-index: 2;
@@ -542,11 +547,12 @@ a.home#user_mail span#user_mail_head,
 #user_mail#user_mail span#user_mail_head,
 #skup0#user_mail span#user_mail_head,
 #skup1#user_mail span#user_mail_head,
-#skup2#user_mail span#user_mail_head {
+#skup2#user_mail span#user_mail_head,
+#temata#user_mail span#user_mail_head {
   display: block;
   width: 100%;
   text-align: center;
-  height: 2em;
+  line-height: 2em;
   background-color: #807340;
   border-radius: 0.4em 0.4em 0 0;
   color: #FFFFFF;
@@ -557,7 +563,8 @@ a.home#user_mail span#user_mail_txt,
 #user_mail#user_mail span#user_mail_txt,
 #skup0#user_mail span#user_mail_txt,
 #skup1#user_mail span#user_mail_txt,
-#skup2#user_mail span#user_mail_txt {
+#skup2#user_mail span#user_mail_txt,
+#temata#user_mail span#user_mail_txt {
   display: block;
 }
 div.home#user_mail div,
@@ -565,7 +572,8 @@ a.home#user_mail div,
 #user_mail#user_mail div,
 #skup0#user_mail div,
 #skup1#user_mail div,
-#skup2#user_mail div {
+#skup2#user_mail div,
+#temata#user_mail div {
   padding: 1em;
 }
 div.home#user_mail div #mail,
@@ -573,7 +581,8 @@ a.home#user_mail div #mail,
 #user_mail#user_mail div #mail,
 #skup0#user_mail div #mail,
 #skup1#user_mail div #mail,
-#skup2#user_mail div #mail {
+#skup2#user_mail div #mail,
+#temata#user_mail div #mail {
   left: 4em;
   width: 75%;
 }
@@ -582,7 +591,8 @@ a.home#user_mail div #pin,
 #user_mail#user_mail div #pin,
 #skup0#user_mail div #pin,
 #skup1#user_mail div #pin,
-#skup2#user_mail div #pin {
+#skup2#user_mail div #pin,
+#temata#user_mail div #pin {
   right: 1em;
   width: 15%;
 }
@@ -591,7 +601,8 @@ a.home#user_mail div button,
 #user_mail#user_mail div button,
 #skup0#user_mail div button,
 #skup1#user_mail div button,
-#skup2#user_mail div button {
+#skup2#user_mail div button,
+#temata#user_mail div button {
   margin: 0.5em 1em 0 0;
 }
 div.home#user_mail a.noedit,
@@ -599,7 +610,8 @@ a.home#user_mail a.noedit,
 #user_mail#user_mail a.noedit,
 #skup0#user_mail a.noedit,
 #skup1#user_mail a.noedit,
-#skup2#user_mail a.noedit {
+#skup2#user_mail a.noedit,
+#temata#user_mail a.noedit {
   display: none;
 }
 div.home#skup0,
@@ -607,7 +619,8 @@ a.home#skup0,
 #user_mail#skup0,
 #skup0#skup0,
 #skup1#skup0,
-#skup2#skup0 {
+#skup2#skup0,
+#temata#skup0 {
   position: absolute;
   z-index: 2;
   top: 5px;
@@ -619,7 +632,8 @@ a.home#skup1,
 #user_mail#skup1,
 #skup0#skup1,
 #skup1#skup1,
-#skup2#skup1 {
+#skup2#skup1,
+#temata#skup1 {
   position: absolute;
   z-index: 2;
   top: 5px;
@@ -632,7 +646,8 @@ a.home#skup2,
 #user_mail#skup2,
 #skup0#skup2,
 #skup1#skup2,
-#skup2#skup2 {
+#skup2#skup2,
+#temata#skup2 {
   position: absolute;
   z-index: 2;
   top: 5px;
@@ -645,7 +660,8 @@ a.home#skup2 input,
 #user_mail#skup2 input,
 #skup0#skup2 input,
 #skup1#skup2 input,
-#skup2#skup2 input {
+#skup2#skup2 input,
+#temata#skup2 input {
   display: block;
   max-width: 24.5em;
   width: 100%;
@@ -658,7 +674,8 @@ a.home#skup2 textarea,
 #user_mail#skup2 textarea,
 #skup0#skup2 textarea,
 #skup1#skup2 textarea,
-#skup2#skup2 textarea {
+#skup2#skup2 textarea,
+#temata#skup2 textarea {
   display: block;
   max-width: 24.5em;
   font-family: sans-serif;
@@ -673,7 +690,8 @@ a.home div.skupiny_container,
 #user_mail div.skupiny_container,
 #skup0 div.skupiny_container,
 #skup1 div.skupiny_container,
-#skup2 div.skupiny_container {
+#skup2 div.skupiny_container,
+#temata div.skupiny_container {
   max-width: 100%;
   overflow-x: auto;
 }
@@ -682,7 +700,8 @@ a.home table.skupiny,
 #user_mail table.skupiny,
 #skup0 table.skupiny,
 #skup1 table.skupiny,
-#skup2 table.skupiny {
+#skup2 table.skupiny,
+#temata table.skupiny {
   margin: 0 auto;
   padding: 0.2em;
   border: 1px solid;
@@ -693,7 +712,8 @@ a.home table.skupiny tr,
 #user_mail table.skupiny tr,
 #skup0 table.skupiny tr,
 #skup1 table.skupiny tr,
-#skup2 table.skupiny tr {
+#skup2 table.skupiny tr,
+#temata table.skupiny tr {
   height: 3px;
 }
 div.home table.skupiny th,
@@ -701,7 +721,8 @@ a.home table.skupiny th,
 #user_mail table.skupiny th,
 #skup0 table.skupiny th,
 #skup1 table.skupiny th,
-#skup2 table.skupiny th {
+#skup2 table.skupiny th,
+#temata table.skupiny th {
   border-bottom: 3px solid;
   min-width: 8em;
 }
@@ -710,7 +731,8 @@ a.home table.skupiny td.ucast,
 #user_mail table.skupiny td.ucast,
 #skup0 table.skupiny td.ucast,
 #skup1 table.skupiny td.ucast,
-#skup2 table.skupiny td.ucast {
+#skup2 table.skupiny td.ucast,
+#temata table.skupiny td.ucast {
   background-color: #E6E1CF;
 }
 div.home table.skupiny td.nic,
@@ -718,7 +740,8 @@ a.home table.skupiny td.nic,
 #user_mail table.skupiny td.nic,
 #skup0 table.skupiny td.nic,
 #skup1 table.skupiny td.nic,
-#skup2 table.skupiny td.nic {
+#skup2 table.skupiny td.nic,
+#temata table.skupiny td.nic {
   background-color: transparent;
 }
 div.home table.skupiny input,
@@ -726,8 +749,41 @@ a.home table.skupiny input,
 #user_mail table.skupiny input,
 #skup0 table.skupiny input,
 #skup1 table.skupiny input,
-#skup2 table.skupiny input {
+#skup2 table.skupiny input,
+#temata table.skupiny input {
   width: calc(100% - 8px);
+}
+#temata {
+  width: 365px;
+  padding: 0;
+  position: absolute;
+  margin: 20px 40px;
+  z-index: 2;
+  display: none;
+}
+#temata span {
+  display: block;
+  width: 100%;
+  text-align: center;
+  line-height: 2em;
+  background-color: #807340;
+  border-radius: 0.4em 0.4em 0 0;
+  color: #FFFFFF;
+  font-weight: bold;
+}
+#temata dl {
+  padding: 10px;
+  margin: 0;
+  overflow: auto;
+  max-height: 353px;
+}
+#temata dl dt {
+  float: left;
+  width: 67px;
+  text-align: right;
+}
+#temata dl dd {
+  margin-left: 80px;
 }
 div.neodkaz {
   position: fixed;
@@ -911,105 +967,4 @@ div.pdf span.sorry {
     /*&.isSticky { display:block; }*/
   }
 }
-/*
-// ------------------------------------------------------------------------------- počet sloupců
-
-@media all and (min-width:112em) {
-  div.sloupce { columns: 3; width: 133em; margin-right: 3em; }
-}
-@media all and (min-width:78em) and (max-width: 112em) {
-  div.sloupce { columns: 2; width: 89em; margin-right: 3em; }
-}
-@media all and (min-width: 40em) and (max-width: 78em) {
-  div.sloupce { columns: 1; width: 44em; margin-right: 1em; }
-}
-@media all and (max-width: 40em) {
-  div.sloupce { width: 100%; }
-  a.home { margin-left: .5em; }
-  a.home.home { width: calc(100vw - 4.5em); }
-} 
-
-// ------------------------------------------------------------------------------- zobrazit motto
-
-@media all and (max-width:43em)  {
-  #motto { display:none; } 
-}
-
-@media all and (min-width: 43em) and (max-width:50em) {
-  #motto { display:block; left: 6.2em; top: 1.4em; font-size: 14px; font-stretch: condensed; }
-}
-
-@media all and (min-width:50em)  {
-  #motto { display:block; left: 5.5em; top: 1em; font-size: 16px; } 
-}
-
-// ------------------------------------------------------------------------------- M mobil na výšku 
-
-@media all and (max-width:30em) {
-  #page_tm::before { content:"M"; }
-  #menu { font-size:8pt; z-index: 1; position: relative;
-    #page_hm a { max-width: 4em; white-space: wrap; overflow: hidden; }
-    #page_sm { top: 5.2em; }
-  }
-  div.home {
-    margin:.5em; width: calc(100vw - 4.3em) !important;
-  }
-  #list {
-    div.abstr { width:100%; }}
-  #logo {
-    left: 0.1em; top: 0.1em; width: 5em; }
-  div.prezentace { 
-    zoom: 40%; -moz-transform: scale(0.4); -moz-transform-origin: left top; }
-}
-// ------------------------------------------------------------------------------- L mobil na šířku
-
-@media all and (min-width: 30em) and (max-width: 55em) {
-  #page_tm::before { content:"L"; }
-  #menu { font-size:9pt; z-index: 1; position: relative;
-    #page_sm { top: 5.2em; }
-  }
-  #list {
-    div.abstr { width:50%; }
-  }
-  div.prezentace { 
-    zoom: 72%; -moz-transform: scale(0.72); -moz-transform-origin: left top;
-  }
-  div.Popup3 {
-    zoom:90%;  }
-}
-
-// ---------------------------------------------------------------------------------------- 
-
-@media all and (min-width: 40em) and (max-width: 55em) {
-  div.prezentace { 
-    zoom: 78%; -moz-transform: scale(0.78); -moz-transform-origin: left top;
-  }
-}
-
-// ---------------------------------------------------------------------------------------- T tablet 
-
-@media all and (min-width: 55em) and (max-width: 70em) {
-  #page_tm::before { content:"T"; }
-  #menu { font-size:9pt; z-index: 1; position: relative;
-    #page_sm { top: 5.2em; }
-  }
-  #list {
-    div.abstr { width:33.3%; }
-  }
-  div.prezentace { 
-    zoom: 72%; -moz-transform: scale(0.72); -moz-transform-origin: left top; }
-}
-// ------------------------------------------------------------------------------ PC velká obrazovka 
-
-@media all and (min-width: 70em) {
-  #page_tm::before { content:"C"; }
-  #web { width:92em; margin: 0 auto; }
-  #menu { font-size:10pt;  z-index: 1; position: relative;
-    #page_sm { top: 5.2em; } }
-  #list {
-    div.abstr { width:25%; }
-  }
-  div.prezentace { 
-    zoom: 72%; -moz-transform: scale(0.72); -moz-transform-origin: left top; }
-}*/
 /*# sourceMappingURL=3chlapi.css.map */

@@ -725,6 +725,7 @@ __EOT;
       if ( $plny ) {
         // zobrazit jako plný článek
         $html.= "
+          <div id='temata'><span>Seznam přeložených témat</span><dl></dl></div>
           <div class='back' $menu>
             <div id='fokus_part' class='home'>
               $obsah
@@ -1793,8 +1794,25 @@ function redaktor($id) {
 }
 function ask_server($x) {
   global $s, $lang, $REDAKCE, $url_prefix;
-//   $x->cmd= 'test'
+
   switch ( $x->cmd ) {
+
+  case 'cac_temata': // ----------------------------------------------------------------- cac_temata
+    $s= (object)array('html'=>'');
+    db_connect('');
+    $cr= pdo_qry("
+        SELECT datum,theme_cz
+        FROM ezertask.cactheme JOIN ezertask.cac USING (id_cactheme)
+        WHERE DAYOFWEEK(datum)=1
+        ORDER BY datum DESC
+        -- LIMIT 5
+    ");
+    while ( $cr && (list($kdy,$thema)= pdo_fetch_row($cr)) ) {
+      $datum= sql_date1($kdy);
+      $s->html.= "<dt><a href='$x->jmp,$kdy'>$datum<a></dt><dd>$thema</dd>";
+    }
+    break;
+  
   case 'kalendar': // --------------------------------------------------------------------- kalendar
     $s= (object)array('anotace'=>'zatím nejsou naplánovány žádné akce');
     servant("kalendar");

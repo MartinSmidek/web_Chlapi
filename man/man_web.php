@@ -244,17 +244,20 @@ function cac_meditace($ymd,$jmp,$plny,$par=2) {
     <div align='right'><i>$x->author</i></div></td>";
   $body.= "</tr></table>";
   if ($plny) {
-    // starší a novější myšlenka
+    // starší myšlenka
     $go=  select('datum','cac',
         "text_cz!='' AND $cond AND datum<'$ymd' ORDER BY datum DESC LIMIT 1",'ezertask');
     $dalsi= $go
         ? "<a class='jump' href='$jmp,$go'>starší</a>"
         : "<span class='neodkaz'><a class='jump'>starší</a></span>";
+    // novější myšlenka
     $go= select('datum','cac',
         "text_cz!='' AND $cond AND datum>'$ymd' ORDER BY datum ASC LIMIT 1",'ezertask');
     $dalsi.= $go
         ? "<a class='jump' href='$jmp,$go'>novější</a>"
         : "<span class='neodkaz'><a class='jump'>novější</a></span>";
+    // témata
+    $dalsi.= "<br style='line-height:2em'><a class='jump' onclick=\"cac_temata('show','$jmp');\">přeložená témata</i></a>";
   }
   // patička a redakce
   $postfix= "Zde se nacházejí překlady <b>Daily Meditations</b>, jejichž anglické originály 
@@ -267,14 +270,22 @@ function cac_meditace($ymd,$jmp,$plny,$par=2) {
   $odkazy= $plny
       ? "<div style='float:right;text-align:right'>$dalsi<br>$preklad</div>"
       : '';
-  $html= "$odkazy<h1>Překlad meditace CAC $z_data <br>na téma: 
-      <a href='$x->url_theme' target='cac'>$x->theme_cz</a></h1>
-      $prefix $body 
-      <hr><i>$postfix</i>";
 //  $html= "$odkazy<h1>Překlad meditace CAC $z_data <br>na téma: 
 //      <a href='$x->url_theme' target='cac'>$x->theme_cz</a></h1>
-//      $prefix $body $x->reference
+//      $prefix $body 
 //      <hr><i>$postfix</i>";
+  // uprav referenci
+  $reference= $x->reference;
+  $m= null;
+  $ok= preg_match('~(.*)(<p><strong>Image credit.*)~msu',$x->reference,$m);
+//  debug($m,substr(htmlentities($reference),0,80));
+  $reference= $m[1];
+//  $reference= htmlentities($reference);
+//  $reference.= $x->reference;
+  $html= "$odkazy<h1>Překlad meditace CAC $z_data <br>na téma: 
+      <a href='$x->url_theme' target='cac'>$x->theme_cz</a></h1>
+      $prefix $body $reference
+      <hr><i>$postfix</i>";
   return $html;
 }
 ?>

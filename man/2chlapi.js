@@ -283,6 +283,26 @@ function error(msg) {
 function display(el,on) {
   jQuery(el).css({display:on?'block':'none'})
 }
+// ============================================================================================> CAC
+// -------------------------------------------------------------------------------------- cac temata
+function cac_temata(cmd,par) {
+  switch(cmd) {
+    case 'show':
+      ask({cmd:'cac_temata',jmp:par},_cac_temata,cmd);
+      break;
+  }
+  return false;
+}
+function _cac_temata(y,cmd) {
+  let tems= jQuery('#temata');
+  if ( !tems ) return; 
+  switch (cmd) {
+    case 'show':
+      tems.css({display:'block'});
+      tems.find('dl').html(y.html);
+      break;
+  }
+}
 // =======================================================================================> KONTAKTY
 // --------------------------------------------------------------------------------------- kont show
 function kont_show() {
