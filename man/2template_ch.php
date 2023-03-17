@@ -1802,7 +1802,7 @@ function ask_server($x) {
     db_connect('');
     $cr= pdo_qry("
         SELECT datum,theme_cz
-        FROM ezertask.cactheme JOIN ezertask.cac USING (id_cactheme)
+        FROM myslenky.cactheme JOIN myslenky.cac USING (id_cactheme)
         WHERE DAYOFWEEK(datum)=1
         ORDER BY datum DESC
         -- LIMIT 5
