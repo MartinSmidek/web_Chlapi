@@ -1799,7 +1799,7 @@ function ask_server($x) {
 
   case 'cac_temata': // ----------------------------------------------------------------- cac_temata
     $s= (object)array('html'=>'');
-    db_connect('myslenky');
+    db_connect('ezertask');
     $cr= pdo_qry("
         SELECT datum,theme_cz
         FROM cactheme JOIN cac USING (id_cactheme)
