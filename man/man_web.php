@@ -234,7 +234,7 @@ function cac_meditace($ymd,$jmp,$plny,$par=2) {
   // úpravy přeloženého textu - změna odkazů z cac na chlapi.cz
   $text_cz= $x->text_cz;
   $text_cz= preg_replace(
-      '/(<a\s+href=").*(\d\d\d\d-\d\d-\d\d)\/(">.*<\/a>)/',
+      '/(<a\s+href=").*(\d\d\d\d-\d\d-\d\d)\/(">.*<\/a>)/U',
       '${1}home!2,${2}${3}',$text_cz);
   // redakce
   $preklad= $x->preklada 

@@ -220,12 +220,20 @@ div.filler {
 nav {
   top: 5px;
 }
+nav div.pc-menu-wrap {
+  /*position: absolute;*/
+  right: 0;
+  top: 0;
+  width: 100%;
+  z-index: 3;
+}
 nav.pc-menu {
-  position: sticky;
-  z-index: 2;
+  position: fixed;
+  z-index: 3;
+  width: calc(min(800px, 100%) - 60px);
 }
 nav.pc-menu div {
-  position: sticky;
+  /*position: sticky;*/
   float: right;
 }
 nav.pc-menu div a.box {
@@ -250,7 +258,7 @@ nav.pc-menu div div ul {
   display: none;
   position: absolute;
   width: 150px;
-  top: 30px;
+  top: 80px;
   list-style-type: none;
   padding: 0;
   box-shadow: -1px 1px 0px #000, 1px -1px 0px #000, -1px -1px 0px #000, 5px 5px 10px #000;
@@ -277,7 +285,7 @@ nav.pc-menu div div ul li a {
 nav.pc-menu div div ul li:first-child {
   border-top: 0;
 }
-nav.pc-menu div div:hover ul {
+nav.pc-menu div div div:hover ul {
   display: block;
 }
 nav.mobile-menu {
@@ -538,9 +546,9 @@ a.home#user_mail,
   max-width: 29em;
   padding: 0;
   position: fixed;
-  right: 0em;
+  margin-left: 3em;
   top: 1.5em;
-  z-index: 2;
+  z-index: 3;
 }
 div.home#user_mail span#user_mail_head,
 a.home#user_mail span#user_mail_head,

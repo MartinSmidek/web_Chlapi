@@ -201,8 +201,10 @@ __EOM;
       <i class="fa fa-bars"></i>
     </div>
     <nav class="pc-menu">
-      <div class="pc-menu-top">$menu1</div>
-      <div>$menu2</div>
+      <div class="pc-menu-wrap">
+        <div class="pc-menu-top">$menu1</div>
+        <div style='clear:both'>$menu2</div>
+      </div>
     </nav>
 __EOM;
   // specifické položky MENU - přihlášení, jazyl
@@ -1314,17 +1316,21 @@ __EOD;
   // --------------------------------------------------------------- NOVÉ MENU
   if ($menu_type=='new') {
     $chlapi_css= "3chlapi.css";
-    $background= '';
+    $background= $REDAKCE
+        ?  "<style>nav{top:34px}</style>"
+        : '';
     $top_of_page= 0;
     $headline= "<script type='text/javascript'>change_js('new');</script>
+        $part->menu_open
+        $part->menu
       <div class='header' style=\"
             background-image:url('/man/css/wall/MROP_2018_IMG_4897.jpg');
             background-size: cover;
             border-bottom: 10px solid #ffffffaa;
             background-repeat: no-repeat;
           \">
-        $part->menu_open
-        $part->menu
+        <!-- $part->menu_open
+        $part->menu -->
         <img id='logo' src='/man/img/kriz.png'$logo_title>
         <div id='motto'>$motto</div>
       </div>";   
