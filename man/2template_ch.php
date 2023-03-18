@@ -1799,10 +1799,10 @@ function ask_server($x) {
 
   case 'cac_temata': // ----------------------------------------------------------------- cac_temata
     $s= (object)array('html'=>'');
-    db_connect('');
+    db_connect('myslenky');
     $cr= pdo_qry("
         SELECT datum,theme_cz
-        FROM myslenky.cactheme JOIN myslenky.cac USING (id_cactheme)
+        FROM cactheme JOIN cac USING (id_cactheme)
         WHERE DAYOFWEEK(datum)=1
         ORDER BY datum DESC
         -- LIMIT 5
@@ -2083,7 +2083,7 @@ function datum_oddo($x1,$x2) {
 }
 # --------------------------------------------------------------------------------------- db connect
 # připojí databázi
-function db_connect() { 
+function db_connect($mydb='setkani') { 
 //  global $ezer_db;
 //  $ezer_local= preg_match('/^.*\.(bean)$/',$_SERVER["SERVER_NAME"]);
 //  $hst1= 'localhost';
@@ -2097,7 +2097,7 @@ function db_connect() {
   
   global $ezer_db, $dbs, $ezer_server;
   $ezer_db= $dbs[$ezer_server];
-  ezer_connect('setkani'); 
+  ezer_connect($mydb); 
 }
 /** =========================================================================================> ADMIN */
 # --------------------------------------------------------------------------------------- log report

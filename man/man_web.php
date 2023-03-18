@@ -231,13 +231,18 @@ function cac_meditace($ymd,$jmp,$plny,$par=2) {
   $z_data= $w.' '.sql_date1($x->datum,0,'. ');
   // prefix
   $prefix= "";
-  // přeložený text
+  // úpravy přeloženého textu - změna odkazů z cac na chlapi.cz
+  $text_cz= $x->text_cz;
+  $text_cz= preg_replace(
+      '/(<a\s+href=").*(\d\d\d\d-\d\d-\d\d)\/(">.*<\/a>)/',
+      '${1}home!2,${2}${3}',$text_cz);
+  // redakce
   $preklad= $x->preklada 
       ? ( $x->stav==4 ? "přeložil " : ($x->stav==3 ? "po DeepL upravil " : "bude upravovat "))
         .select('forename','_user',"id_user='$x->preklada'",'ezertask') 
       : "přeloženo DeepL";
   $body= "<table cellpadding='10'><tr>";
-  $body.= "<td valign='top' width='50%'><b>$x->title_cz</b><br>$x->text_cz
+  $body.= "<td valign='top' width='50%'><b>$x->title_cz</b><br>$text_cz
     <div align='right'><i>$x->author<br>$preklad</i></div></td>";
   $body.= "<td valign='top' width='50%'><a href='$x->url_text' target='cac'><b>$x->title_eng</b></a>
     <br>$x->text_eng
