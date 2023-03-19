@@ -5,7 +5,7 @@
 //                                                                                                //
 // CMS/Ezer                                             (c) 2016 Martin Šmídek <martin@smidek.eu> //
 // ---------------------------------------------------------------------------------------------- //
- 
+
 // =========================================================================================> COMMON
 jQuery.fn.extend({
   // ------------------------------------------------- + scrollIntoViewIfNeeded
@@ -21,6 +21,23 @@ jQuery.fn.extend({
     }
   }
 });
+// ------------------------------------------------------------------------------------- scroll line
+// capture scroll any percentage - podle https://codepen.io/derekjp/pen/pJzpxB
+var scroll_line_last= 0;
+function scroll_line() {
+  if (navigator.userAgent.indexOf("Firefox")== -1) {
+    jQuery('#web').scroll(function(){
+      var wintop= jQuery('#web').scrollTop(), 
+          docheight= jQuery('#page').height(), 
+          winheight= jQuery(window).height();
+      var scrolled= (wintop/(docheight-winheight))*100;
+      if (Math.abs(scroll_line_last-scrolled)) {
+        scroll_line_last= scrolled;
+        jQuery('.scroll-line').css('width', (scrolled + '%'));
+      }
+    });
+  }
+}
 // -------------------------------------------------------------------------------------- jump fokus
 // nastaví polohu stránky
 // zamění <span style='neodkaz'> na alert

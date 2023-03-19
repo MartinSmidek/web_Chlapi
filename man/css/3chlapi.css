@@ -170,7 +170,14 @@ div.header {
   position: sticky;
   top: -341px;
   z-index: 2;
-  /*background:black;*/
+}
+div.header div.scroll-line {
+  height: 3px;
+  margin-bottom: -4px;
+  background: red;
+  width: 0%;
+  position: sticky;
+  top: 360px;
 }
 div.filler {
   height: 2em;

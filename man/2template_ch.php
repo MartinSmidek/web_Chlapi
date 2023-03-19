@@ -1329,8 +1329,7 @@ __EOD;
             border-bottom: 10px solid #ffffffaa;
             background-repeat: no-repeat;
           \">
-        <!-- $part->menu_open
-        $part->menu -->
+        <div class='scroll-line'></div>
         <img id='logo' src='/man/img/kriz.png'$logo_title>
         <div id='motto'>$motto</div>
       </div>";   
@@ -1475,7 +1474,7 @@ __EOD;
   // dokončení stránky
   echo <<<__EOD
   $head
-  <body onload="jump_fokus();change_js('$menu_type');">
+  <body onload="jump_fokus();change_js('$menu_type');scroll_line();">
     <div title="We stand with Ukraine" id="we-stand-with-ukraine" style="left: -80px; bottom: 20px; 
       transform: rotate(45deg); background: linear-gradient(-180deg, rgb(0, 91, 187) 50%, 
         rgb(255, 213, 0) 50%); width: 200px; height: 54px; position: fixed; z-index: 999; opacity:0.7"
