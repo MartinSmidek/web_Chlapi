@@ -1472,14 +1472,20 @@ __EOD;
     return $demo.$body;
   }
   // dokončení stránky
+//    <div title="We stand with Ukraine" id="we-stand-with-ukraine" style="left: -80px; bottom: 20px; 
+//      transform: rotate(45deg); background: linear-gradient(-180deg, rgb(0, 91, 187) 50%, 
+//        rgb(255, 213, 0) 50%); width: 200px; height: 54px; position: fixed; z-index: 999; opacity:0.7"
+//        onclick="jQuery('#we-stand-with-ukraine').css('opacity','0.3');"  >
+//    </div>    
   echo <<<__EOD
   $head
   <body onload="jump_fokus();change_js('$menu_type');scroll_line();">
-    <div title="We stand with Ukraine" id="we-stand-with-ukraine" style="left: -80px; bottom: 20px; 
-      transform: rotate(45deg); background: linear-gradient(-180deg, rgb(0, 91, 187) 50%, 
-        rgb(255, 213, 0) 50%); width: 200px; height: 54px; position: fixed; z-index: 999; opacity:0.7"
+    <a href='aktualne!505'
+      title="We stand with Ukraine" id="we-stand-with-ukraine" style="left: -80px; bottom: 40px; 
+      transform: rotate(45deg); background: linear-gradient(-180deg, rgb(0, 0, 0) 50%, 
+        rgb(0, 0, 0) 50%); width: 300px; height: 54px; position: fixed; z-index: 999; opacity:0.7"
         onclick="jQuery('#we-stand-with-ukraine').css('opacity','0.3');"  >
-    </div>    
+    </a>    
     $demo
     <div id='web'>
       <div id='work'>
