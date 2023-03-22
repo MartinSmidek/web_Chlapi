@@ -86,6 +86,7 @@
           {name:'neodkaz',   element:'span', attributes:{'class':'neodkaz'}},
           {name:'stín',      element:'p',    attributes:{'class':'shadow'}},
           {name:'stín/i',    element:'img',  attributes:{'class':'shadow'}},
+          {name:'ikona',     element:'span',  attributes:{'class':'ikona'}},
           {name:'odkaz',     element:'a',    attributes:{'class':'jump'}},
           {name:'bible',     element:'span', attributes:{'class':'bible'}}
         ],

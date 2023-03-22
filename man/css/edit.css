@@ -12,7 +12,10 @@ span.zlute  { background-color:yellow; }
 span.zelene { background-color:lime; }
 span.neodkaz { background-color:silver; }
 
+span.ikona img { vertical-align: bottom; margin:0; }
 img.shadow, p.shadow img, span.shadow { filter: drop-shadow(5px 5px 10px #567); }
+
+.cke_image_nocaption { line-height: unset !important; }
 
 /* převzaté z 2chlapi */
 
