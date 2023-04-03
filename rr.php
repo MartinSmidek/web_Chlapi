@@ -4,8 +4,9 @@
 //  $kernel= "ezer3.1"; 
   $_GET['pdo']= 2;
 
-  // verze použitého jádra Ezeru
+  // verze použitého jádra Ezeru a další parametry aplikace
   $ezer_version= isset($_GET['ezer']) ? $_GET['ezer'] : '3.1'; 
+  $dbg= isset($_GET['dbg']) ? $_GET['dbg'] : 0;
 
   // základní údaje o aplikaci
   $app=      'rr';
@@ -24,6 +25,7 @@
   global $icon;
   $add_pars= array(
     'favicon' => $icon,
+    'dbg' => $dbg,                                              
     'no_local' => 1,    
     'watch_ip' => 1,    
     'watch_key' => 1,    

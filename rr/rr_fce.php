@@ -863,7 +863,7 @@ function cac_read_medits($dueto) {
     $ok= 1; $msg= "dnešní meditaci už máme"; 
     // zápis do stamp
     $dt= date('Y-m-d H:i:s');
-    query("INSERT INTO stamp (typ,kdy,pozn) VALUES ('cac','$dt','$dueto READ: $dnes already exists')");
+    // query("INSERT INTO stamp (typ,kdy,pozn) VALUES ('cac','$dt','$dueto READ: $dnes already exists')");
     goto end; 
   }
   // zajištění naplnění prázdnými záznamy na měsíc dopředu
@@ -909,7 +909,14 @@ end:
 # uloží do daného dne danou meditaci - pokud je úspěšně načtená
 function cac_save_medit($dueto,$last) { trace();
   // načtení úvahy
-  $x= cac_read_medit($dueto,$last);
+  for ($page=1; $page<=4; $page++) {
+    $x= cac_read_medit($dueto,$last,$page);
+    if ($x->date) break;
+  }
+  if (!$x->date) {
+    $x->idc= 0;
+    goto end;
+  }
   // zapsání úvahy do tabulky
   $x->idc= select('id_cac','cac',"datum='$last'");
   if (!$x->idc) {
@@ -933,33 +940,37 @@ function cac_save_medit($dueto,$last) { trace();
         author='$x->autor',reference='$reference',title_eng='$title',text_eng='$text' 
         WHERE id_cac=$x->idc");
   }
+end:  
   return $x;
 }
 # ----------------------------------------------------------------------------------- cac read_medit
 # vrátí meditaci ze dne {r,m,d} jako objekt {ok,datum,title,url_title,tema,url_tema,autor,text}
-function cac_read_medit($dueto,$ymd) { 
+function cac_read_medit($dueto,$ymd,$_page=0) { 
   $ret= (object)array('ok'=>0,'stamp'=>"$dueto READ: ");
   $cac_month= "https://cac.org/category/daily-meditations";
   list($year,$month,$day)= explode('-',$ymd);
-  $cac_month= "$cac_month/$year/$month/";
-  $html= file_get_contents($cac_month);
+  $page= $_page ? "page/$_page/" : '';
+  $cac_month= "$cac_month/$year/$month/$page";
+  $html= @file_get_contents($cac_month);
+  if (!$html) goto end;
   // rozklad
   $m= null;
   $ret->ok= preg_match_all(
       '~<h2 class="daily-meditations-loop__title">\s*<a href="([^"]+)">([^<]+)</a>\s*</h2>\s*'
-      . '<div class="daily-meditations-loop__themes">\s*<small>Theme:</small>\s*'
-      . '<a href="([^"]+)" class="daily-meditations-loop__theme">([^<]+)</a>\s*</div>'
+      . '(?:<div class="daily-meditations-loop__themes">\s*<small>Theme:</small>\s*'
+      . '<a href="([^"]+)" class="daily-meditations-loop__theme">([^<]+)</a>\s*</div>|)'
       . '\s*<div class="daily-meditations-loop__tags">\s*<small>Tags:<\/small>(?:\s*<a href="[^"]+" class="daily-meditations-loop__tag">[^<]*<\/a>)+\s*<\/div>\s*<div class="daily-meditations-loop__author"><small>Author:<\/small>\s*<strong>([^<]+)<\/strong>\s*<\/div>~',
       $html,$m);
   $ret->stamp.= "match1={$ret->ok}; ";
   display("načtení měsíce: $ret->ok úvah ($cac_month)");
+  debug($m[1]);
   for ($i= 0; $i<count($m[0]); $i++) {
     $ret->date= '';
     // text daného dne
     $ret->title= $m[2][$i];
     $ret->url_title= $m[1][$i];
-    $ret->tema= $m[4][$i];
-    $ret->url_tema= $m[3][$i];
+    $ret->tema= $m[4][$i] ?: '-';
+    $ret->url_tema= $m[3][$i] ?: '-';
     $ret->autor= $m[5][$i];
     $cac_day= $m[1][$i];
     $d= null;
@@ -973,7 +984,7 @@ function cac_read_medit($dueto,$ymd) {
         '~<div class="(?:wp-block-gecko-blocks-section|entry-content article)">(.*)~ms',
         $html,$p);
     $ret->stamp.= "match2={$ret->cut}; ";
-    display("načtení dne: $ret->ok ($cac_day)");
+    display("načtení dne: $ret->ok $ret->date ($cac_day)");
     $text= preg_split('~<p><strong>(Story|Reference(?:s|)|Explore|Breath)~',$p[1],-1,PREG_SPLIT_DELIM_CAPTURE);
     $ret->text= $text[0];
     $ret->reference= '';
@@ -988,6 +999,7 @@ function cac_read_medit($dueto,$ymd) {
   $dt= date('Y-m-d H:i:s');
   query("INSERT INTO stamp (typ,kdy,pozn) VALUES ('cac','$dt','$ret->stamp')");
   // návrat
+end:  
   return $ret;
 }
 # --------------------------------------------------------------------------------- cac change_state
