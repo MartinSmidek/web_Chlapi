@@ -14,6 +14,7 @@ panel testy { type:'right', title:'Úvahy a meditace'
       item {title:'[fa-exclamation] Přidat úvahu z daného data', active:no
         func onclick(i:ezer) { var dne:text, x:object
           info.header(i); panel.display(2,'g'); clear();
+          g.Init();
           dne= prompt2("Zadej datum Meditace CAC ve formátu yyyy-mm-dd");
           if (dne) {
             x= php.cac_save_medit('TEST',dne);

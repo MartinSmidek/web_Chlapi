@@ -1814,7 +1814,7 @@ function ask_server($x) {
     $cr= pdo_qry("
         SELECT datum,theme_cz
         FROM cactheme JOIN cac USING (id_cactheme)
-        WHERE DAYOFWEEK(datum)=1
+        WHERE DAYOFWEEK(datum)=1 OR theme_eng='-'
         ORDER BY datum DESC
         -- LIMIT 5
     ");
