@@ -12,14 +12,10 @@ panel testy { type:'right', title:'Úvahy a meditace'
         }
       }
       item {title:'[fa-exclamation] Přidat úvahu z daného data', active:no
-        func onclick(i:ezer) { var dne:text, x:object
+        func onclick(i:ezer) { 
           info.header(i); panel.display(2,'g'); clear();
           g.Init();
-          dne= prompt2("Zadej datum Meditace CAC ve formátu yyyy-mm-dd");
-          if (dne) {
-            x= php.cac_save_medit('TEST',dne);
-            g.b.browse_seek(`c.datum="${dne}"`);
-          }
+          Choose.Show();
         }
       }
       item {title:'[fa-cutlery] Přehled témat'
@@ -280,6 +276,52 @@ panel testy { type:'right', title:'Úvahy a meditace'
     label ref_text [780,top+211,46,16] { style:'cursor:pointer' }
 //    edit text_eng [421,top+236,405,548] { type:'html', data:c.text_eng, par:{toolbar:'Cac'} }
     label text_eng [421,top+238,390,543] { style:'overflow-x:auto;border:1px solid #d3d3d3;padding:5px;font-size:10pt' }
+  }
+  // ==> výběr meditace k dodatečnnému překladu
+  panel Choose [0,0,400,200] { type:'popup', title:"Dodatečné nahrávání úvah CAC"
+    var uvaha:object,
+        ymd=''
+    func Show() { var dne:text, x:object
+      uvaha= {};
+      if (!ymd) d.den= now();
+      d.nazev= '';
+      d.tema= '';
+      d.enable(0,'u|p');
+      panel.popup();
+    }
+    use d: form {
+      field den [82,10,87,] { type:'date', title:'Datum úvahy', format:'tr' } 
+      label [10,39,272,20] { title:'název' }
+      label nazev [10,59,272,50]
+      label [10,118,272,20] { title:'téma' }
+      label tema  [10,138,272,50]
+      button [300,10,,] { title:'[fa-question] Najdi úvahu' 
+        func onclick() { 
+          ymd= date2sql(den);
+          form.enable(0,'u|p');
+          uvaha= php.cac_save_medit('TEST',ymd,0);
+          form.enable(1,'u');
+          //echo(debug(uvaha));
+          d.nazev= uvaha.title;
+          d.tema= uvaha.tema;
+      }}
+      button [300,40,,] { tag:'u', title:'[fa-save] Ulož' 
+        func onclick() { 
+          uvaha= php.cac_save_medit('TEST',ymd,1);
+          form.enable(1,'p');
+          g.b.browse_seek(`c.datum="${ymd}"`);
+      }}
+      button [300,70,,] { tag:'p', title:'[fa-magic] Přelož' 
+        func onclick() { var e:object
+          e= php.cac_through_DeepL(uvaha.idc);
+          nazev= `${nazev}<hr>${e.title_cz}`;
+          tema= `${tema}<hr>${e.theme_cz}`;
+          g.b.browse_seek(`c.datum="${ymd}"`);
+      }}
+      button [300,100,,] { title:'[fa-undo] Zpět' 
+        func onclick() { panel.hide(0);
+      }}
+    }
   }
   // ==> zobrazení rozdílu proti původnímu DeepL
   panel Diff [0,0,400,600] { type:'popup' 

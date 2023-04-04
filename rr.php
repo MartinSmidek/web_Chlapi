@@ -26,7 +26,7 @@
   $add_pars= array(
     'favicon' => $icon,
     'dbg' => $dbg,                                              
-    'no_local' => 1,    
+    'no_local' => 0, // 0 na lokálním PC se nepřihlašuje, 1 testuje se login 
     'watch_ip' => 1,    
     'watch_key' => 1,    
     'watch_pin' => 0,    

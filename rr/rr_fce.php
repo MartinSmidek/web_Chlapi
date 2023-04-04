@@ -800,23 +800,24 @@ function cac_make_free($idc) {
 # doplní nové úvahy do CAC
 function cac_through_DeepL($idc) {
   global $ezer_server_ostry;
-  list($idt,$theme_eng,$theme_cz,$title_eng,$text_eng)= 
+  $ret= (object)array('theme_cz'=>'','title_cz'=>'');
+  list($idt,$theme_eng,$ret->theme_cz,$title_eng,$text_eng)= 
       select('id_cactheme,theme_eng,theme_cz,title_eng,text_eng',
           'cac LEFT JOIN cactheme USING (id_cactheme)',"id_cac=$idc");
   // překlad téma, není-li
-  if ($idt && !$theme_cz) {
-    $theme_cz= cac_deepl_en2cs($theme_eng);
-    query("UPDATE cactheme SET theme_cz=\"$theme_cz\" WHERE id_cactheme=$idt");
+  if ($idt && !$ret->theme_cz) {
+    $ret->theme_cz= cac_deepl_en2cs($theme_eng);
+    query("UPDATE cactheme SET theme_cz=\"{$ret->theme_cz}\" WHERE id_cactheme=$idt");
   }
   // překlad textu
   if (!$ezer_server_ostry) // v lokálu neplýtváme :-) ... domény bean a petr
     $text_eng= "<p>Testing <em>this</em> awesome <b>translator.</b></p>";
-  $title_cz= cac_deepl_en2cs($title_eng);
+  $ret->title_cz= cac_deepl_en2cs($title_eng);
   $text_cz= cac_deepl_en2cs($text_eng);
   $dt= date('Y-m-d H:i:s');
   query("UPDATE cac SET changed_cz='$dt',
-    text_cz=\"$text_cz\",title_cz=\"$title_cz\",text_cz_deepl=\"$text_cz\" WHERE id_cac=$idc");
-  return $title_cz;
+    text_cz=\"$text_cz\",title_cz=\"{$ret->title_cz}\",text_cz_deepl=\"$text_cz\" WHERE id_cac=$idc");
+  return $ret;
 }
 # ---------------------------------------------------------------------------------- cac deepl_en2cs
 # překlad anglického textu pomocí DeepL
@@ -893,8 +894,8 @@ function cac_read_medits($dueto) {
     // získání a zápis úvahy
     $x= cac_save_medit($dueto,$last);
     if ($x->idc) {
-      $title_cz= cac_through_DeepL($x->idc);
-      $msg.= "$last: $x->title ... $title_cz<br>";
+      $ret= cac_through_DeepL($x->idc);
+      $msg.= "$last: $x->title ... $ret->title_cz<br>";
     }
     else {
       $msg.= "SELHALO";
@@ -907,10 +908,10 @@ end:
 }
 # ----------------------------------------------------------------------------------- cac save_medit
 # uloží do daného dne danou meditaci - pokud je úspěšně načtená
-function cac_save_medit($dueto,$last) { trace();
+function cac_save_medit($dueto,$ymd,$save=1) { trace();
   // načtení úvahy
   for ($page=1; $page<=4; $page++) {
-    $x= cac_read_medit($dueto,$last,$page);
+    $x= cac_read_medit($dueto,$ymd,$page);
     if ($x->date) break;
   }
   if (!$x->date) {
@@ -918,9 +919,10 @@ function cac_save_medit($dueto,$last) { trace();
     goto end;
   }
   // zapsání úvahy do tabulky
-  $x->idc= select('id_cac','cac',"datum='$last'");
+  if (!$save) goto end;
+  $x->idc= select('id_cac','cac',"datum='$ymd'");
   if (!$x->idc) {
-    query("INSERT INTO cac (datum) VALUE ('$last')");
+    query("INSERT INTO cac (datum) VALUE ('$ymd')");
     $x->idc= pdo_insert_id();
   }
   $tema= pdo_real_escape_string($x->tema);

@@ -317,6 +317,11 @@ function _cac_temata(y,cmd) {
     case 'show':
       tems.css({display:'block'});
       tems.find('dl').html(y.html);
+      jQuery(document).mouseup(function (e) {
+        if (!tems.is(e.target) && tems.has(e.target).length === 0) {
+          tems.css({display:'none'});
+        }
+      });
       break;
   }
 }
