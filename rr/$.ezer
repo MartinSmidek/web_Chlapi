@@ -287,7 +287,7 @@ menu rr { type:'main', active:rr.richard
     panel maily { type:'right', title:'Brněnská skupina'
       use info: form right [12,4,,]
       var last_par:object, last_menu:ezer
-      func onfirstfocus() { info.Init(); }
+      func onfirstfocus() { info.Chart(1); }
       menu m {type:'left', format:'f'
         menu d {title:'Brněnská setkání',type:'group'
           item p {title:'[fa-question] Dělené skupiny'    par:{fce:'n_skupin',delena:1,confirm:0} }
@@ -417,10 +417,11 @@ menu rr { type:'main', active:rr.richard
 form right [,,*,50] { style:'width:calc(100% - 24px)'
   label head [0,0,*,50]  { title:'' }
   label msg  [0,35,*,20] { title:'' }
-  label chart [10,50,800,400] { title:'' }
+  label chart [10,50,800,400] { title:'', format:'n' }
   label note [0,55,*,] { title:'' }
-  func Init() {
-    chart= `<div id="container" style="width:800px; height:400px;"></div>`;
+  func Chart(on) {
+    chart.display(on);
+    if (on) chart= `<div id="container" style="width:800px; height:400px;"></div>`;
   }
   func header(i:ezer) { var i_owner:ezer
     clear(); i_owner= i.owner();

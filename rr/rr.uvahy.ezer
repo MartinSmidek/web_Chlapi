@@ -45,6 +45,7 @@ panel testy { type:'right', title:'Úvahy a meditace'
   func onfirstfocus() {
     g.b.browse_load(); g.LoadCac(); g.GoNewCac(); h.LoadTema(); b.LoadBible();
   }
+  func onfocus() { info.Chart(0) }
   # --------------------------------------------------------------------------==> biblické knihy
   form _b [,,*,100] {
     view k: table bible_kniha
