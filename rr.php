@@ -32,7 +32,8 @@
     'watch_pin' => 0,    
     'CKEditor' => "{
       version:'4.6',
-      Cac:{toolbar:[['Styles','-','Undo','Redo','-','Bold','Italic','-','Outdent','Indent','-','Source']],
+      Cac:{toolbar:[['Styles','-','Undo','Redo','-','Bold','Italic','-','Outdent','Indent',
+              '-','Link','Unlink','-','Source']],
         stylesSet:[
           {name:'odstavec',  element:'p'},
           {name:'bible',     element:'span', attributes:{'class':'bible'}}
