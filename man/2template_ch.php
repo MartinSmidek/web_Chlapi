@@ -39,6 +39,7 @@ function page($ref) { trace();
   $page= '';
   $counts= array(); // typ -> počet
   def_user();
+  list($ref,$par)= $ref ? explode('?',$ref) : array($ref);
   $path= $ref ? explode('!',$ref) : array($wid==1 ? 'en-home' : 'home');
   // varianty menu
   $menu_type= get_menu();
@@ -50,6 +51,13 @@ function page($ref) { trace();
   else {
     read_menu($path);
     $elem= eval_menu($path);
+  }
+  // rozbor parametrů typu x=y
+  if ($par) {
+    list($par1,$par2)= explode('=',$par);
+    switch ($par1) {
+      case 'ukazat_plan': $_SESSION['web']['ukazat_plan']= $par2; break;
+    }
   }
   $html.= eval_elem($elem);
   $page= show_page($html,$menu_type);
@@ -1000,7 +1008,7 @@ __EOT;
         if ( !$edit_id )
           $edit_id= $id;
         $s->akce[]= (object)array('od'=>$od,'nazev'=>$nazev,'misto'=>$misto,
-            'oddo'=>$oddo,'text'=>$text,'online'=>$online, 'termin'=>$termin?2:0);
+            'oddo'=>$oddo,'text'=>$termin ? '' : $text,'online'=>$online, 'termin'=>$termin?2:0);
       }
       // seřadíme podle data
       usort($s->akce,function($a,$b) { 
@@ -1019,27 +1027,27 @@ __EOT;
       if ( count($s->akce) ) {
         foreach ($s->akce as $a) {
           if (!$terminy && $a->termin==2) continue;
-          if ( $a->org ) {
-            $org=
-              $a->org==1 ? "YMCA Setkání" : (
-              $a->org==2 ? "YMCA Familia" : '');
-            $web= $a->url ? "<a href='$a->url' target='web'>$org</a>" : (
-              $a->org==1 ? "<a href='https://www.setkani.org'>$org</a>" : (
-              $a->org==2 ? "<a href='http://www.familia.cz'>$org</a>" : '')
-            );
-            $web= "přihlášku najdeš na webu $web";
-          }
-          else {
-            $web= $REDAKCE
-              ? preg_replace_callback("~(href=\"(?:$rel_root/|/|(?!https?://)))(.*)\"~U", 
-                  function($m) {
-                    return preg_match('~inc/(c|f)/~',$m[2])
-                      ? $m[1].$m[2].'"'
-                      : "onclick=\"go(arguments[0],'page=$m[2]','$m[2]','',0);\" title='$m[2]'";
-                  }, 
-                  $a->text)
-              : $a->text;
-          }
+            if ( $a->org ) {
+              $org=
+                $a->org==1 ? "YMCA Setkání" : (
+                $a->org==2 ? "YMCA Familia" : '');
+              $web= $a->url ? "<a href='$a->url' target='web'>$org</a>" : (
+                $a->org==1 ? "<a href='https://www.setkani.org'>$org</a>" : (
+                $a->org==2 ? "<a href='http://www.familia.cz'>$org</a>" : '')
+              );
+              $web= $a->termin==2 ? " ($org)" : "<br>přihlášku najdeš na webu $web";
+            }
+            else {
+              $web= $REDAKCE
+                ? preg_replace_callback("~(href=\"(?:$rel_root/|/|(?!https?://)))(.*)\"~U", 
+                    function($m) {
+                      return preg_match('~inc/(c|f)/~',$m[2])
+                        ? $m[1].$m[2].'"'
+                        : "onclick=\"go(arguments[0],'page=$m[2]','$m[2]','',0);\" title='$m[2]'";
+                    }, 
+                    $a->text)
+                : $a->text;
+            }
           $oddo= $a->oddo.($a->online ? "<br><i>online</i>" : '');
           $nazev= "$a->nazev</b>".($a->online ? '' : ", $a->misto");
           if ( $a->obsazeno ) {
@@ -1048,7 +1056,7 @@ __EOT;
           }
           $anotace= $a->anotace ? "<br><i>$a->anotace</i>" : '';
           $class= $a->termin==2 ? "class='ukazat_plan'" : "";
-          $html.= "<tr $class><td>$oddo</td><td><b>$nazev<br><i>$web$anotace</i></td></tr>";
+          $html.= "<tr $class><td>$oddo</td><td><b>$nazev<i>$web$anotace</i></td></tr>";
         }
       }
       $html.= "</table></div></div>";

@@ -41,6 +41,10 @@ if (isset($_GET['lang'])) {
   $lang= $_GET['lang'];
   set_lang($lang);
 }
+// menu
+if (isset($_GET['ukazat_plan'])) {
+  $_SESSION['web']['ukazat_plan']= $_GET['ukazat_plan'];
+}
 // pro testovací GETs
 $_SESSION['web']['GET']= isset($_SESSION['web']['GET']) 
     ? array_merge($_SESSION['web']['GET'],$_GET) : $_GET;
