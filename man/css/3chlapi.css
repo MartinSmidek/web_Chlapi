@@ -824,6 +824,12 @@ table.kalendar tr td:nth-child(2) p {
   font-style: italic;
   margin: 0;
 }
+table.kalendar tr.ukazat_plan {
+  background-color: #E6E1CF;
+}
+table.kalendar tr.ukazat_plan td:nth-child(2) {
+  border-left: #900 7px solid;
+}
 a.aclanek {
   background-color: #FFFFFF;
   color: #000000;

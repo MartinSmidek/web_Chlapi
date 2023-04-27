@@ -97,6 +97,10 @@ panel p [0,0,*,*] { type:'main', _sys:'$'
         alert(_y.msg)
     }
   }
+  func ukazat_plan(on) { 
+    php.ukazat_plan(on);
+    refresh();
+  }
 # ----------------------------------------------------------------------------==> emulace událostí
   var page: object // {html,edit,id}
   func cms_go(ref) { 
@@ -1246,15 +1250,6 @@ panel EDITOR [0,0,783,*] { type:'popup', style:"min-width:700px;height:calc(100%
           panel.hide(1); 
         }
       }
-//      proc onclick() { 
-//        form.same
-//      | form.key; form.save; form.load; 
-//        ask('log_obsah','u','a',id.get); 
-//        panel.hide(1); 
-//      | id.set(form.insert); form.load; 
-//        ask('log_obsah','i','a',id.get); 
-//        panel.hide(1); 
-//      }
     }
     button  [-1,5,,] { title:'Zpět', help:'ukončit editor bez uložení změn'
       func onclick() { panel.hide(0); }}
@@ -1275,14 +1270,15 @@ panel EDITOR [0,0,783,*] { type:'popup', style:"min-width:700px;height:calc(100%
     field do [95,40,85,] { type:'date', title:'^do dne', data:xakce.datum_do }
     field nazev [190,40,248,] { title:'^název', data:xakce.nazev }
     field misto [450,40,183,] { title:'^místo', data:xakce.misto }
+    check termin [315,60,183,] { title:'jen plánovaný termín', data:xakce.termin }
     check online [450,60,183,] { title:'online akce', data:xakce.online }
     // anotace
     label [0,70,300,20] { title:'anotace s odkazem na pozvánku' }
-    edit obsah [0,90,710,150] { type:'html', data:xakce.web_text, par:{toolbar:'WEB'} }
+    edit obsah [0,90,775,150] { type:'html', data:xakce.web_text, par:{toolbar:'WEB'} }
     // informace
     label info [0,265,710,40] 
     // zápis
-    label text [0,287,775,263] { style:"background:white;overflow-y:scroll" }
+    label text [0,320,775,263] { style:"background:white;overflow-y:scroll;height:calc(100% - 328px)" }
     // funkce
     func next_xakce(smer) { var y:object
       info= ''; text= '';
@@ -1846,6 +1842,7 @@ table xakce { key_id:'id_xakce', db:'setkani'
   text nazev
   text misto
   number online
+  number termin
   number skupina
   date datum_od { sql_pipe:'sql_date1' }
   date datum_do { sql_pipe:'sql_date1' }

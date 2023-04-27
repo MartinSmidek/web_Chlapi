@@ -64,6 +64,11 @@ function bez_embeded(_id) {
   Ezer.run.$.part.p._call(0,'bez_embeded',_id);
   return 1;
 }
+// ------------------------------------------------------------------------------------- bez embeded
+function ukazat_plan(on) {
+  Ezer.run.$.part.p._call(0,'ukazat_plan',on);
+  return 1;
+}
 // ------------------------------------------------------------------------------------- edit height
 // opraví výšku editoru podle jeho panelu
 function edit_height() {

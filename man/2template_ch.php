@@ -465,6 +465,8 @@ function title_menu($title,$items,$id=0,$idk=0,$idm=0) {
     // z - zobrazit
     case 'za':  $cm[]= "['{$c}zobrazit jako abstrakt',function(el){ zmenit($idm,'xclanek',$id,'aclanek');}]"; break;
     case 'zc':  $cm[]= "['{$c}zobrazit jako článek',function(el){ zmenit($idm,'aclanek',$id,'xclanek');}],"; break;
+    case 'zp':  $cm[]= "['{$c}zobrazit i plánované termíny',function(el){ ukazat_plan(1);}],"; break;
+    case 'zn':  $cm[]= "['{$c}zobrazit jen nabízené akce',function(el){ ukazat_plan(0);}],"; break;
     // t - transformace
     case 'tak': $cm[]= "['{$c}vytvořit z článku knihu',function(el){ clanek2kniha($idm,'aclanek',$id);}]"; break;
     case 'tck': $cm[]= "['{$c}vytvořit z článku knihu',function(el){ clanek2kniha($idm,'xclanek',$id);}]"; break;
@@ -983,19 +985,22 @@ __EOT;
     case 'kalendar': # ----------------------------------------------- . kalendar
       global $s;
       $edit_id= 0;
+      $terminy= $_SESSION['web']['ukazat_plan'];
       // zjistíme YS + FA
       ask_server((object)array('cmd'=>'kalendar'));
       // přidáme lokálně zapsané akce - ale jen ty pro všechny chlapy
       ezer_connect('setkani');
-      $qa= "SELECT id_xakce,datum_od,datum_do,nazev,misto,web_text,online
-          FROM xakce WHERE datum_od>NOW() AND skupina=0 ORDER BY datum_od";
+      $AND= $terminy ? '' : "AND termin=0";
+      $qa= "SELECT id_xakce,datum_od,datum_do,nazev,misto,web_text,online,termin
+          FROM xakce WHERE datum_od>NOW() AND skupina=0 $AND
+          ORDER BY datum_od";
       $ra= pdo_query($qa);
-      while ( $ra && list($id,$od,$do,$nazev,$misto,$text,$online)=pdo_fetch_array($ra)) {
+      while ( $ra && list($id,$od,$do,$nazev,$misto,$text,$online,$termin)=pdo_fetch_array($ra)) {
         $oddo= datum_oddo($od,$do);
         if ( !$edit_id )
           $edit_id= $id;
         $s->akce[]= (object)array('od'=>$od,'nazev'=>$nazev,'misto'=>$misto,
-            'oddo'=>$oddo,'text'=>$text,'online'=>$online);
+            'oddo'=>$oddo,'text'=>$text,'online'=>$online, 'termin'=>$termin?2:0);
       }
       // seřadíme podle data
       usort($s->akce,function($a,$b) { 
@@ -1003,7 +1008,7 @@ __EOT;
       });
       $menu= '';
       if ( $REDAKCE ) {
-        $menu= title_menu('kalendář',"et,$edit_id");
+        $menu= title_menu('kalendář',"et,$edit_id;-zp;zn");
         if ( $mobile ) {
           $ipad= "<span class='ipad_menu' onclick=\"arguments[0].stopPropagation();$kod\">
             <i class='fa fa-bars'></i></span>";
@@ -1013,6 +1018,7 @@ __EOT;
       $html.= "<div class='back' $menu><div id='clanek2' class='home'>$ipad<table class='kalendar'>";
       if ( count($s->akce) ) {
         foreach ($s->akce as $a) {
+          if (!$terminy && $a->termin==2) continue;
           if ( $a->org ) {
             $org=
               $a->org==1 ? "YMCA Setkání" : (
@@ -1041,7 +1047,8 @@ __EOT;
             $oddo= "<s>$oddo</s>";
           }
           $anotace= $a->anotace ? "<br><i>$a->anotace</i>" : '';
-          $html.= "<tr><td>$oddo</td><td><b>$nazev<br><i>$web$anotace</i></td></tr>";
+          $class= $a->termin==2 ? "class='ukazat_plan'" : "";
+          $html.= "<tr $class><td>$oddo</td><td><b>$nazev<br><i>$web$anotace</i></td></tr>";
         }
       }
       $html.= "</table></div></div>";
@@ -2032,6 +2039,10 @@ function set_menu($menu) {
   $rs->menu= $menu;
   return $rs;
 }
+# ----------------------------------------------------------------------------------------- set menu
+function ukazat_plan($on) {
+  $_SESSION['web']['ukazat_plan']= $on;
+}
 # --------------------------------------------------------------------------------- url get_contents
 function url_get_contents($url, $useragent='cURL', $headers=false, $follow_redirects=true, $debug=false) {
   // initialise the CURL library
@@ -2070,6 +2081,7 @@ function url_get_contents($url, $useragent='cURL', $headers=false, $follow_redir
 }
 # --------------------------------------------------------------------------------------- datum oddo
 function datum_oddo($x1,$x2) {
+  $letos= date('Y');
   $d1= 0+substr($x1,8,2);
   $d2= 0+substr($x2,8,2);
   $m1= 0+substr($x1,5,2);
@@ -2077,14 +2089,14 @@ function datum_oddo($x1,$x2) {
   $r1= 0+substr($x1,0,4); 
   $r2= 0+substr($x2,0,4);
   if ( $x1==$x2 ) {  //zacatek a konec je stejny den
-    $datum= "$d1. $m1. $r1"; // . ($r1!=$r ? ". $r1" : '');
+    $datum= "$d1. $m1" . ($r1!=$letos ? ". $r1" : '');
   }
   elseif ( $r1==$r2 ) {
     if ( $m1==$m2 ) { //zacatek a konec je stejny mesic
-      $datum= "$d1 - $d2. $m1. $r1";
+      $datum= "$d1 - $d2. $m1"  . ($r1!=$letos ? ". $r1" : '');;
     }
     else { //ostatni pripady
-      $datum= "$d1. $m1 - $d2. $m2. $r1";
+      $datum= "$d1. $m1 - $d2. $m2"  . ($r1!=$letos ? ". $r1" : '');;
     }
   }
   else { //ostatni pripady
