@@ -1200,7 +1200,9 @@ panel EDITOR [0,0,783,*] { type:'popup', style:"min-width:700px;height:calc(100%
 //    alert("článek právě upravuje redaktor ",lock.kdo)
 //  ]}
   proc Akce(_idc,_ida) { var me:number, lock:object // idc je id_xclanek, idk je id_xakce
-  [ a.xa.load(_ida); a.xc.load(_idc);
+  [ a.xa.load(_ida); 
+    a.xc.load(_idc);
+    a.uvidi.onchanged;
     me.set(sys('user','id_user'));
     not(or(contains(me,a.id_editors.get),has_skill('s')));
     alert("tuto akci může opravovat jen ",cconc(a.editors.get,a.editors.get,'šéfredaktor'))
@@ -1332,10 +1334,14 @@ panel EDITOR [0,0,783,*] { type:'popup', style:"min-width:700px;height:calc(100%
     // autoři a oprávnění
     select editors [46,5,150,] { type:'map+', title:'napsal', help:'+ kdo může text měnit'
         options:users.username, value:'0', data:xc.editors }
-    select  [231,5,100,] { type:'map', title:'uvidí', help:'zobrazí se jen pro ...'
-        options:cis_web.zkratka, value:'0', data:xc.web_skill }
-    select  [388,5,100,] { type:'map', title:'omezení', help:'zobrazí se jen pro ...'
+    select [255,5,100,] { type:'map', title:'omezení', help:'zobrazí se jen pro ...'
         options:cis_cms.zkratka, value:'0', data:xc.cms_skill }
+    select uvidi [392,5,130,] { type:'map', title:'uvidí', help:'zobrazí se jen pro ...'
+        options:cis_web.zkratka, value:'0', data:xc.web_skill 
+      func onchanged() { id_akce.display(this.key()==4) }
+    }
+    field id_akce [542,5,40,] { title:'ID', data:xc.answer_id_akce, format:'rn' 
+        help:'sem je třeba napsat hodnotu id_akce (ID) zjištěnou v Answeru, pokud akce v Answeru není, nelze článek takto zabezpečit' }
     // text
     edit obsah [0,70,775,450] { type:'html', data:xc.web_text, par:{toolbar:'WEB'} }
   }
@@ -1860,6 +1866,7 @@ table xclanek { key_id:'id_xclanek', db:'setkani'
   number id_xclanek { key:'primary' }
   text editors
   number web_skill
+  number answer_id_akce
   number cms_skill
   text web_text
   date ch_date  { sql_pipe:'sql_date1' } // datum podstatné změny

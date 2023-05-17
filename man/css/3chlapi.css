@@ -58,7 +58,7 @@ html #page span.odkaz a:hover {
   background-color: #CFDDE6;
   border-radius: 0.4em;
 }
-html #page a > img:not(#logo) {
+html #page a > img:not(#chlogo) {
   border: 4px solid #E6CF73;
   border-radius: 0.4em;
   box-shadow: -1px 1px 0px #567, 1px -1px 0px #567, -1px -1px 0px #567, 5px 5px 10px #567;
@@ -216,7 +216,7 @@ div.filler {
       display:none; 
     }*/
 }
-#logo {
+#chlogo {
   filter: drop-shadow(5px 5px 10px #567);
   position: sticky;
   left: 10px;
@@ -971,7 +971,7 @@ div.pdf span.sorry {
     background-image: none !important;
     background: #ccc;
   }
-  div.header #logo {
+  div.header #chlogo {
     left: 0;
     top: 0;
     width: 62px;

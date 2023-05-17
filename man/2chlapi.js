@@ -52,7 +52,7 @@ function jump_fokus() {
     jump[0].scrollIntoView(true);
     if (jQuery('nav.pc-menu').length) {
       let web= document.getElementById("web"),
-          bot= jQuery('#logo').offset().top+jQuery('#logo').height()+11;
+          bot= jQuery('#chlogo').offset().top+jQuery('#chlogo').height()+11;
       if (!web) {  // pokud je redakční mod
         web= jQuery('div.cms_page')[0];
         bot+= 80;
@@ -82,7 +82,7 @@ function change_js(menu,cmd) {
   // kód pro nové menu
   if (menu=='new') {
     // ošetření přilepení headeru
-    const stickyElm = document.querySelector('#logo')
+    const stickyElm = document.querySelector('#chlogo')
     const observer = new IntersectionObserver( 
       ([e]) => 
         e.target.classList.toggle('isSticky', e.intersectionRatio < 1),{threshold: [1]}

@@ -11,13 +11,27 @@ function def_user() {
       // osoba.id_osoba z Answeru
       'id'    => isset($_SESSION['web']['user'])  ? 0+$_SESSION['web']['user'] : 0,  
       // 0-kdokoliv, 1-iniciovaný, 3-účastník firmingu
-      'level' => isset($_SESSION['web']['level']) ? 0+$_SESSION['web']['level'] : 0  
+      'level' => isset($_SESSION['web']['level']) ? 0+$_SESSION['web']['level'] : 0,
+      // pro optimalizaci ochrany pomocí answer_id_akce ... dá se posledně zjištěná akce
+      'id_akce' => 0
   );
   $REDAKCE= isset($_SESSION['man']) ? (object)array(
       // 0-kdokoliv, 1-programátor, 2-testér, 4-redaktor
       'level' => isset($_SESSION['man']['level']) ? 0+$_SESSION['man']['level'] : 0  
   ) : NULL; 
   $mobile= in_array($_SESSION['platform'],array('I','M','A'));
+}
+# -------------------------------------------------------------------------------------==> def user
+// zjistí, zda osoba osoba.id_osoba byla na akci id_akce
+function user_at_event($id_akce) { 
+  global $KLIENT;
+  $ok= $KLIENT->id_akce==$id_akce;
+  if (!$ok) {
+    $ido= $KLIENT->id;
+    $ok= select('COUNT(*)','spolu JOIN pobyt USING (id_pobyt)',
+        "id_osoba=$ido AND id_akce=$id_akce AND funkce NOT IN (9,10,13,14)",'ezer_db2');
+  }
+  return $ok;
 }
 # --------------------------------------------------------------------------------==> get fileadmin
 # vrátí fileadmin pro web setkani
@@ -790,8 +804,8 @@ __EOT;
     
     case 'aclanek': # ------------------------------------------------ . ačlánek - abstrakt
       $idn= $id;
-      list($exists,$obsah,$wskill,$cskill,$zmena)= 
-          select("id_xclanek,web_text,web_skill,cms_skill,TO_DAYS(NOW())-IFNULL(TO_DAYS(ch_date),0)",
+      list($exists,$obsah,$wskill,$id_akce,$cskill,$zmena)= 
+          select("id_xclanek,web_text,web_skill,answer_id_akce,cms_skill,TO_DAYS(NOW())-IFNULL(TO_DAYS(ch_date),0)",
               "xclanek","id_xclanek='$id'");
       if ( !test_elem($exists,"Článek $id",$elem,$html) ) continue;
       $wskill= 0+$wskill;
@@ -813,7 +827,8 @@ __EOT;
         else 
           break;
       }
-      $plny= ($top==$id || $first_open) && (!$wskill || $KLIENT->level & $wskill);
+      $plny= ($top==$id || $first_open) 
+          && (!$wskill || $KLIENT->level & $wskill || $wskill==4 && user_at_event($id_akce));
       $co= $plny ? 'článek' : 'abstrakt';
       // generování obsahu
       $obsah= str_replace('$index',$index,$obsah);
@@ -914,9 +929,10 @@ __EOT;
         // k prvnímu abstraktu zobrazenému jako abstrakt knihy přidej styl kniha - třeba dvojitý rám
         $styl= 'aclanek'.(isset($book->subtyp) && !$book->open ? ' kniha' : '');
         $neodkaz= '';
-        if ( $wskill && !($KLIENT->level & $wskill) ) {
+        if ( $wskill && !(($KLIENT->level & $wskill) || $wskill==4 && user_at_event($id_akce))) {
           $jmp= '';
-          $neodkaz= "onclick=\"jQuery('div.neodkaz').fadeIn();\"";
+          $duvod= $wskill==4 && $KLIENT->level ? 'akce' : 'login';
+          $neodkaz= "onclick=\"jQuery('div.neodkaz.$duvod').fadeIn();\"";
           $styl= 'aclanek_nojump';
           // varianta pro zobrazení jen prvního abstraktu knížky nebo akce
           if ( $book && !$book->first )
@@ -1345,7 +1361,7 @@ __EOD;
             background-repeat: no-repeat;
           \">
         <div class='scroll-line'></div>
-        <img id='logo' src='/man/img/kriz.png'$logo_title>
+        <img id='chlogo' src='/man/img/kriz.png'$logo_title>
         <div id='motto'>$motto</div>
       </div>";   
   }
@@ -1369,7 +1385,7 @@ __EOD;
           <div id='page_hm' class='x'>$mainmenu</div>
           $submenu
       ";    
-    $headline= "<a $go_home style='cursor:pointer'><img id='logo' src='/man/img/kriz.png'$logo_title></a>
+    $headline= "<a $go_home style='cursor:pointer'><img id='chlogo' src='/man/img/kriz.png'$logo_title></a>
       <div id='motto'>$motto
       </div>
       <div id='menu'>
@@ -1432,7 +1448,7 @@ __EOD;
     $fb_root
     <div id='page'>
       $headline
-      <div class='neodkaz' style="display:none">
+      <div class='neodkaz login' style="display:none">
         <div id='clanek2' class='home' style="background:#cfdde6d6">
           <p>Modré <span class='neodkaz'><a class='jump'>odkazy</a></span> 
           a <span class='neodkaz'><a class='odkaz'>čárkovaně podtržené</a></span> odkazy jsou bez přihlášení neaktivní.</p>
@@ -1443,6 +1459,13 @@ __EOD;
           přihlášení možné nebude.</p -->
           <a class='jump' onclick="jQuery('div.neodkaz').fadeOut();">Nemám zájem</a>
           <a class='jump' href="kontakty!$navod">Jak se přihlásím?</a>
+        </div>
+      </div>
+      <div class='neodkaz akce' style="display:none">
+        <div id='clanek2' class='home' style="background:#cfdde6d6">
+          <p>Plná verze článku <b>je privátní</b> jen pro účastníky této akce. 
+            <br>Pokud jsi na akci byl a přesto článek nemáš přístupný, 
+            <br>kontaktuj správce webu (martin(et)smidek.eu).</p>
         </div>
       </div>
       <div id='user_mail' style="display:$login_display">
