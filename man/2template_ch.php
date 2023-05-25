@@ -31,6 +31,7 @@ function user_at_event($id_akce) {
     $ok= select('COUNT(*)','spolu JOIN pobyt USING (id_pobyt)',
         "id_osoba=$ido AND id_akce=$id_akce AND funkce NOT IN (9,10,13,14)",'ezer_db2');
   }
+  db_connect('chlapi');
   return $ok;
 }
 # --------------------------------------------------------------------------------==> get fileadmin
@@ -896,7 +897,7 @@ __EOT;
           if ( $t ) {
             $a_c= $t[0];
             $t= substr($t,1);
-            $jmp_t= $jmp= str_replace('*',"$idn,1",$backref);;
+            $jmp_t= $jmp= str_replace('*',"$idn,1",$backref);
             $html.= $a_c=='A' 
             ? "
               <div class='back'>
