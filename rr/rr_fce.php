@@ -892,7 +892,7 @@ function cac_read_medits($dueto) {
     $date->modify('+1 day');
     $last= $date->format('Y-m-d');
     // získání a zápis úvahy
-    $x= cac_save_medit($dueto,$last);
+    $x= cac_save_medit_2023($dueto,$last);
     if ($x->idc) {
       $ret= cac_through_DeepL($x->idc);
       $msg.= "$last: $x->title ... $ret->title_cz<br>";
@@ -906,6 +906,7 @@ function cac_read_medits($dueto) {
 end:  
   return $msg;
 }
+/*
 # ----------------------------------------------------------------------------------- cac save_medit
 # uloží do daného dne danou meditaci - pokud je úspěšně načtená
 function cac_save_medit($dueto,$ymd,$save=1) { trace();
@@ -1001,6 +1002,103 @@ function cac_read_medit($dueto,$ymd,$_page=0) {
   $dt= date('Y-m-d H:i:s');
   query("INSERT INTO stamp (typ,kdy,pozn) VALUES ('cac','$dt','$ret->stamp')");
   // návrat
+end:  
+  return $ret;
+}
+*/
+# ------------------------------------------------------------------------------ cac save_medit_2023
+# verze platná od 28.6.2023
+# uloží do daného dne danou meditaci - pokud je úspěšně načtená
+function cac_save_medit_2023($dueto,$ymd,$save=1) { trace();
+  // načtení úvahy
+  $x= cac_read_medit_2023($dueto,$ymd);
+  if (!$x->title) {
+    $x->idc= 0;
+    goto end;
+  }
+  // zapsání úvahy do tabulky
+  if (!$save) goto end;
+  $x->idc= select('id_cac','cac',"datum='$ymd'");
+  if (!$x->idc) {
+    query("INSERT INTO cac (datum) VALUE ('$ymd')");
+    $x->idc= pdo_insert_id();
+  }
+  $tema= pdo_real_escape_string($x->tema);
+  // test, jestli nejde o nové téma
+  $idt= select('id_cactheme','cactheme',"theme_eng='$tema' ");
+  if (!$idt) {
+    query("INSERT INTO cactheme SET theme_eng='$tema',url_theme='$x->url_tema' ");
+    $idt= pdo_insert_id();
+  }
+  $title= pdo_real_escape_string($x->title);
+  $text= pdo_real_escape_string($x->text);
+  $reference= pdo_real_escape_string($x->reference);
+  $dt= date('Y-m-d H:i:s');
+  if ($text) {
+    query("UPDATE cac SET 
+        id_cactheme='$idt',url_text='$x->url_title',imported_eng='$dt',
+        author='$x->autor',reference='$reference',title_eng='$title',text_eng='$text' 
+        WHERE id_cac=$x->idc");
+  }
+end:  
+  return $x;
+}
+# ------------------------------------------------------------------------------ cac read_medit_2023
+# verze platná od 28.6.2023
+# vrátí meditaci ze dne {r,m,d} jako objekt {ok,datum,title,url_title,tema,url_tema,autor,text}
+function cac_read_medit_2023($dueto,$ymd) { trace();
+  $ret= (object)array('ok'=>0,'stamp'=>"$dueto READ: ");
+  $cac_day= "https://cac.org/category/daily-meditations";
+  list($year,$month,$day)= explode('-',$ymd);
+//  $page= $_page ? "page/$_page/" : '';
+  $cac_day= "$cac_day/$year/$month/$day";
+  $html= file_get_contents($cac_day);
+  if (!$html) goto end;
+  // rozklad
+  $m= null;
+  $ret->ok= preg_match(
+      '~<h2 class="mb-0">\s*<a href="([^"]+)">([^<]+)</a>~',
+      $html,$m);
+  $ret->stamp.= "match1={$ret->ok}; ";
+  $ret->title= $m[2];
+  $ret->url_title= $cac_day_text= $m[1];
+//  display("načtení dne: $ret->ok úvah ($cac_day)");
+//  debug($m);
+  // načtení úvahy
+  $html= file_get_contents($cac_day_text);
+  // autor
+  $a= null;
+  $ret->ok_a= preg_match('~<meta name="author" content="([^>]*)~u',$html,$a);
+//  $ret->ok_a= preg_match('~<meta name="author" content="([^"]*)">~u',$html,$a);
+  $ret->author= substr($a[1],0,-1) ?: '-';
+//  debug($a,'author '.preg_last_error());
+  // téma
+  $h= null;
+  $ret->header= preg_match(
+      '~<header class="row pt-4">(?:\s|.)*<a(?:\a|.)*href="([^"]*)"(?:\s|.)*>([^<]*)<\/a>~U',
+      $html,$h);
+  $ret->tema= $h[2] ?: '-';
+  $ret->url_tema= $m[1] ?: '-';
+//  debug($h);
+  // text
+  $p= null;
+  $ret->cut= preg_match(
+      '~<div class="(?:wp-block-gecko-blocks-section|entry-content article)">(.*)~ms',
+      $html,$p);
+  $ret->stamp.= "match2={$ret->cut}; ";
+  display("načtení dne: $ret->ok $ret->date ($cac_day_text)");
+  $text= preg_split('~<p><strong>(Story|Reference(?:s|)|Explore|Breath)~',$p[1],-1,PREG_SPLIT_DELIM_CAPTURE);
+  $ret->text= $text[0];
+  $ret->reference= '';
+  for ($i= 1; $i<count($text); $i+= 2) {
+    if (substr($text[$i],0,3)=='Ref') {
+      $ret->reference= "<strong>Odkazy{$text[$i+1]}";
+    }
+  }
+  // zápis do stamp
+  $dt= date('Y-m-d H:i:s');
+  query("INSERT INTO stamp (typ,kdy,pozn) VALUES ('cac','$dt','$ret->stamp')");
+  //   návrat
 end:  
   return $ret;
 }

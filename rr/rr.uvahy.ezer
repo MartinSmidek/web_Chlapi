@@ -236,7 +236,7 @@ panel testy { type:'right', title:'Úvahy a meditace'
             b.browse_row(); LoadCac()
         } }
         item { title:'znovu načíst den bez překladu' skill:'m' func onclick() { 
-            clear(); php.cac_read_medit('AGAIN',date2sql(datum)); b.browse_row(); LoadCac() 
+            clear(); php.cac_read_medit_2023('AGAIN',date2sql(datum)); b.browse_row(); LoadCac() 
         } }
         item { title:'přeložit den pomocí DeepL'     skill:'m' func onclick() { 
             clear(); 
@@ -300,7 +300,8 @@ panel testy { type:'right', title:'Úvahy a meditace'
         func onclick() { 
           ymd= date2sql(den);
           form.enable(0,'u|p');
-          uvaha= php.cac_save_medit('TEST',ymd,0);
+          uvaha= php.cac_save_medit_2023('TEST-2023',ymd);
+//          uvaha= php.cac_save_medit('TEST',ymd,0);
           form.enable(1,'u');
           //echo(debug(uvaha));
           d.nazev= uvaha.title;
@@ -308,7 +309,7 @@ panel testy { type:'right', title:'Úvahy a meditace'
       }}
       button [300,40,,] { tag:'u', title:'[fa-save] Ulož' 
         func onclick() { 
-          uvaha= php.cac_save_medit('TEST',ymd,1);
+          uvaha= php.cac_save_medit_2023('TEST-2023',ymd);
           form.enable(1,'p');
           g.b.browse_seek(`c.datum="${ymd}"`);
       }}
