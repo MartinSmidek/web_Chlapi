@@ -1046,7 +1046,7 @@ end:
 # ------------------------------------------------------------------------------ cac read_medit_2023
 # verze platná od 28.6.2023
 # vrátí meditaci ze dne {r,m,d} jako objekt {ok,datum,title,url_title,tema,url_tema,autor,text}
-function cac_read_medit_2023($dueto,$ymd) { trace();
+function cac_read_medit_2023($dueto,$ymd,$errata_author=0) { trace();
   $ret= (object)array('ok'=>0,'stamp'=>"$dueto READ: ");
   $cac_day= "https://cac.org/category/daily-meditations";
   list($year,$month,$day)= explode('-',$ymd);
@@ -1070,8 +1070,12 @@ function cac_read_medit_2023($dueto,$ymd) { trace();
   $a= null;
   $ret->ok_a= preg_match('~<meta name="author" content="([^>]*)~u',$html,$a);
 //  $ret->ok_a= preg_match('~<meta name="author" content="([^"]*)">~u',$html,$a);
-  $ret->author= substr($a[1],0,-1) ?: '-';
-//  debug($a,'author '.preg_last_error());
+  $ret->autor= substr($a[1],0,-3) ?: '-';
+  display("author='$a[1]' error=".preg_last_error()." autor={$ret->autor}");
+  if ($errata_author) {
+    query("UPDATE cac SET author='$ret->autor' WHERE datum='$ymd' ");
+    goto end;
+  }
   // téma
   $h= null;
   $ret->header= preg_match(
@@ -1101,6 +1105,14 @@ function cac_read_medit_2023($dueto,$ymd) { trace();
   //   návrat
 end:  
   return $ret;
+}
+# ------------------------------------------------------------------------------------ cac corr_2023
+# verze platná od 28.6.2023 -- doplnění autorů
+function cac_corr_2023() { trace();
+  $rc= pdo_qry("SELECT datum FROM cac WHERE author='' AND text_eng!='' ");
+  while ( $rc && (list($datum)= pdo_fetch_row($rc)) ) {
+    cac_read_medit_2023("",$datum,1);
+  }
 }
 # --------------------------------------------------------------------------------- cac change_state
 # změní stav překladu a případně odebere nebo přidá překladatele

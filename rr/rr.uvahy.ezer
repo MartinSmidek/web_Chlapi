@@ -293,9 +293,11 @@ panel testy { type:'right', title:'Úvahy a meditace'
     use d: form {
       field den [82,10,87,] { type:'date', title:'Datum úvahy', format:'tr' } 
       label [10,39,272,20] { title:'název' }
-      label nazev [10,59,272,50]
-      label [10,118,272,20] { title:'téma' }
-      label tema  [10,138,272,50]
+      label nazev [10,59,272,40]
+      label [10,99,272,20] { title:'autor' }
+      label author [10,119,272,20]
+      label [10,148,272,20] { title:'téma' }
+      label tema  [10,168,272,40]
       button [300,10,,] { title:'[fa-question] Najdi úvahu' 
         func onclick() { 
           ymd= date2sql(den);
@@ -305,6 +307,7 @@ panel testy { type:'right', title:'Úvahy a meditace'
           form.enable(1,'u');
           //echo(debug(uvaha));
           d.nazev= uvaha.title;
+          d.author= uvaha.autor;
           d.tema= uvaha.tema;
       }}
       button [300,40,,] { tag:'u', title:'[fa-save] Ulož' 
@@ -322,6 +325,16 @@ panel testy { type:'right', title:'Úvahy a meditace'
       }}
       button [300,100,,] { title:'[fa-undo] Zpět' 
         func onclick() { panel.hide(0);
+      }}
+      button [177,10,,] { title:'[fa-exclamation] Oprav autora' 
+        func onclick() { 
+          uvaha= php.cac_read_medit_2023('TEST-2023',date2sql(den),1);
+          d.author= uvaha.autor;
+      }}
+      button [300,130,,] { title:'[fa-exclamation] Doplň autory' 
+        func onclick() { 
+          uvaha= php.cac_read_medit_2023('TEST-2023',date2sql(den),1);
+          d.author= uvaha.autor;
       }}
     }
   }
