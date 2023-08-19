@@ -46,7 +46,7 @@ panel p [0,0,*,*] { type:'main', _sys:'$'
       case 'xucasti': TABLE.novy(_mid); refresh(); break;
     }
   }
-  function zcizit(_typ,_pid,_mid) { 
+  func zcizit(_typ,_pid,_mid) { 
     if (_typ=='fotky') {
       php.menu_copy_foto(_pid,_mid); // _mid je zde test
       refresh() 
