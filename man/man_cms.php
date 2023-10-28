@@ -1181,7 +1181,7 @@ function menu_copy_elem($co,$pid,$mid,$test=true) {
         fce_error("chybný tag kapitoly $xpid");
     }
   }
-  $elem= select("elem","menu","wid=$wid AND mid=$mid");
+  $elem= select("elem","menu","mid=$mid");
   if ( $aid ) {
     // zapiš jen do hlavičky akce
     if ( $test ) {
@@ -1202,7 +1202,7 @@ function menu_copy_elem($co,$pid,$mid,$test=true) {
     else {
       // přidej do menu.elem, kniha.elem
       query("UPDATE xkniha SET xelems='$elems' WHERE id_xkniha=$kid");
-      query("UPDATE menu SET elem='$elem' WHERE wid=$wid AND mid=$mid");
+      query("UPDATE menu SET elem='$elem' WHERE mid=$mid");
     }
   }
   else {
@@ -1213,7 +1213,7 @@ function menu_copy_elem($co,$pid,$mid,$test=true) {
     }
     else {
       // přidej do menu.elem
-      query("UPDATE menu SET elem='$elem' WHERE wid=$wid AND mid=$mid");
+      query("UPDATE menu SET elem='$elem' WHERE mid=$mid");
     }
   }
                                                       display($msg);
@@ -1272,7 +1272,7 @@ function menu_add_elem($wid,$mid,$table,$first=0,$id_user=0) {
     query("INSERT INTO xakce (xelems,datum_od,datum_do) VALUES ('aclanek=$idc','$ymd','$ymd')");
     break;
   case 'xkniha':       // ---------------------------------- nová kniha s prvním článkem
-    $elem= select("elem","menu","wid=$wid AND mid=$mid");
+    $elem= select("elem","menu","mid=$mid");
     query("INSERT INTO xclanek (editors,cms_skill) VALUES ('$id_user',4)");
     $cid= pdo_insert_id();
     log_obsah('i','c',$cid);
@@ -1282,7 +1282,7 @@ function menu_add_elem($wid,$mid,$table,$first=0,$id_user=0) {
       $elem= "xkniha=$kid" . ($elem ? ";$elem" : '');
     else
       $elem= ($elem ? "$elem;" : '') . "xkniha=$kid";
-    query("UPDATE menu SET elem='$elem' WHERE wid=$wid AND mid=$mid");
+    query("UPDATE menu SET elem='$elem' WHERE mid=$mid");
     break;
   case 'xkniha.elem':  // ---------------------------------- nový článek knihy 
     $elem= select("xelems","xkniha","id_xkniha=$mid");
@@ -1298,7 +1298,7 @@ function menu_add_elem($wid,$mid,$table,$first=0,$id_user=0) {
   case 'xclanek':     // ----------------------------------- nový článek
     $vzor= "<h1>Název (abstrakt tučně)</h1><h2>Nadpis (abstrakt kurzíva)</h2><hr />"
       . "<p>Po dokončení nezapomeň zrušit omezení</p>";
-    $elem= select("elem","menu","wid=$wid AND mid=$mid");
+    $elem= select("elem","menu","mid=$mid");
     query("INSERT INTO xclanek (editors,cms_skill,web_text) VALUES ('$id_user',4,\"$vzor\")");
     $id= pdo_insert_id();
     log_obsah('i','c',$id);
@@ -1306,7 +1306,7 @@ function menu_add_elem($wid,$mid,$table,$first=0,$id_user=0) {
       $elem= "aclanek=$id" . ($elem ? ";$elem" : '');
     else
       $elem= ($elem ? "$elem;" : '') . "aclanek=$id";
-    query("UPDATE menu SET elem='$elem' WHERE wid=$wid AND mid=$mid");
+    query("UPDATE menu SET elem='$elem' WHERE mid=$mid");
     break;
   }
   return 1;
@@ -1393,7 +1393,7 @@ function menu_shift($wid,$mid,$down) {
 //                                              display("y:".implode(',',$ms));
   foreach ($ms as $i=>$mi) {
     $i1= $i+1;
-    query("UPDATE menu SET rank=$i1 WHERE wid=$wid AND mid=$mi");
+    query("UPDATE menu SET rank=$i1 WHERE mid=$mi");
   }
   return 1;
 }
