@@ -56,17 +56,17 @@ function page($ref) { trace();
   def_user();
   list($ref,$par)= $ref ? explode('?',$ref) : array($ref);
   $path= $ref ? explode('!',$ref) : array($wid==1 ? 'en-home' : 'home');
-  // varianty menu
-  $menu_type= get_menu();
-  display("menu=$menu_type");
-  if ($menu_type=='new') {
+//  // varianty menu
+//  $menu_type= get_menu();
+//  display("menu=$menu_type");
+//  if ($menu_type=='new') {
     $elem= '';
     $html= new_menu($path,$elem);
-  }
-  else {
-    read_menu($path);
-    $elem= eval_menu($path);
-  }
+//  }
+//  else {
+//    read_menu($path);
+//    $elem= eval_menu($path);
+//  }
   // rozbor parametrů typu x=y
   if ($par) {
     list($par1,$par2)= explode('=',$par);
@@ -75,7 +75,7 @@ function page($ref) { trace();
     }
   }
   $html.= eval_elem($elem);
-  $page= show_page($html,$menu_type);
+  $page= show_page($html); //,$menu_type);
   return (object)array('html'=>$page);
 }
 # --------------------------------------------------------------------------------------==> new menu
@@ -238,11 +238,16 @@ __EOM;
           <i> odhlásit se</i></a></li>"
       : "<li style='border-top: 1px solid white'><a onclick=\"bar_menu(arguments[0],'me_login');\">
           <i>přihlásit se emailem</i></a></li>";
-    $html.= "<li><a onclick=\"bar_menu(0,'menu-old');\"><i>použít starý styl menu</i></a></li>";
+//    $html.= "<li><a onclick=\"bar_menu(0,'menu-old');\"><i>použít starý styl menu</i></a></li>";
     $html.= "<li><a onclick=\"bar_menu(0,'lang-en');change_js('new','close');\"><i>ENGLISH WEB</i></a></li>";
   }
-  else {
-    $html.= "<li style='border-top: 1px solid white'><a onclick=\"bar_menu(0,'lang-cs');change_js('new','close');\"><i>ČESKÝ WEB</i></a></li>";
+  else { // anglické menu
+    $html.= $KLIENT->id
+      ? "<li style='border-top: 1px solid white'><a onclick=\"be_logout('$currpage');\">
+          <i> Log out</i></a></li>"
+      : "<li style='border-top: 1px solid white'><a onclick=\"bar_menu(arguments[0],'me_login');\">
+          <i> Log in by email address</i></a></li>";
+    $html.= "<li><a onclick=\"bar_menu(0,'lang-cs');change_js('new','close');\"><i>ČESKÝ WEB</i></a></li>";
   }
   $html.= "</ul></nav>";
 //  debug($menu,"menu");
@@ -460,6 +465,7 @@ function title_menu($title,$items,$id=0,$idk=0,$idm=0) {
     // e - editace
     case 'ec':  $cm[]= "['{$c}editovat článek',function(el){ opravit('xclanek',$id); }]"; break;
     case 'ef':  $cm[]= "['{$c}organizovat fotky',function(el){ opravit('xfotky',$x[1]);}]"; break;
+    case 'efa': $cm[]= "['{$c}popsat alias fotek',function(el){ opravit('xfotky',$x[1],$x[2]);}]"; break;
     case 'ek':  $cm[]= "['{$c}upravit název',function(el){ opravit('xkniha',$idk);}]"; break;
     case 'eo':  $cm[]= "['{$c}upravit obrázky článku',function(el){ namiru('$id','$x[1]');}]"; break;
     case 'ea':  $cm[]= "['{$c}editovat akci',function(el){ opravit('xakce',$id,$x[1]);}]"; break;
@@ -473,6 +479,7 @@ function title_menu($title,$items,$id=0,$idk=0,$idm=0) {
     case 'psn': $cm[]= "['{$c}přidat kapitolu na konec',function(el){ pridat('xkniha.elem',$idk,0);}]"; break;
     case 'psd': $cm[]= "['{$c}přidat kapitolu na začátek',function(el){ pridat('xkniha.elem',$idk,1);}]"; break;
     case 'pf':  $cm[]= "['{$c}přidat fotky',function(el){ pridat('xfotky',$id);}]"; break;
+    case 'pfa': $cm[]= "['{$c}použij fotky jiné akce',function(el){ pridat('xfotky',$id,'x');}]"; break;
     case 'pa':  $cm[]= "['{$c}přidat novou akci $idk',function(el){ pridat('xakce',$idk,1);}]"; break;
     case 'pi':  $cm[]= "['{$c}přidat pozvánku',function(el){ pridat('pozvanka',$x[1]);}]"; break;
     case 'pu':  $cm[]= "['{$c}přidat tabulku účastí',function(el){ pridat('xucasti',$id);}]"; break;
@@ -847,7 +854,7 @@ __EOT;
         if ( !$book  ) {
           $div_id= "c$id";
           $namiru= $plny ? "eo;xo;" : '';
-          $menu= title_menu("$co $idn","ec;pf;{$namiru}-zc;-mcn;mcd;-pcn;pcd;-pkn;pkd;tak",$id,0,$curr_menu->mid);
+          $menu= title_menu("$co $idn","ec;pf;pfa;{$namiru}-zc;-mcn;mcd;-pcn;pcd;-pkn;pkd;tak",$id,0,$curr_menu->mid);
           if ( $mobile ) {
             $ipad= "<span class='ipad_menu' onclick=\"arguments[0].stopPropagation();$kod\">
               <i class='fa fa-bars'></i></span>";
@@ -860,7 +867,7 @@ __EOT;
             $pridat_akci= $book->idk ? "pa" 
                 : (select('COUNT(*)','xucast',"id_xclanek=$id") ? 'eu' : 'pu');
             $title= ($plny?'':'abstrakt ')."akce $book->idk: $book->ida/$id";
-            $menu= title_menu($title,"ea,{$book->ida};pf;{$namiru}{$pridat_akci}",$id,$book->idk,0).
+            $menu= title_menu($title,"ea,{$book->ida};pf;pfa;{$namiru}{$pridat_akci}",$id,$book->idk,0).
                  " id='$div_id'";
             if ( $mobile ) {
               $ipad= "<span class='ipad_menu' onclick=\"arguments[0].stopPropagation();$kod\">
@@ -869,7 +876,7 @@ __EOT;
         }
         else {
             $menu= title_menu(($plny?'kapitola ':'abstrakt kapitoly ').$book->ida/$idn,
-                "ec;pf;eo,fokus_part;xo;zc;-msn;msd;-mkn;mkd;-psn;psd",$id,$book->idk,$curr_menu->mid);
+                "ec;pf;pfa;eo,fokus_part;xo;zc;-msn;msd;-mkn;mkd;-psn;psd",$id,$book->idk,$curr_menu->mid);
             if ( $mobile ) {
               $ipad= "<span class='ipad_menu' onclick=\"arguments[0].stopPropagation();$kod\">
                 <i class='fa fa-bars'></i></span>";
@@ -983,7 +990,7 @@ __EOT;
             }, 
             $obsah);
         $div_id= "c$id";
-        $menu= title_menu("článek $id","ec;pf;eo,$div_id;xo;-za;-pcn;pcd;-pkn;pkd;tck",$id,0,$curr_menu->mid);
+        $menu= title_menu("článek $id","ec;pf;pfa;eo,$div_id;xo;-za;-pcn;pcd;-pkn;pkd;tck",$id,0,$curr_menu->mid);
         if ( $mobile ) {
           $ipad= "<span class='ipad_menu' onclick=\"arguments[0].stopPropagation();$kod\">
             <i class='fa fa-bars'></i></span>";
@@ -1154,12 +1161,22 @@ __EOT;
 function pridej_fotky($id) {
   global $REDAKCE, $mobile;
   $html= '';
-  $rf= pdo_qry("SELECT id_xfotky,nazev,seznam,path,autor FROM xfotky WHERE id_xclanek=$id");
-  while ($rf && list($fid,$nazev,$seznam,$fotopath,$podpis)=pdo_fetch_row($rf)) {
+  $rf= pdo_qry("SELECT id_xfotky,alias,nazev,seznam,path,autor FROM xfotky WHERE id_xclanek=$id
+      ORDER BY id_xfotky");
+  while ($rf && list($orig_fid,$alias_fid,$nazev,$seznam,$fotopath,$podpis)=pdo_fetch_row($rf)) {
+    $note= '';
+    $menu= "title='$orig_fid'";
+    $ipad= '';
+    $fid= $alias_fid ? $alias_fid : $orig_fid;
+    if ($alias_fid) {
+      list($clanek_alias,$seznam)= select('id_xclanek,seznam','xfotky',"id_xfotky=$alias_fid");
+    }
     if ( $REDAKCE ) {
-      $note= "<span style='float:right;color:red;font-style:italic;font-size:x-small'>
-            ... zjednodušené zobrazení fotogalerie pro editaci</span>";
-      $menu= title_menu("fotky $fid","ef,$fid");
+      $anote= $alias_fid
+          ? "fotky k článku $clanek_alias - jen tam je lze měnit"
+          : '... zjednodušené zobrazení fotogalerie pro editaci';
+      $note= "<span style='float:right;color:red;font-style:italic;font-size:x-small'>$anote</span>";
+      $menu= title_menu("fotky $fid",$alias_fid ? "efa,$orig_fid,$alias_fid" : "ef,$fid");
       if ( $mobile ) {
         $ipad= "<span class='ipad_menu' onclick=\"arguments[0].stopPropagation();$kod\">
           <i class='fa fa-bars'></i></span>";
@@ -1183,7 +1200,7 @@ function pridej_fotky($id) {
   return $html;  
 }
 # -------------------------------------------------------------------------------------==> show_page
-function show_page($html,$menu_type='old') {
+function show_page($html) { // ,$menu_type='new') {
   global $part;
   global $wid, $REDAKCE, $KLIENT, $index, $GET_rok, $mode, $load_ezer, $ezer_server_ostry, $prefix;
   global $bar_menu, $links, $currpage, $tm_active;
@@ -1193,6 +1210,7 @@ function show_page($html,$menu_type='old') {
   // jádro Ezer - jen pokud není aktivní CMS
   $script= '';
   $client= "./ezer3.1/client";
+  $lang= get_lang(); // en | cs
   
   // Facebook
   $fb_script= '';
@@ -1250,7 +1268,7 @@ __EOJ
       : <<<__EOJ
     $GoogleAnalytics
     <script type="text/javascript">
-      var Ezer= {};
+      var lang= '$lang', Ezer= {};
       Ezer.web= {rok:'$GET_rok',index:'$index'$web_username};
       Ezer.get= { dbg:'1',err:'1',gmap:'1' };
       Ezer.fce= {};
@@ -1295,7 +1313,7 @@ __EOD;
           <br>the old man who cannot laugh is a fool.
           <br><i>Richard Rohr</i>"
       : "Mladý muž, který neumí plakat, je barbar.
-          <br>Starý muž, který se neumí smát, je chudák.
+          <br>Starý muž, který se neumí smát, je trouba.
           <br><i>Richard Rohr</i>";
 
   // logo
@@ -1326,7 +1344,7 @@ __EOD;
   }
   
   // barmenu
-  $toggle_menu= $menu_type=='old' ? 'new' : 'old';
+//  $toggle_menu= $menu_type=='old' ? 'new' : 'old';
   $loginout= $KLIENT->id
     ? "<span onclick=\"be_logout('$currpage');\" class='separator'>
          <i class='fa fa-power-off'></i> odhlásit se</span>"
@@ -1340,61 +1358,61 @@ __EOD;
       $loginout
       $language
       $menus
-      <span onclick="bar_menu(arguments[0],'wallpaper');" class='separator'><i class='fa fa-image'></i> použij jiné pozadí</span>
-      <span onclick="bar_menu(arguments[0],'menu-$toggle_menu');"><i class='fa fa-image'></i> použij nové menu</span>
     </div>
 __EOD;
+//      <span onclick="bar_menu(arguments[0],'wallpaper');" class='separator'><i class='fa fa-image'></i> použij jiné pozadí</span>
+//      <span onclick="bar_menu(arguments[0],'menu-$toggle_menu');"><i class='fa fa-image'></i> použij nové menu</span>
 
   // --------------------------------------------------------------- NOVÉ MENU
-  if ($menu_type=='new') {
-    $chlapi_css= "3chlapi.css";
-    $background= $REDAKCE
-        ?  "<style>nav{top:34px}</style>"
-        : '';
-    $top_of_page= 0;
-    $headline= "<script type='text/javascript'>change_js('new');</script>
-        $part->menu_open
-        $part->menu
-      <div class='header' style=\"
-            background-image:url('/man/css/wall/MROP_2018_IMG_4897.jpg');
-            background-size: cover;
-            border-bottom: 10px solid #ffffffaa;
-            background-repeat: no-repeat;
-          \">
-        <div class='scroll-line'></div>
-        <img id='chlogo' src='/man/img/kriz.png'$logo_title>
-        <div id='motto'>$motto</div>
-      </div>";   
-  }
-  // --------------------------------------------------------------- STARÉ MENU
-  elseif ($menu_type=='old') { 
-    $chlapi_css= "2chlapi.css";
-    // počáteční tapeta pro klientský běh, pro redakční je v man.php ve funkci specific
-    $wall= isset($_COOKIE['wallpaper']) ? $_COOKIE['wallpaper'] : 'foto_home.jpg';
-    $background= "<style>body{background-image:url(man/css/wall/$wall);}</style>";
-    $top_of_page= 0;
-    // menu
-    $topmenu= show_menu('top');
-    $mainmenu= show_menu('main');
-    $submenu= show_menu('sub');
-    $filler= $submenu ? "<div class='filler'></div>" : '';
-    $submenu= $submenu ? "<div id='page_sm'><span>$submenu</span>$filler</div>" : '';
-    $menu= "
-          <div id='page_tm'$tm_active>
-            $topmenu
-          </div>
-          <div id='page_hm' class='x'>$mainmenu</div>
-          $submenu
-      ";    
-    $headline= "<a $go_home style='cursor:pointer'><img id='chlogo' src='/man/img/kriz.png'$logo_title></a>
-      <div id='motto'>$motto
-      </div>
-      <div id='menu'>
-        $bar_menu
-        $menu
-      </div>
-      $news ";
-  }
+//  if ($menu_type=='new') {
+  $chlapi_css= "3chlapi.css";
+  $background= $REDAKCE
+      ?  "<style>nav{top:34px}</style>"
+      : '';
+  $top_of_page= 0;
+  $headline= "<script type='text/javascript'>change_js('new');</script>
+      $part->menu_open
+      $part->menu
+    <div class='header' style=\"
+          background-image:url('/man/css/wall/MROP_2018_IMG_4897.jpg');
+          background-size: cover;
+          border-bottom: 10px solid #ffffffaa;
+          background-repeat: no-repeat;
+        \">
+      <div class='scroll-line'></div>
+      <img id='chlogo' src='/man/img/kriz.png'$logo_title>
+      <div id='motto'>$motto</div>
+    </div>";   
+//  }
+//   --------------------------------------------------------------- STARÉ MENU
+//  elseif ($menu_type=='old') { 
+//    $chlapi_css= "2chlapi.css";
+//    // počáteční tapeta pro klientský běh, pro redakční je v man.php ve funkci specific
+//    $wall= isset($_COOKIE['wallpaper']) ? $_COOKIE['wallpaper'] : 'foto_home.jpg';
+//    $background= "<style>body{background-image:url(man/css/wall/$wall);}</style>";
+//    $top_of_page= 0;
+//    // menu
+//    $topmenu= show_menu('top');
+//    $mainmenu= show_menu('main');
+//    $submenu= show_menu('sub');
+//    $filler= $submenu ? "<div class='filler'></div>" : '';
+//    $submenu= $submenu ? "<div id='page_sm'><span>$submenu</span>$filler</div>" : '';
+//    $menu= "
+//          <div id='page_tm'$tm_active>
+//            $topmenu
+//          </div>
+//          <div id='page_hm' class='x'>$mainmenu</div>
+//          $submenu
+//      ";    
+//    $headline= "<a $go_home style='cursor:pointer'><img id='chlogo' src='/man/img/kriz.png'$logo_title></a>
+//      <div id='motto'>$motto
+//      </div>
+//      <div id='menu'>
+//        $bar_menu
+//        $menu
+//      </div>
+//      $news ";
+//  }
   
   // ----------------------------------------------------------------- společné
   // head
@@ -1444,6 +1462,49 @@ __EOD;
     $html= bib_transform($html);
   }
   // konečná redakce stránky
+  $login= $lang=='en'
+    ?  <<<__EOD
+      <div id='user_mail' style="display:$login_display">
+        <span id='user_mail_head'>Login to private section</span>
+        <div>
+          <span id="user_mail_txt">
+            Write your email address and ask for a PIN to be sent to it.
+            After entering it and logging in, you will see the private part of the site 
+            (e.g. photos from events, you've attended...)
+          </span>
+          <input id='mail' type='text' placeholder='email address' value='$cookie_email'>
+          <input id='pin' type='text' placeholder='PIN'  title='$cookie_pin'>
+          <br>
+          <a class='jump' id="prihlasit1" onclick="me_login('$currpage');">Ask for a PIN</a>
+          <a class='jump' id="prihlasit2" onclick="me_login('$currpage');" 
+            style="display:none">Log in</a>
+          <a class='jump' id="prihlasit3" onclick="jQuery('#user_mail').hide();">Back</a>
+          <a class='jump noedit' onclick="me_noedit(1);">Viewer mode</a>
+          <a class='jump noedit' onclick="me_noedit(0);">Editor mode</a>
+        </div>
+      </div>
+__EOD
+    :  <<<__EOD
+      <div id='user_mail' style="display:$login_display">
+        <span id='user_mail_head'>Přihlášení uživatele</span>
+        <div>
+          <span id="user_mail_txt">
+            Napiš svoji mailovou adresu a požádej o PIN, který ti na ni dojde.
+            Po jeho vložení a přihlášení uvidíš privátní část webu (např. fotky z akcí, 
+            kterých ses zúčastnil ...)
+          </span>
+          <input id='mail' type='text' placeholder='emailová adresa' value='$cookie_email'>
+          <input id='pin' type='text' placeholder='PIN'  title='$cookie_pin'>
+          <br>
+          <a class='jump' id="prihlasit1" onclick="me_login('$currpage');">Požádat o PIN</a>
+          <a class='jump' id="prihlasit2" onclick="me_login('$currpage');" 
+            style="display:none">Přihlásit</a>
+          <a class='jump' id="prihlasit3" onclick="jQuery('#user_mail').hide();">Zpět</a>
+          <a class='jump noedit' onclick="me_noedit(1);">chci prohlížet</a>
+          <a class='jump noedit' onclick="me_noedit(0);">chci editovat</a>
+        </div>
+      </div>
+__EOD;
   $body=  <<<__EOD
     $background
     $fb_root
@@ -1469,25 +1530,7 @@ __EOD;
             <br>kontaktuj správce webu (martin(et)smidek.eu).</p>
         </div>
       </div>
-      <div id='user_mail' style="display:$login_display">
-        <span id='user_mail_head'>Přihlášení uživatele</span>
-        <div>
-          <span id="user_mail_txt">
-            Napiš svoji mailovou adresu a požádej o PIN, který ti na ni dojde.
-            Po jeho vložení a přihlášení uvidíš privátní část webu (např. fotky z akcí, 
-            kterých ses zúčastnil ...)
-          </span>
-          <input id='mail' type='text' placeholder='emailová adresa' value='$cookie_email'>
-          <input id='pin' type='text' placeholder='PIN'  title='$cookie_pin'>
-          <br>
-          <a class='jump' id="prihlasit1" onclick="me_login('$currpage');">Požádat o PIN</a>
-          <a class='jump' id="prihlasit2" onclick="me_login('$currpage');" 
-            style="display:none">Přihlásit</a>
-          <a class='jump' id="prihlasit3" onclick="jQuery('#user_mail').hide();">Zpět</a>
-          <a class='jump noedit' onclick="me_noedit(1);">chci prohlížet</a>
-          <a class='jump noedit' onclick="me_noedit(0);">chci editovat</a>
-        </div>
-      </div>
+      $login
       $filler
       <div class="body">
         $html
@@ -1519,7 +1562,7 @@ __EOD;
   // dokončení stránky
   echo <<<__EOD
   $head
-  <body onload="jump_fokus();change_js('$menu_type');scroll_line();">
+  <body onload="jump_fokus();change_js('new');scroll_line();">
     <div title="We stand with Ukraine" id="we-stand-with-ukraine" style="left: -80px; bottom: 20px; 
       transform: rotate(45deg); background: linear-gradient(-180deg, rgb(0, 91, 187) 50%, 
         rgb(255, 213, 0) 50%); width: 200px; height: 54px; position: fixed; z-index: 999; opacity:0.7"

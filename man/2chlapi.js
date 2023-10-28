@@ -1,4 +1,4 @@
-/* global Web, Ezer */
+/* global Web, Ezer, lang */
 
 // ---------------------------------------------------------------------------------------------- //
 // uživatelské funkce aplikace Ezer/MAN specifické pro chlapi.online/chlapi.cz                    //
@@ -249,7 +249,10 @@ function me_login__(y) {
     set_cookie('email',jQuery('#mail').val(),30*24);
     set_cookie('pin',jQuery('#pin').val(),23);
     if ( !y.txt ) 
-      txt.html("<br>Jsi přihlášen, tento PIN platí 24 hodin<br><br>");
+      txt.html(lang=='en'
+      ? "<br>You are logged in, this PIN is valid for 24 hours<br><br>"
+      : "<br>Jsi přihlášen, tento PIN platí 24 hodin<br><br>"
+      );
     if ( y && y.redakce ) {
       jQuery('#prihlasit1').css({display:'none'});
       jQuery('#prihlasit2').css({display:'none'});

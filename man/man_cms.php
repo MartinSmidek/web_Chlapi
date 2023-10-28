@@ -525,12 +525,13 @@ function sort_fotky($fid,$mode='time') {
 # přidání fotek - pokud je definováno x.kapitola pak pod příslušné part - jinak na konec
 function create_fotky($x) {
   $cid= $x->cid;
+  $alias= $x->alias;
   $autor= pdo_real_escape_string($x->autor);
   $nadpis= pdo_real_escape_string($x->nadpis);
   $psano= sql_date1($x->psano,1);
   $editors= $x->editors ? implode(',',(array)$x->editors) : '';
-  query("INSERT INTO xfotky (id_xclanek,editors,nazev,kdy,autor,seznam)
-         VALUES ($cid,'$editors','$nadpis','$psano','$autor','')");
+  query("INSERT INTO xfotky (id_xclanek,alias,editors,nazev,kdy,autor,seznam)
+         VALUES ($cid,$alias,'$editors','$nadpis','$psano','$autor','')");
   $fid= pdo_insert_id();
   return $fid;
 }
@@ -595,6 +596,7 @@ function load_fotky($fid) { trace();
 # ----------------------------------------------------------------------------------==> . save fotky
 function save_fotky($x,$perm=null) {
   $fid= $x->fid;
+  $alias= $x->alias;
   $autor= pdo_real_escape_string($x->autor);
   $nadpis= pdo_real_escape_string($x->nadpis);
   $psano= sql_date1($x->psano,1);
@@ -616,7 +618,7 @@ function save_fotky($x,$perm=null) {
 //  $set_text= $text==$text2 ? '' : ",text='$text2'";
   // zápis
   query("UPDATE xfotky
-         SET editors='$editors',nazev='$nadpis',kdy='$psano',autor='$autor'
+         SET editors='$editors',nazev='$nadpis',kdy='$psano',autor='$autor',alias='$alias'
            $set_seznam
          WHERE id_xfotky='$fid'");
   return 1;
@@ -1436,7 +1438,7 @@ function menu_undo($wid) {
   return 1;
 }
 # ---------------------------------------------------------------------------------------- menu tree
-function menu_tree($wid,$menu_type) { trace();
+function menu_tree($wid) { //,$menu_type) { trace();
   //{prop:°{id:'ONE'},down:°[°{prop:°{id:'TWO'}},°{prop:°{id:'THREE'}}]}
   $data= (object)array('mid'=>0);
   $menu= 
@@ -1469,7 +1471,8 @@ function menu_tree($wid,$menu_type) { trace();
       $node= (object)array('prop'=>(object)array('id'=>$nazev,'data'=>$m));
       $menu->down[1]->down[]= $node;
     }
-    elseif ( $menu_type=='new' ? $typ==2||$typ==3 : $typ==2 ) {
+//    elseif ( $menu_type=='new' ? $typ==2||$typ==3 : $typ==2 ) {
+    elseif ( $typ==2||$typ==3 ) {
       foreach ( $menu->down[1]->down as $i => $sm ) {
         if ( $sm->prop->data->mid===$mid_top ) {
           $node= (object)array('prop'=>(object)array('id'=>$nazev,'data'=>$m));

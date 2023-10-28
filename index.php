@@ -82,18 +82,18 @@ else {
   global $GET_rok, $counts;
   $GET_rok= isset($_GET['rok']) ? $_GET['rok'] : '';
   $counts= array(); // typ -> počet
-  if ($_GET['menu']=='new' || $_SESSION['web']['menu']=='new') {
+//  if ($_GET['menu']=='new' || $_SESSION['web']['menu']=='new') {
     $elem= '';
     $html= new_menu($path,$elem);
     $html.= eval_elem($elem);
     show_page($html,'new');
-  }
-  else {
-    read_menu($path);
-    $elem= eval_menu($path);
-    $html= eval_elem($elem);
-    show_page($html,'old');
-  }
+//  }
+//  else {
+//    read_menu($path);
+//    $elem= eval_menu($path);
+//    $html= eval_elem($elem);
+//    show_page($html,'old');
+//  }
   exit;
 }
 ?>

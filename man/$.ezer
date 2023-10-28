@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------==> propojení na template
 panel p [0,0,*,*] { type:'main', _sys:'$'
-  var web=2, menu_type='old'
+  var web=2, menu_type='new'
   var do_go=1
   var last='home'  //'home'
   var history: array, top=-1
@@ -24,7 +24,7 @@ panel p [0,0,*,*] { type:'main', _sys:'$'
       case 'xakce':   EDITOR.Akce(_id,_idk); refresh(); break;
       case 'xkniha':  EDITOR.Kniha(_id); refresh(); break;
       case 'kalendar':EDITOR.Kalendar(_id); refresh(); break;
-      case 'xfotky':  FOTKY.oprava(_id); refresh(); break;
+      case 'xfotky':  FOTKY.oprava(_id,_idk); refresh(); break; // pokud _idk='x' povol jen změnu názvu
       case 'xucasti': TABLE.oprava(_id); refresh(); break;
     }
   }
@@ -40,7 +40,7 @@ panel p [0,0,*,*] { type:'main', _sys:'$'
       case 'xclanek': php.menu_add_elem(web,_mid,_typ,_first,me); refresh(); break;
       case 'xkniha': php.menu_add_elem(web,_mid,_typ,_first,me); refresh(); break; 
       case 'xkniha.elem': php.menu_add_elem(web,_mid,_typ,_first,me); refresh(); break;
-      case 'xfotky': FOTKY.novy(_mid); refresh(); break;
+      case 'xfotky': FOTKY.novy(_mid,_first); refresh(); break; // _first='x' vytvoří alias
       case 'xakce': php.menu_add_elem(web,_mid,_typ,0,me); refresh(); break;
       case 'pozvanka': php.menu_add_elem(web,_mid,_typ,0,me); refresh(); break;
       case 'xucasti': TABLE.novy(_mid); refresh(); break;
@@ -182,11 +182,11 @@ panel p [0,0,*,*] { type:'main', _sys:'$'
       func onclick() { hide_all(); clear(); cms_go(last) } }
     button [123,5,,] { skill:'r|r', title:"[fa-chevron-right]", format:'d'
       func onclick() { hide_all() } }
-    button [150,5,,] { skill:'m|m', title:"OLD"
-      func onclick() { p.set_menu('old'); } }
-//      func onclick() { php.ask_server({cmd:'menu',menu:'old'}); p.refresh() } }
-    button [190,5,,] { skill:'m|m', title:"NEW"
-      func onclick() { p.set_menu('new'); } }
+//    button [150,5,,] { skill:'m|m', title:"OLD"
+//      func onclick() { p.set_menu('old'); } }
+////      func onclick() { php.ask_server({cmd:'menu',menu:'old'}); p.refresh() } }
+//    button [190,5,,] { skill:'m|m', title:"NEW"
+//      func onclick() { p.set_menu('new'); } }
 //      func onclick() { php.ask_server({cmd:'menu',menu:'new'}); p.refresh()  } }
     label verze [-325,8,40,] { title:'ezer', style:'font-size:10pt;color:white' } 
     button [-243,5,,] { skill:'r|r', title:"[fa-empire] admin" 
@@ -277,7 +277,7 @@ panel CMS [0,0,610,400] { type:'popup',  title:'CMS - definice menu',
       a.tree_select(curr_id);
     }
     func menu() { var obj: object
-      obj= php.menu_tree(p.web,p.menu_type);
+      obj= php.menu_tree(p.web); //,p.menu_type);
       this.tree_show(obj,'tree') 
     }
     // dat=node.data tzn. vše z tx_gnmenu
@@ -1556,18 +1556,30 @@ panel FOTKY [0,0,680,265] { title:' Organizér fotek', type:'popup', css:'dialog
 //    function(panel){panel.DOM_Block.id='FOTKY';}(panel);
   }
 //  # ==> . nový
-  func novy(_cid) { // var ret:object
-    f.init(); f.fid= 0; f.cid= _cid; f.fotky= '';
-    f.display(0,'o'); f.display(1,'n'); f.sav= '[fa-save] Vytvořit';
+  func novy(_cid,_x) { // pokud _x='x' povol jen vložení alias x_xfotky
+    f.init(); f.fid= 0; f.alias= 0; f.cid= _cid; f.fotky= ''; f.sav= '[fa-save] Vytvořit';
+    f.display(0,'o'); f.display(1,'n');
+    if (_x=='x') {
+      f.display(1,'x');
+      f.alias.change();
+    }
     f.editors.key(sys('user','id_user')); f.editors.change();
     f.autor= conc(sys('user','forename'),' ',sys('user','surname')); f.autor.change();
     f.psano.set(now()); f.psano.change();
     panel.modal() //(10,30);
   }
   # ==> . oprava
-  func oprava(_fid) {
+  func oprava(_fid,_alias_fid) { // pokud je _alias_fid tak povol jen změnu názvu
     f.init();
-    f.display(1,'o');
+    if (_alias_fid) {
+      f.display(0,'o');
+      f.display(1,'x');
+      f.alias= _alias_fid;
+    }
+    else {
+      f.alias= 0;
+      f.display(1,'o'); f.alias.display(0);
+    }
     f.fid= _fid; f.sav= '[fa-save] Uložit';
     refresh();
     panel.modal(); //(10,30);
@@ -1582,46 +1594,17 @@ panel FOTKY [0,0,680,265] { title:' Organizér fotek', type:'popup', css:'dialog
       alert("tyto fotky může upravovat jen ",f.editors ? f.editors.get : 'šéfredaktor');
       return
     }
-    //    [ function("foto_sortable('start');") ];
-    //    f.drop_init;
   }
-//  proc refresh() { var ret:object
-//    ret.set(ask('load_fotky',f.fid.get)); copy_by_name(ret,f); 
-//    // smí přihlášený redaktor měnit?
-//    not(or(contains(sys('user','id_user'),f.editors.key),has_skill('s')));
-//    alert("tyto fotky může upravovat jen ",cconc(f.editors.get,f.editors.get,'šéfredaktor'));
-//    return(0)
-//  |
-//    //    [ function("foto_sortable('start');") ];
-//    //    f.drop_init;
-//    f.drop.init(conc("inc/f/",f.fid.get,"/"));
-//  }
-//  proc create() { var values:object 
-//    values.set(object());
-//    f.sav.set('[fa-save] Uložit');
-//    copy_by_name(f,values); f.fid.set(ask('create_fotky',values));
-//    f.display(1,'o');
-//    f.plain
-//  }
-//  # ==> . vymazání
-//  proc smazat(name) {
-//    ask('delete_fotky',f.fid.get,name); refresh;
-//  }
-//  # ==> . vtipná poznámka
-//  proc poznamka(name,note0) { var note:text
-//    note.set(prompt2('připoj krátkou poznámku k fotografii',note0));
-//    echo('note=',note);
-//    ask('note_fotky',f.fid.get,name,note); refresh;
-//  }
   # ==> . form
   form _foto {
     field fid // id_xfotky
     field cid // id_xclanek
-    select editors [146,40,150,] { type:'map+', title:'fotky přidal(i): ', help:'a mohou je měnit'
-        options:users.username, value:'0' }
+    select editors [146,40,150,] { tag:'o,n', type:'map+', title:'fotky přidal(i): ', 
+        help:'a mohou je měnit' options:users.username, value:'0' }
     field autor  [35,15,100,]  { tag:'o,n', title:'^autor:' }
-    field nadpis [146,15,224,] { tag:'o,n', title:'^název:' }
+    field nadpis [146,15,224,] { tag:'o,n,x', title:'^název:' }
     field psano  [380,15,85,]  { tag:'o,n', type:'date', title:'^psáno:', format:'r' }
+    field alias  [633,40,40,]  { tag:'x', title:'Alias ID' }
     label        [0,72,80,80]  { tag:'o', css:'drop_back' }
 //    label drop   [0,42,,]      { tag:'o', css:'drop_foto' }
     label fotky  [0,70,690,205] { tag:'o', style:'overflow:auto' }
@@ -1632,7 +1615,7 @@ panel FOTKY [0,0,680,265] { title:' Organizér fotek', type:'popup', css:'dialog
         panel.property(object('left',0,'top',25,'width',w-50,'height',h-80));
         fotky.property(object('width',w-45,'height',h-110));
     } }
-    button sav [-78,15,,] { tag:'o,n', title:'[fa-save] Vytvořit', help:'ukončit organizaci fotek'
+    button sav [-78,15,,] { tag:'o,n,x', title:'[fa-save] Vytvořit', help:'ukončit organizaci fotek'
       func onclick() { var values:object, order:text
         values= object();
         copy_by_name(f,values);
@@ -1643,21 +1626,13 @@ panel FOTKY [0,0,680,265] { title:' Organizér fotek', type:'popup', css:'dialog
         else { //create
           f.fid= php.create_fotky(values);
           f.sav= '[fa-save] Uložit'; f.display(1,'o'); 
-          refresh(); p.refresh()
+          oprava(fid,alias);
+//          refresh(); 
+          p.refresh()
         }
       }
-//      proc onclick() { var values:object, order:text
-//        values.set(object());
-//        copy_by_name(f,values);
-//        { fid.get; ask('save_fotky',values,order); panel.hide(fid.get);
-//        | not(fid.get); //create
-//          f.fid.set(ask('create_fotky',values));
-//          f.sav.set('[fa-save] Uložit'); f.display(1,'o'); 
-//          refresh; p.refresh
-//        };
-//      }
     }
-    button [-20,15,,] { tag:'o,n', title:'[fa-undo] Zpět', help:'ukončit editor bez vytvoření článku'
+    button [-20,15,,] { tag:'o,n,x', title:'[fa-undo] Zpět', help:'ukončit editor bez vytvoření článku'
       func onclick() { UPLOAD.hide(0); panel.hide(0); }
     }
     button [440,40,,] { tag:'o', title:"[fa-file-archive-o] ZIP", format:'d'
@@ -1669,15 +1644,6 @@ panel FOTKY [0,0,680,265] { title:' Organizér fotek', type:'popup', css:'dialog
         else 
           refresh()
     } }
-//    button [-188,9,,] { tag:'o', title:"[fa-check-square-o]",
-//      proc onclick() { var pid:number, order:text
-//        pid.set(prompt("Zadej part.uid kam se mají přesunout označené fotky"));
-//        eq(pid,uid.get); warning("POZOR cílový článek se musí lišit od tohoto")
-//      | pid;
-//        order.set(function("return foto_sortable('checked');"));
-//        ask('move_fotky',uid.get,pid,order);
-//        refresh
-//    } }
     button [380,40,,] { tag:'o', title:"[fa-sort-numeric-asc]", help:'Seřaď podle data pořízení' 
       func onclick() { 
         clear(); 
@@ -1694,37 +1660,15 @@ panel FOTKY [0,0,680,265] { title:' Organizér fotek', type:'popup', css:'dialog
           refresh()       
         }
     }}
-    button [492,40,,] { title:'[fa-camera-retro] Oprav fotky',
+    button [492,40,,] { tag:'o', title:'[fa-camera-retro] Oprav fotky',
       func onclick() { 
         clear(); 
         php.corr_fotky(fid); 
         refresh() 
     }}
-//    # ==> .. drag & drop
-//    proc ondrop(fileinfo) { var name: text
-//      [ not(fid.get); create ];--
-//      drop.set_css('','drop_area drop_area_hover');
-//      name.set(ask('upload_fotky',fileinfo,fid.get));
-//      drop.set_css('','drop_area drop_area_hover drop_area_run');
-//      refresh;
-//    }
-//    proc drop_init() {
-//      drop.set_css('drop_area','');
-//      drop.set("<span>místo pro novou fotku</span>");
-//      form.file_drop(drop,{css_hover:'drop_area_hover',css_run:'drop_area_run',handler:'ondrop',
-//        max_width:1200,max_height:960});
-//    }
     label drop   [0,72,80,80]      { type:'drop', tag:'o', css:'drop_foto', format:'t' 
       func ondrop(x:object):text { //var name: text
-//        [ not(fid.get); create ];--
         drop.set_css('','drop_area drop_area_hover');
-//        name.set(ask('upload_fotky',fileinfo,fid.get));
-//        ask('upload_fotky',fileinfo,fid.get);
-//        drop.set_css('','drop_area drop_area_hover drop_area_run');
-//        refresh;
-//        return(name)
-//        gt(x.size,5242880); warning('odmítnuto ',x.name,' má více jak 5MB'); return(0)
-//      | 
         return(x.name)
       }
       func onload(x:object) { // po dokončení přenosu, jméno bude ASCII
