@@ -1297,15 +1297,15 @@ __EOJ;
       <span onclick="bar_menu(arguments[0],'lang-en');" ><i class='fa fa-image'></i> ENGLISH</span>
 __EOD;
   if (!$REDAKCE) $language= ''; // zatím jen redakce
-  $menus= <<<__EOD
-      <span onclick="bar_menu(arguments[0],'menu-old');" class='separator'><i class='fa fa-image'></i> staré menu</span>
-      <span onclick="bar_menu(arguments[0],'menu-new');" ><i class='fa fa-image'></i> nové menu</span>
-__EOD;
-  if (!$REDAKCE) $menus= ''; // zatím jen redakce
+//  $menus= <<<__EOD
+//      <span onclick="bar_menu(arguments[0],'menu-old');" class='separator'><i class='fa fa-image'></i> staré menu</span>
+//      <span onclick="bar_menu(arguments[0],'menu-new');" ><i class='fa fa-image'></i> nové menu</span>
+//__EOD;
+//  if (!$REDAKCE) $menus= ''; // zatím jen redakce
 
-  $go_home= $REDAKCE 
-      ? "onclick=\"go(arguments[0],'page=home','{$prefix}home','',0);\""
-      : "href='{$prefix}home'";
+//  $go_home= $REDAKCE 
+//      ? "onclick=\"go(arguments[0],'page=home','{$prefix}home','',0);\""
+//      : "href='{$prefix}home'";
 
   // motto
   $motto= $wid==1 
@@ -1357,7 +1357,6 @@ __EOD;
     <div id='bar_items'>
       $loginout
       $language
-      $menus
     </div>
 __EOD;
 //      <span onclick="bar_menu(arguments[0],'wallpaper');" class='separator'><i class='fa fa-image'></i> použij jiné pozadí</span>
@@ -1531,7 +1530,6 @@ __EOD;
         </div>
       </div>
       $login
-      $filler
       <div class="body">
         $html
       </div>

@@ -1312,17 +1312,16 @@ function menu_add_elem($wid,$mid,$table,$first=0,$id_user=0) {
   return 1;
 }
 # ----------------------------------------------------------------------------------- menu chng_elem
-# přidá do menu další element
+# změní v menu element $id
 function menu_chng_elem($mid,$typ1,$id,$typ2) {
-  global $wid;
-  $desc= select("elem","menu","wid=$wid AND mid=$mid");
+  $desc= select("elem","menu","mid=$mid");
   $elems= explode(';',$desc);
   for ($i= 0; $i<count($elems); $i++) {
     list($typx,$idx)= explode('=',$elems[$i]);
     if ( $typx==$typ1 && $idx==$id ) {
       $elems[$i]= "$typ2=$id";
       $desc= implode(';',$elems);
-      query("UPDATE menu SET elem='$desc' WHERE wid=$wid AND mid=$mid");
+      query("UPDATE menu SET elem='$desc' WHERE mid=$mid");
       break;
     }
   }
@@ -1331,7 +1330,6 @@ function menu_chng_elem($mid,$typ1,$id,$typ2) {
 # ---------------------------------------------------------------------------------- menu shift_elem
 # posune element o jedno dolů (pro down=0 nahoru)
 function menu_shift_elem($typ0,$mid,$id,$down) {
-  global $wid;
   // zjistíme seznam elementů
   if ( $typ0=='xkniha.elem' ) {
     $elems= select("xelems","xkniha","id_xkniha=$mid");
@@ -1364,7 +1362,7 @@ function menu_shift_elem($typ0,$mid,$id,$down) {
     query("UPDATE xkniha SET xelems='$elems' WHERE id_xkniha=$mid");
   }
   else {
-    query("UPDATE menu SET elem='$elems' WHERE wid=$wid AND mid=$mid");
+    query("UPDATE menu SET elem='$elems' WHERE mid=$mid");
   }
   return 1;
 }
