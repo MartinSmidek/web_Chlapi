@@ -53,10 +53,9 @@ if ( count($_POST) ) {
   global $s;
   require_once("man/2mini.php");
   $x= array2object($_POST);
-  $s= array_merge(array(),$x);
+  $s= $x;
   $_SESSION['web']['*server_ask']= $x;
   ask_server($x);
-  $s->index= 'yes';
   $_SESSION['web']['*server_answer']= $s;
   header('Content-type: application/json; charset=UTF-8');
   $yjson= json_encode($s);
