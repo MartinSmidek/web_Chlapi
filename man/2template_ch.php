@@ -3,6 +3,7 @@ define('VERZE',   '22/9/2018');
 define('ZMENA', 3);     // je-li článek čerstvější => upozorni na změnu
 define('NEWS', 264);    // článek obsahující změny na webu - zobrazuje se iniciovaným
 define('NAVOD', 268);   // článek obsahující návod na přihlášení
+define('NAVOD_EN',493); // článek obsahující návod na přihlášení EN
 # -------------------------------------------------------------------------------------==> def user
 // obnovuje obsah základních proměnných, které řídí viditelnost obsahu 
 function def_user() { 
@@ -306,6 +307,7 @@ function read_menu($path) { trace();
       $menu[$m->mid_top]->has_subs= true;
   }
 }
+/*
 # -------------------------------------------------------------------------------------==> eval menu
 # path = [ mid, ...]
 function eval_menu($path) { 
@@ -406,6 +408,7 @@ function eval_menu($path) {
   }
   return $elem;
 }
+*/
 # -------------------------------------------------------------------------------------==> show menu
 # zobrazení menu
 function show_menu($part) {
@@ -1441,6 +1444,7 @@ __EOD;
   $cookie_pin= str_replace("'",'',isset($_COOKIE['pin']) ? $_COOKIE['pin'] : '');  
   
   $navod= NAVOD;
+  $navod_en= NAVOD_EN;
   $prompt= <<<__EOD
       <div id='msg' class='box' style="display:none">
         <div class='box_title'>title</div>
@@ -1463,6 +1467,23 @@ __EOD;
   // konečná redakce stránky
   $login= $lang=='en'
     ?  <<<__EOD
+      <div class='neodkaz login' style="display:none">
+        <div id='clanek2' class='home' style="background:#cfdde6d6">
+          <p>Blue <span class='neodkaz'><a class='jump'>links</a></span> 
+          and links with <span class='neodkaz'><a class='odkaz'>dashed underlines</a></span> 
+          are inactive without logging in.</p>
+          <p> You must be logged in to see the full text of articles.</p>
+          <a class='jump' onclick="jQuery('div.neodkaz').fadeOut();">I'm not interested</a>
+          <a class='jump' href="kontakty!$navod_en">How do I log in?</a>
+        </div>
+      </div>
+      <div class='neodkaz akce' style="display:none">
+        <div id='clanek2' class='home' style="background:#cfdde6d6">
+          <p>Plná verze článku <b>je privátní</b> jen pro účastníky této akce. 
+            <br>Pokud jsi na akci byl a přesto článek nemáš přístupný, 
+            <br>kontaktuj správce webu (martin(et)smidek.eu).</p>
+        </div>
+      </div>
       <div id='user_mail' style="display:$login_display">
         <span id='user_mail_head'>Login to private section</span>
         <div>
@@ -1478,12 +1499,28 @@ __EOD;
           <a class='jump' id="prihlasit2" onclick="me_login('$currpage');" 
             style="display:none">Log in</a>
           <a class='jump' id="prihlasit3" onclick="jQuery('#user_mail').hide();">Back</a>
-          <a class='jump noedit' onclick="me_noedit(1);">Viewer mode</a>
-          <a class='jump noedit' onclick="me_noedit(0);">Editor mode</a>
+          <a class='jump noedit' onclick="me_noedit(1);">Login</a>
+          <a class='jump noedit' onclick="me_noedit(0);">Login as editor</a>
         </div>
       </div>
 __EOD
     :  <<<__EOD
+      <div class='neodkaz login' style="display:none">
+        <div id='clanek2' class='home' style="background:#cfdde6d6">
+          <p>Modré <span class='neodkaz'><a class='jump'>odkazy</a></span> 
+          a <span class='neodkaz'><a class='odkaz'>čárkovaně podtržené</a></span> odkazy jsou bez přihlášení neaktivní.</p>
+          <p> Pokud chceš vidět úplné texty článků, musíš být přihlášen.</p>
+          <a class='jump' onclick="jQuery('div.neodkaz').fadeOut();">Nemám zájem</a>
+          <a class='jump' href="kontakty!$navod">Jak se přihlásím?</a>
+        </div>
+      </div>
+      <div class='neodkaz akce' style="display:none">
+        <div id='clanek2' class='home' style="background:#cfdde6d6">
+          <p>Plná verze článku <b>je privátní</b> jen pro účastníky této akce. 
+            <br>Pokud jsi na akci byl a přesto článek nemáš přístupný, 
+            <br>kontaktuj správce webu (martin(et)smidek.eu).</p>
+        </div>
+      </div>
       <div id='user_mail' style="display:$login_display">
         <span id='user_mail_head'>Přihlášení uživatele</span>
         <div>
@@ -1509,26 +1546,6 @@ __EOD;
     $fb_root
     <div id='page'>
       $headline
-      <div class='neodkaz login' style="display:none">
-        <div id='clanek2' class='home' style="background:#cfdde6d6">
-          <p>Modré <span class='neodkaz'><a class='jump'>odkazy</a></span> 
-          a <span class='neodkaz'><a class='odkaz'>čárkovaně podtržené</a></span> odkazy jsou bez přihlášení neaktivní.</p>
-          <p> Pokud chceš vidět úplné texty článků, musíš být přihlášen.</p>
-          <!-- p>K přihlašovacímu dialogu se dostaneš pomocí menu <i class="fa fa-bars"></i> v pravém horním rohu.</p>
-          <p>Přihlásit se můžeš pomocí mailové adresy, kterou jsi 
-          uvedl v přihlášce na akci (iniciaci, firming). Pokud ses takové akce ještě nezúčastnil, 
-          přihlášení možné nebude.</p -->
-          <a class='jump' onclick="jQuery('div.neodkaz').fadeOut();">Nemám zájem</a>
-          <a class='jump' href="kontakty!$navod">Jak se přihlásím?</a>
-        </div>
-      </div>
-      <div class='neodkaz akce' style="display:none">
-        <div id='clanek2' class='home' style="background:#cfdde6d6">
-          <p>Plná verze článku <b>je privátní</b> jen pro účastníky této akce. 
-            <br>Pokud jsi na akci byl a přesto článek nemáš přístupný, 
-            <br>kontaktuj správce webu (martin(et)smidek.eu).</p>
-        </div>
-      </div>
       $login
       <div class="body">
         $html
@@ -1851,6 +1868,7 @@ function show_fotky($fid,$lst,$back_href) {
 # funkce na serveru přes AJAX
 function servant($qry,$context=null) {
   global $s, $servant, $ezer_server;
+  $qry= str_replace(' ','',$qry);
   $_SESSION['web']['*servant_last']= "$servant&$qry";
   $json= url_get_contents("$servant&$qry",false,$context);
 //                                          display("<b style='color:red'>servant</b> $servant$qry");
@@ -1869,7 +1887,10 @@ function servant($qry,$context=null) {
     $_SESSION['web']['*servant_state']= "json";
   }
   else {
-    $s->msg= "Sorry, došlo k chybě č.4, martin@smidek.eu ti poradí ...";
+    $lang= get_lang();
+    $s->msg= $lang=='en'
+        ? "Sorry, there was error #4, martin@smidek.eu will be happy to help you ..."
+        : "Sorry, došlo k chybě č.4, martin@smidek.eu ti poradí ...";
     $_SESSION['web']['*servant_state']= "text:$json";
                                                   display($s->msg);
 //    $s->msg= "'$servant&$qry' vrátil '$json'";
@@ -1884,7 +1905,7 @@ function redaktor($id) {
   return $s;
 }
 function ask_server($x) {
-  global $s, $lang, $REDAKCE, $url_prefix;
+  global $s, $REDAKCE, $url_prefix;
 
   switch ( $x->cmd ) {
 
@@ -1993,7 +2014,7 @@ function ask_server($x) {
       case 'chlapi.chata': $s= (object)array('state'=>'ok','user'=>5877,'mrop'=>1,'firm'=>1); break;
       case 'chlapi.petr':  $s= (object)array('state'=>'ok','user'=>5457,'mrop'=>1,'firm'=>1); break;
       // normální dotaz na ostrý server
-      default: servant("cmd=me_login&mail=$x->mail&pin=$x->pin&web=$x->web");
+      default: servant("cmd=me_login&mail=$x->mail&pin=$x->pin&web=$x->web&lang=$x->lang");
     }
     if ( isset($s->state) && $s->state=='ok') {
       // přepočítej _user.skill na fe_level
