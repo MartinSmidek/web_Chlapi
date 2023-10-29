@@ -233,7 +233,7 @@ function _be_logout(y) {
 // -----------------------------------------------------------------------------------==> . me login
 function me_login(page) {
   var mail= jQuery('#mail').val(), pin= jQuery('#pin').val();
-  ask({cmd:'me_login',mail:mail,pin:pin,page:page,web:'chlapi.cz'},me_login__);
+  ask({cmd:'me_login',mail:mail,pin:pin,page:page,web:'chlapi.cz',lang:lang},me_login__);
 }
 function me_login__(y) {
   var txt= jQuery('#user_mail_txt');
@@ -268,7 +268,7 @@ function me_noedit(no) {
   me_noedit_(no);
 }
 function me_noedit_(no) {
-  ask({cmd:'me_noedit',noedit:no},me_noedit__);
+  ask({cmd:'me_noedit',noedit:no,lang:lang},me_noedit__);
 }
 function me_noedit__(y) {
   refresh();
