@@ -1474,7 +1474,7 @@ __EOD;
           are inactive without logging in.</p>
           <p> You must be logged in to see the full text of articles.</p>
           <a class='jump' onclick="jQuery('div.neodkaz').fadeOut();">I'm not interested</a>
-          <a class='jump' href="kontakty!$navod_en">How do I log in?</a>
+          <a class='jump' href="en-contact!$navod_en">How do I log in?</a>
         </div>
       </div>
       <div class='neodkaz akce' style="display:none">
