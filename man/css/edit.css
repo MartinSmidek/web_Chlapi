@@ -19,9 +19,9 @@ img.shadow, p.shadow img, span.shadow { filter: drop-shadow(5px 5px 10px #567); 
 
 /* převzaté z 2chlapi */
 
-span.bible {
+/*span.bible {
   background-color: #E6CF73;
-}
+}*/
 
 .jump {
   display: inline-block;

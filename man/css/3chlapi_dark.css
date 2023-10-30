@@ -1,19 +1,26 @@
-/*@abstr_b: #E6E1CF;   @abstr_c: #000000;*/
+/*@jump_b:  #E6CF73;   @jump_c:  #000000;
+@activ_b: #807340;   @activ_c: #FFFFFF;
+@text_b:  #FFFFFF;   @text_c:  #000000;
+@obal_b:  #CFDDE6;   @obal_c:  #000000;
+@abstr_b: #FFFFFF;   @abstr_c: #000000;
+@b_table: #E6E1CF;   @odkaz_c: #0000ee; */
 .shadow-img {
-  filter: drop-shadow(5px 5px 10px #567);
+  filter: drop-shadow(5px 5px 10px #aaa);
 }
 .shadow-box {
-  box-shadow: -1px 1px 0px #567, 1px -1px 0px #567, -1px -1px 0px #567, 5px 5px 10px #567;
+  box-shadow: -1px 1px 0px #aaa, 1px -1px 0px #aaa, -1px -1px 0px #aaa, 5px 5px 10px #aaa;
 }
 .shadow-black-box {
-  box-shadow: -1px 1px 0px #000, 1px -1px 0px #000, -1px -1px 0px #000, 5px 5px 10px #000;
+  box-shadow: -1px 1px 0px #aaa, 1px -1px 0px #aaa, -1px -1px 0px #aaa, 5px 5px 10px #aaa;
 }
 .shadow-txt {
-  text-shadow: 3px 3px 3px #567, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+  text-shadow: 3px 3px 3px #aaa, -1px -1px 0 #aaa, 1px -1px 0 #aaa, -1px 1px 0 #aaa, 1px 1px 0 #aaa;
 }
 html {
   width: 100%;
   height: 100%;
+  color: #fff !important;
+  background-color: #000 !important;
 }
 html body {
   width: 100%;
@@ -29,7 +36,6 @@ html #web {
 }
 html #work {
   position: relative;
-  background-color: #eee !important;
 }
 html #go_up {
   position: fixed;
@@ -61,7 +67,7 @@ html #page span.odkaz a:hover {
 html #page a > img:not(#chlogo) {
   border: 4px solid #E6CF73;
   border-radius: 0.4em;
-  box-shadow: -1px 1px 0px #567, 1px -1px 0px #567, -1px -1px 0px #567, 5px 5px 10px #567;
+  box-shadow: -1px 1px 0px #aaa, 1px -1px 0px #aaa, -1px -1px 0px #aaa, 5px 5px 10px #aaa;
 }
 html div.mapa.Panel3,
 html div.mapa.Form3,
@@ -74,6 +80,9 @@ html div.mapa.Label3 {
 }
 html img {
   max-width: 100%;
+}
+html a {
+  color: yellow;
 }
 .cke_top {
   padding: 6px 0 0 6px !important;
@@ -104,7 +113,8 @@ a.cke_button_off:active {
   margin: 10px 0 0 !important;
 }
 span.bible {
-  background-color: #E6CF73;
+  color: yellow;
+  text-decoration: underline;
   cursor: help;
 }
 .jump {
@@ -116,18 +126,18 @@ span.bible {
   cursor: pointer;
 }
 a.jump {
-  box-shadow: -1px 1px 0px #567, 1px -1px 0px #567, -1px -1px 0px #567, 5px 5px 10px #567;
+  box-shadow: -1px 1px 0px #aaa, 1px -1px 0px #aaa, -1px -1px 0px #aaa, 5px 5px 10px #aaa;
   margin: 0em 0.3em 0.5em !important;
   background-color: #E6CF73;
   color: #000000;
   text-align: center;
 }
 a.jump:hover {
-  background-color: #FFFFFF !important;
-  color: #000000 !important;
+  background-color: #000000 !important;
+  color: #FFFFFF !important;
 }
 span.neodkaz a.jump {
-  box-shadow: -1px 1px 0px #567, 1px -1px 0px #567, -1px -1px 0px #567, 5px 5px 10px #567;
+  box-shadow: -1px 1px 0px #aaa, 1px -1px 0px #aaa, -1px -1px 0px #aaa, 5px 5px 10px #aaa;
   margin: 0em 0.3em;
   background-color: #CFDDE6;
   color: #000000;
@@ -140,8 +150,8 @@ span.neodkaz a.jump {
   cursor: pointer;
 }
 span.neodkaz a.jump:hover {
-  background-color: #FFFFFF !important;
-  color: #000000 !important;
+  background-color: #000000 !important;
+  color: #FFFFFF !important;
 }
 span.neodkaz a.jump a {
   color: #000000;
@@ -191,8 +201,8 @@ div.filler {
   padding: 5px 10px;
   margin: 10px;
   top: 10px;
-  background: white;
-  box-shadow: -1px 1px 0px #567, 1px -1px 0px #567, -1px -1px 0px #567, 5px 5px 10px #567;
+  background: #000;
+  box-shadow: -1px 1px 0px #aaa, 1px -1px 0px #aaa, -1px -1px 0px #aaa, 5px 5px 10px #aaa;
 }
 .mobile-menu-open:hover {
   opacity: 1;
@@ -210,14 +220,14 @@ div.filler {
   color: #ffa;
   position: sticky;
   font-size: 15px;
-  text-shadow: 3px 3px 3px #567, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+  /*.shadow-txt;*/
   /*    display:block; 
-    &.isSticky { 
-      display:none; 
-    }*/
+  &.isSticky { 
+    display:none; 
+  }*/
 }
 #chlogo {
-  filter: drop-shadow(5px 5px 10px #567);
+  filter: drop-shadow(5px 5px 10px #aaa);
   position: sticky;
   left: 10px;
   top: 368px;
@@ -252,11 +262,11 @@ nav.pc-menu div a.box {
   padding: 10px 10px 0px 10px;
   margin: 5px 10px;
   top: 10px;
-  background: white;
+  background: #000;
   opacity: 0.75;
   text-decoration: none;
-  color: black;
-  box-shadow: -1px 1px 0px #000, 1px -1px 0px #000, -1px -1px 0px #000, 5px 5px 10px #000;
+  color: #fff;
+  box-shadow: -1px 1px 0px #aaa, 1px -1px 0px #aaa, -1px -1px 0px #aaa, 5px 5px 10px #aaa;
 }
 nav.pc-menu div a.box:hover {
   opacity: 1;
@@ -268,15 +278,15 @@ nav.pc-menu div div ul {
   top: 80px;
   list-style-type: none;
   padding: 0;
-  box-shadow: -1px 1px 0px #000, 1px -1px 0px #000, -1px -1px 0px #000, 5px 5px 10px #000;
+  box-shadow: -1px 1px 0px #aaa, 1px -1px 0px #aaa, -1px -1px 0px #aaa, 5px 5px 10px #aaa;
   /*border: solid 1px black;*/
 }
 nav.pc-menu div div ul li {
-  border-top: solid 1px black;
+  border-top: solid 1px #aaa;
   line-height: 20px;
   padding: 10px;
   display: block;
-  background: white;
+  background: #000;
   opacity: 0.75;
 }
 nav.pc-menu div div ul li:hover {
@@ -284,7 +294,7 @@ nav.pc-menu div div ul li:hover {
 }
 nav.pc-menu div div ul li a {
   text-decoration: none;
-  color: black;
+  color: #fff;
   display: block;
   width: 100%;
   height: 100%;
@@ -507,13 +517,13 @@ a.home,
 #skup1,
 #skup2,
 #temata {
-  background-color: #FFFFFF;
-  color: #000000;
+  background-color: #000000;
+  color: #FFFFFF;
   /*float: right; margin: .4em 1em; max-width: 100%; z-index: 1;*/
   line-height: 1.5;
   padding: 1em;
   border-radius: 0.5em;
-  box-shadow: -1px 1px 0px #567, 1px -1px 0px #567, -1px -1px 0px #567, 5px 5px 10px #567;
+  box-shadow: -1px 1px 0px #aaa, 1px -1px 0px #aaa, -1px -1px 0px #aaa, 5px 5px 10px #aaa;
   break-inside: avoid;
   page-break-inside: avoid;
 }
@@ -556,6 +566,8 @@ a.home#user_mail,
   margin-left: 3em;
   top: 1.5em;
   z-index: 3;
+  background: #eedea0;
+  color: #000000;
 }
 div.home#user_mail span#user_mail_head,
 a.home#user_mail span#user_mail_head,
@@ -807,7 +819,7 @@ div.neodkaz {
 }
 div.neodkaz .info {
   color: #000000;
-  background: #cfdde6d6;
+  background: #cfdde6;
 }
 div.news {
   position: fixed;
@@ -835,16 +847,16 @@ table.kalendar tr.ukazat_plan td:nth-child(2) {
   border-left: #900 7px solid;
 }
 a.aclanek {
-  background-color: #FFFFFF;
-  color: #000000;
+  background-color: #000000;
+  color: #FFFFFF;
   height: 7.7em;
   overflow: hidden;
   text-decoration: none;
   cursor: pointer;
 }
 a.aclanek:hover {
-  background-color: #FFFFFF !important;
-  color: #000000 !important;
+  background-color: #000000 !important;
+  color: #FFFFFF !important;
 }
 #list {
   margin-top: 1em;
@@ -856,13 +868,13 @@ a.aclanek:hover {
   vertical-align: top;
 }
 #list div.abstr a.abstrakt {
-  background-color: #FFFFFF;
-  color: #000000;
+  background-color: #000000;
+  color: #FFFFFF;
   border-radius: 0.4em;
   cursor: pointer;
   margin: 0.5em;
   padding: 0.4em;
-  box-shadow: -1px 1px 0px #567, 1px -1px 0px #567, -1px -1px 0px #567, 5px 5px 10px #567;
+  box-shadow: -1px 1px 0px #aaa, 1px -1px 0px #aaa, -1px -1px 0px #aaa, 5px 5px 10px #aaa;
   display: block;
   text-decoration: none;
   overflow: hidden;
@@ -870,15 +882,15 @@ a.aclanek:hover {
   text-align: left;
 }
 #list div.abstr a.abstrakt:hover {
-  background-color: #FFFFFF !important;
-  color: #000000 !important;
+  background-color: #000000 !important;
+  color: #FFFFFF !important;
 }
 div.galery_obal {
   clear: both;
   display: flex;
   border-radius: 0.5em;
   margin: 10px 2px;
-  box-shadow: -1px 1px 0px #567, 1px -1px 0px #567, -1px -1px 0px #567, 5px 5px 10px #567;
+  box-shadow: -1px 1px 0px #aaa, 1px -1px 0px #aaa, -1px -1px 0px #aaa, 5px 5px 10px #aaa;
 }
 div.galery_obal div.text {
   text-align: center;
@@ -888,8 +900,8 @@ div.galery_obal div.text h1 {
 }
 div.galery_obal div.galerie {
   width: 100%;
-  background-color: #FFFFFF;
-  color: #000000;
+  background-color: #000000;
+  color: #FFFFFF;
   overflow: hidden;
   margin: 0;
   position: relative;
@@ -903,12 +915,12 @@ div.galery_obal div.galerie {
 #vlakno div.clanek,
 .sloupce div.clanek,
 .back div.clanek {
-  background-color: #FFFFFF;
-  color: #000000;
+  background-color: #000000;
+  color: #FFFFFF;
   overflow: auto;
   margin: 0.5em;
   position: relative;
-  box-shadow: -1px 1px 0px #567, 1px -1px 0px #567, -1px -1px 0px #567, 5px 5px 10px #567;
+  box-shadow: -1px 1px 0px #aaa, 1px -1px 0px #aaa, -1px -1px 0px #aaa, 5px 5px 10px #aaa;
   text-align: left;
 }
 #vlakno table,
@@ -937,7 +949,7 @@ div.kniha {
   padding: 1em 0;
   text-align: center;
   color: #FFFFFF;
-  text-shadow: 3px 3px 3px #567, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+  text-shadow: 3px 3px 3px #aaa, -1px -1px 0 #aaa, 1px -1px 0 #aaa, -1px 1px 0 #aaa, 1px 1px 0 #aaa;
 }
 .kniha_bg div.kniha_hr {
   clear: both;
@@ -992,4 +1004,4 @@ div.pdf span.sorry {
     /*&.isSticky { display:block; }*/
   }
 }
-/*# sourceMappingURL=3chlapi.css.map */
+/*# sourceMappingURL=3chlapi_dark.css.map */

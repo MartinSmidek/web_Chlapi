@@ -240,7 +240,15 @@ __EOM;
           <i> odhlásit se</i></a></li>"
       : "<li style='border-top: 1px solid white'><a onclick=\"bar_menu(arguments[0],'me_login');\">
           <i>přihlásit se emailem</i></a></li>";
+  }
 //    $html.= "<li><a onclick=\"bar_menu(0,'menu-old');\"><i>použít starý styl menu</i></a></li>";
+  $screen= get_screen();
+  if ($lang=='cs') {
+    $html.= $screen=='dark'
+      ? "<li><a onclick=\"bar_menu(arguments[0],'screen-light');\">
+          <i> světlé zobrazení</i></a></li>"
+      : "<li><a onclick=\"bar_menu(arguments[0],'screen-dark');\">
+          <i> tmavé zobrazení</i></a></li>";
     $html.= "<li><a onclick=\"bar_menu(0,'lang-en');change_js('new','close');\"><i>ENGLISH WEB</i></a></li>";
   }
   else { // anglické menu
@@ -1368,7 +1376,8 @@ __EOD;
 
   // --------------------------------------------------------------- NOVÉ MENU
 //  if ($menu_type=='new') {
-  $chlapi_css= "3chlapi.css";
+  $screen= get_screen();
+  $chlapi_css= $screen=='dark' ? "3chlapi_dark.css" : "3chlapi.css";
   $background= $REDAKCE
       ?  "<style>nav{top:34px}</style>"
       : '';
@@ -1507,8 +1516,8 @@ __EOD;
 __EOD
     :  <<<__EOD
       <div class='neodkaz login' style="display:none">
-        <div id='clanek2' class='home' style="background:#cfdde6d6">
-          <p>Modré <span class='neodkaz'><a class='jump'>odkazy</a></span> 
+        <div class='home info'>
+          <p>??? Modré <span class='neodkaz'><a class='jump'>odkazy</a></span> 
           a <span class='neodkaz'><a class='odkaz'>čárkovaně podtržené</a></span> odkazy jsou bez přihlášení neaktivní.</p>
           <p> Pokud chceš vidět úplné texty článků, musíš být přihlášen.</p>
           <a class='jump' onclick="jQuery('div.neodkaz').fadeOut();">Nemám zájem</a>
@@ -2010,10 +2019,10 @@ function ask_server($x) {
   case 'me_login': // ------------------------------------------------------------------------ login
     switch ($_SERVER["SERVER_NAME"]) {
       // zkratka pr ladící prostředí
-      case 'chlapi.bean':  $s= (object)array('state'=>'ok','user'=>5877,'mrop'=>1,'firm'=>1); break;
-      case 'chlapi.doma':  $s= (object)array('state'=>'ok','user'=>5877,'mrop'=>1,'firm'=>1); break;
-      case 'chlapi.chata': $s= (object)array('state'=>'ok','user'=>5877,'mrop'=>1,'firm'=>1); break;
-      case 'chlapi.petr':  $s= (object)array('state'=>'ok','user'=>5457,'mrop'=>1,'firm'=>1); break;
+//      case 'chlapi.bean':  $s= (object)array('state'=>'ok','user'=>5877,'mrop'=>1,'firm'=>1); break;
+//      case 'chlapi.doma':  $s= (object)array('state'=>'ok','user'=>5877,'mrop'=>1,'firm'=>1); break;
+//      case 'chlapi.chata': $s= (object)array('state'=>'ok','user'=>5877,'mrop'=>1,'firm'=>1); break;
+//      case 'chlapi.petr':  $s= (object)array('state'=>'ok','user'=>5457,'mrop'=>1,'firm'=>1); break;
       // normální dotaz na ostrý server
       default: servant("cmd=me_login&mail=$x->mail&pin=$x->pin&web=$x->web&lang=$x->lang");
     }
@@ -2122,8 +2131,23 @@ function ask_server($x) {
     $s->wid= set_lang($x->lang);
     $s->url= "$url_prefix$page?menu=$x->menu";
     break;
+  // změna css: 3chlapi.less | 3chlapi_dark.less
+  case 'screen':
+    $rs= set_screen($x->screen);
+    $s->path= $rs->path;
+    $s->wid= set_lang($x->lang);
+    break;
   }
   return 1;
+}
+# ----------------------------------------------------------------------------------------- set screen
+function set_screen($screen) {
+  global $url_prefix;
+  $rs= (object)array();
+  $_SESSION['web']['screen']= $screen;
+  $rs->path= "{$url_prefix}man/css/".($screen=='dark'?'3chlapi_dark.css':'3chlapi.css');
+  $rs->screen= $screen;
+  return $rs;
 }
 # ----------------------------------------------------------------------------------------- set menu
 function set_menu($menu) {

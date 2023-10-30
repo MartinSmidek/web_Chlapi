@@ -22,6 +22,10 @@ require_once("man/2template_ch.php");
 
 // pokud se stránka jmenuje en-* přepni na angličtinu a nové menu
 $path= isset($_GET['page']) ? explode('!',$_GET['page']) : array('home');
+// screen
+if (isset($_GET['screen'])) {
+  $_SESSION['web']['screen']= $_GET['screen'];
+}
 // menu
 if (isset($_GET['menu'])) {
   $_SESSION['web']['menu']= $_GET['menu'];

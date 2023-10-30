@@ -28,6 +28,11 @@ function get_lang () {
 function get_menu () {
   return isset($_SESSION['web']['menu']) ? $_SESSION['web']['menu'] : 'old';
 }
+# --------------------------------------------------------------------------------------- get screen
+# zjistí aktuální odstín obrazovky
+function get_screen () {
+  return isset($_SESSION['web']['screen']) ? $_SESSION['web']['screen'] : 'light';
+}
 /** =========================================================================================> BIBLE */
 # ------------------------------------------------------------------------------------ bib transform
 # transformuje text oživením biblických odkazů ozávorkovaných jako <span class='bible>...</span>

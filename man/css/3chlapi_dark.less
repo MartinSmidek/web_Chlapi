@@ -1,38 +1,50 @@
 // ----------------------------------------------------------------------------------- parametrizace
 //        background           color
+@deflt_b: #000;      @deflt_c: #fff;
 @jump_b:  #E6CF73;   @jump_c:  #000000;
+@activ_b: #807340;   @activ_c: #FFFFFF;
+@text_b:  #000000;   @text_c:  #FFFFFF;
+@obal_b:  #CFDDE6;   @obal_c:  #000000;
+@abstr_b: #000000;   @abstr_c: #FFFFFF;
+@b_table: #E6E1CF;   @odkaz_c: #0000ee; 
+@link:    yellow;
+@info_b:  #cfdde6;   @info_c:  #000000;
+@login_b: #eedea0;   @login_c: #000000;
+@shadow:  #aaa;
+
+/*@jump_b:  #E6CF73;   @jump_c:  #000000;
 @activ_b: #807340;   @activ_c: #FFFFFF;
 @text_b:  #FFFFFF;   @text_c:  #000000;
 @obal_b:  #CFDDE6;   @obal_c:  #000000;
-/*@abstr_b: #E6E1CF;   @abstr_c: #000000;*/
 @abstr_b: #FFFFFF;   @abstr_c: #000000;
-@b_table: #E6E1CF;   @odkaz_c: #0000ee; 
-@info_b:  #cfdde6d6; @info_c:  #000000;
+@b_table: #E6E1CF;   @odkaz_c: #0000ee; */
 
 .shadow-img { 
-  filter: drop-shadow(5px 5px 10px #567); }
+  filter: drop-shadow(5px 5px 10px @shadow); }
 .shadow-box { 
   box-shadow:  
-    -1px  1px 0px #567, 
-     1px -1px 0px #567, 
-    -1px -1px 0px #567,
-    5px 5px 10px #567; }
+    -1px  1px 0px @shadow, 
+     1px -1px 0px @shadow, 
+    -1px -1px 0px @shadow,
+    5px 5px 10px @shadow; }
 .shadow-black-box { 
   box-shadow:  
-    -1px  1px 0px #000, 
-     1px -1px 0px #000, 
-    -1px -1px 0px #000,
-    5px 5px 10px #000; }
+    -1px  1px 0px @shadow, 
+     1px -1px 0px @shadow, 
+    -1px -1px 0px @shadow,
+    5px 5px 10px @shadow; }
 .shadow-txt { 
-  text-shadow: 3px 3px 3px #567,
-    -1px -1px 0 #000,
-     1px -1px 0 #000,
-    -1px  1px 0 #000,
-     1px  1px 0 #000; }
+  text-shadow: 3px 3px 3px @shadow,
+    -1px -1px 0 @shadow,
+     1px -1px 0 @shadow,
+    -1px  1px 0 @shadow,
+     1px  1px 0 @shadow; }
 
 // ------------------------------------------------------------------------------------------ layout
 html {
   width: 100%; height: 100%; 
+  color: @deflt_c !important; 
+  background-color: @deflt_b !important; 
   body { 
     width: 100%; margin:0; font-size:10pt; font-family: sans-serif; }
   #web {
@@ -40,7 +52,6 @@ html {
   }
   #work { 
     position: relative; 
-    background-color: #eee !important; 
   }
   #go_up { position: fixed; cursor: pointer; bottom: 0; right: 10px; }
   // styly Ezer kvůli zobrazení mapy
@@ -64,6 +75,9 @@ html {
   }
   img {
       max-width: 100%; }
+  a {
+    color: @link;
+  }
 }
 
 // ---------------------------------------------------------------------------------------- CKEditor
@@ -81,7 +95,7 @@ a.cke_button_off:hover, a.cke_button_off:focus, a.cke_button_off:active {
 // ------------------------------------------------------------------------------------------- texty
 // obecné styly
 span.bible {
-  background-color: #E6CF73;
+  color: @link; text-decoration: underline;
   cursor: help;
 }
 .jump {
@@ -125,28 +139,29 @@ div.filler { height: 2em; }
 .mobile-menu-open {
   height:29px; cursor: pointer; position:sticky; float:right; z-index:4;
   padding:5px 10px; margin:10px; 
-  top:10px; background:white; //opacity:.75;
+  top:10px; background:@deflt_b; //opacity:.75;
   .shadow-box;
   &:hover { opacity:1; }
   i { font-size:30px; } 
 }
-  #motto { 
-    top: 385px; z-index:-1;
-    margin-bottom: 7px;
-    white-space: nowrap;
-    margin-left: 100px; 
-    /*margin-top: 322px; width:fit-content;*/
-    color:#ffa; position: sticky;
-    font-size:15px; .shadow-txt; 
+#motto { 
+  top: 385px; z-index:-1;
+  margin-bottom: 7px;
+  white-space: nowrap;
+  margin-left: 100px; 
+  /*margin-top: 322px; width:fit-content;*/
+  color:#ffa; position: sticky;
+  font-size:15px; 
+  /*.shadow-txt;*/ 
 /*    display:block; 
-    &.isSticky { 
-      display:none; 
-    }*/
-  }
-  #chlogo {
-    .shadow-img(); 
-    position: sticky; left: 10px; top:368px; width: 80px;   z-index:-1; 
-  }  
+  &.isSticky { 
+    display:none; 
+  }*/
+}
+#chlogo {
+  .shadow-img(); 
+  position: sticky; left: 10px; top:368px; width: 80px;   z-index:-1; 
+}  
 nav {
   top:5px;
   div.pc-menu-wrap {  /*position: absolute;*/ right: 0; top: 0; width: 100%; z-index:3}
@@ -157,8 +172,8 @@ nav {
       a.box {
         height:29px; cursor: pointer; text-align:right; float:right; z-index:2;
         padding:10px 10px 0px 10px; margin:5px 10px; 
-        top:10px; background:white; opacity:.75;
-        text-decoration: none; color:black; 
+        top:10px; background:@deflt_b; opacity:.75;
+        text-decoration: none; color:@deflt_c; 
         .shadow-black-box;
         &:hover { opacity:1; }
       }
@@ -169,11 +184,11 @@ nav {
           .shadow-black-box;
           /*border: solid 1px black;*/
           li {
-            border-top:solid 1px black; line-height: 20px; padding: 10px;
-            display:block; background: white; opacity:.75;
+            border-top:solid 1px @shadow; line-height: 20px; padding: 10px;
+            display:block; background: @deflt_b; opacity:.75;
             &:hover { opacity:1;  }
             a { 
-              text-decoration: none; color:black; 
+              text-decoration: none; color:@deflt_c; 
               display: block; width: 100%; height: 100%; 
             }
           }
@@ -335,6 +350,7 @@ div.home, a.home, #user_mail, #skup0, #skup1, #skup2, #temata {
   // přihlášení
   &#user_mail {
     max-width: 29em; padding: 0; position: fixed; margin-left: 3em;top: 1.5em; z-index: 3;
+    background: @login_b; color:@login_c;
     span#user_mail_head {
       display: block; width:100%; text-align:center; line-height: 2em;
       background-color: @activ_b; border-radius:.4em .4em 0 0; color:@activ_c; font-weight:bold; }
@@ -466,7 +482,7 @@ div.kniha {
   display: flex-inline;
 }
 .kniha_bg {
-  background-color: #aaa; color: @obal_c;
+  background-color: @shadow; color: @obal_c;
   display: block; clear: both; border-radius: .8em; 
   text-align: center;
   padding:0 10px;
@@ -474,7 +490,7 @@ div.kniha {
     margin:1em; 
     position: relative; }
   div.kniha_br {
-    clear: both; padding: 1em 0; text-align: center; color:@text_b; .shadow-txt
+    clear: both; padding: 1em 0; text-align: center; color:@text_c; .shadow-txt
   }
   div.kniha_hr {
     clear: both; padding: 1em 0; text-align: center; cursor: pointer;

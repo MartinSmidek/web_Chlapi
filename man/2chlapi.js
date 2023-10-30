@@ -124,6 +124,12 @@ function bar_menu(e,x) {
   }
   else {
     switch (x) {
+    case 'screen-light':
+      ask({cmd:'screen',screen:'light'},_bar_menu,'screen');
+      break;
+    case 'screen-dark':
+      ask({cmd:'screen',screen:'dark'},_bar_menu,'screen');
+      break;
     case 'menu-new':
       ask({cmd:'menu',menu:'new'},_bar_menu,'menu');
       break;
@@ -151,6 +157,14 @@ function bar_menu(e,x) {
 }
 function _bar_menu(y,cmd) {
   switch (cmd) {
+    case 'screen': 
+      if ( Ezer.run!==undefined ) {
+        change_css(y);
+        refresh();
+      }
+      else 
+        location.reload(true);
+      break; 
     case 'menu': 
       if ( Ezer.run!==undefined ) {
         change_css(y);
