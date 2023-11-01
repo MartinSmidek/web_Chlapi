@@ -233,6 +233,7 @@ __EOM;
     </nav>
 __EOM;
   // specifické položky MENU - přihlášení, jazyl
+  $screen= get_screen();
   $lang= get_lang();
   if ($lang=='cs') {
     $html.= $KLIENT->id
@@ -240,10 +241,6 @@ __EOM;
           <i> odhlásit se</i></a></li>"
       : "<li style='border-top: 1px solid white'><a onclick=\"bar_menu(arguments[0],'me_login');\">
           <i>přihlásit se emailem</i></a></li>";
-  }
-//    $html.= "<li><a onclick=\"bar_menu(0,'menu-old');\"><i>použít starý styl menu</i></a></li>";
-  $screen= get_screen();
-  if ($lang=='cs') {
     $html.= $screen=='dark'
       ? "<li><a onclick=\"bar_menu(arguments[0],'screen-light');\">
           <i> světlé zobrazení</i></a></li>"
@@ -257,6 +254,11 @@ __EOM;
           <i> Log out</i></a></li>"
       : "<li style='border-top: 1px solid white'><a onclick=\"bar_menu(arguments[0],'me_login');\">
           <i> Log in by email address</i></a></li>";
+    $html.= $screen=='dark'
+      ? "<li><a onclick=\"bar_menu(arguments[0],'screen-light');\">
+          <i> Light view</i></a></li>"
+      : "<li><a onclick=\"bar_menu(arguments[0],'screen-dark');\">
+          <i> Dark view</i></a></li>";
     $html.= "<li><a onclick=\"bar_menu(0,'lang-cs');change_js('new','close');\"><i>ČESKÝ WEB</i></a></li>";
   }
   $html.= "</ul></nav>";
