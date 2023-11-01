@@ -514,25 +514,17 @@ div.pdf {
 @media all and (max-width:600px) {
   /*div#web { top:60px; }*/
   nav.pc-menu { display:none; }
+  div.mobile-motto { display:block !important; margin-left:67px; }
   div.header { top:0; 
-               height:60px; 
+               height:0px; 
                z-index: 3;
-               /*position:relative;*/ 
                background-image:none !important; 
-               background:#ccc; 
-    #chlogo { left:0; top:0; 
+               border-bottom: 10px solid #000000aa !important; 
+    #chlogo { left:0; top:0; margin-top: 5px;
             width:62px; 
             float: left;
-            /*position:fixed;*/ 
     }
-    #motto { left:0; 
-             /*float: left;*/
-             /*top:10px;*/ 
-             font-size: 12px; 
-             margin-left: 64px; 
-             /*position:fixed;*/ 
-       /*&.isSticky { display:block; }*/
-    }
+    #motto { display:none; }
   }
 }
 

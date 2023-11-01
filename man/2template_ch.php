@@ -1558,6 +1558,7 @@ __EOD;
       $headline
       $login
       <div class="body">
+        <div class="mobile-motto" style="display:none;">$motto</div>
         $html
       </div>
       $prompt
