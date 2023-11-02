@@ -1183,22 +1183,6 @@ panel EDITOR [0,0,783,*] { type:'popup', style:"min-width:700px;height:calc(100%
     else 
       alert(`tento článek může opravovat jen ${c.editors?c.editors:'šéfredaktor'}`)
   }
-//  proc Clanek(_key) { var lock:object
-//  [ c.load(_key); 
-//    id.set(_key);
-//    not(or(contains(sys('user','id_user'),c.id_editors.get),has_skill('s')));
-//    alert("tento článek může opravovat jen ",cconc(c.editors.get,c.editors.get,'šéfredaktor'))
-//  | panel.display(2,'c'); 
-//    lock.set(ask('record_lock','xclanek',_key)); // selže, pokud již je editováno
-//    not(lock.kdo);
-//    path.set(conc('/inc/c/',_key));                  // cesta pro přílohy
-//    ask('session','man,inc_path',path.get);
-//    join_drop(c.obsah);
-//    panel.set_attrib('title','Úprava článku');
-//    panel.modal(10,40) 
-//  | lock.kdo;
-//    alert("článek právě upravuje redaktor ",lock.kdo)
-//  ]}
   proc Akce(_idc,_ida) { var me:number, lock:object // idc je id_xclanek, idk je id_xakce
   [ a.xa.load(_ida); 
     a.xc.load(_idc);
@@ -1233,10 +1217,20 @@ panel EDITOR [0,0,783,*] { type:'popup', style:"min-width:700px;height:calc(100%
     button [43,5,,] { title:"[fa-chevron-right]", help:'novější akce'
       func onclick() { next_xakce(-1); }}
     field [68,5,50,] { data:xakce.id_xakce, format:'o' }
-    label [120,7,400,] { title:"<== nalezni akci, kterou chceš upravit nebo založ novou ==>", 
+    label [120,7,390,] { title:"<== nalezni akci, kterou chceš upravit nebo založ novou ==>", 
         format:'c', style:"font-weight:bold;color:darkgreen;background-color:#c0e2c2" }
-    button  [-99,5,,] { title:'Nová akce', help:'vytvořit novou akci'
+    button  [-188,5,,] { title:'Nová akce', help:'vytvořit novou akci'
       func onclick() { form.init(); od.change(); nazev.change(); misto.change(); }}
+    button  [-99,5,,] { title:'Smazat akci', help:'smazat záznam o akci'
+      func onclick() { var err:text
+        if (confirm(`opravdu smazat akci ${id} ?`)) {
+          err= php.smaz_xakce(id);
+          if (err) 
+            alert(err);
+          else
+            panel.hide(0);
+        }
+    }}
     button  [-46,5,,] { title:'Uložit', help:'ukončit editor a uložit změny'
       func onclick() { 
         if (!form.same()) {

@@ -1657,6 +1657,18 @@ function zapis_xakce($ida) {
   query("UPDATE xakce SET xelems='aclanek=$idc' WHERE id_xakce='$ida'");
   return $templ;
 }
+// vymazání akce, pokud nemá zápis
+function smaz_xakce($ida) {
+  $msg= '';
+  list($xelems)= select('xelems','xakce',"id_xakce=$ida");
+  if ($xelems) {
+    $msg= "akce již má zápis, nelze ji takto smazat";
+  }
+  else {
+    query("DELETE FROM xakce WHERE id_xakce='$ida'");
+  }
+  return $msg;
+}
 /** =========================================================================================> TABLE */
 # obsluha přihlašovací tabulky bez REDAKCE
 # ----------------------------------------------------------------------------------==> . table show
@@ -2022,10 +2034,10 @@ function ask_server($x) {
   case 'me_login': // ------------------------------------------------------------------------ login
     switch ($_SERVER["SERVER_NAME"]) {
       // zkratka pr ladící prostředí
-//      case 'chlapi.bean':  $s= (object)array('state'=>'ok','user'=>5877,'mrop'=>1,'firm'=>1); break;
-//      case 'chlapi.doma':  $s= (object)array('state'=>'ok','user'=>5877,'mrop'=>1,'firm'=>1); break;
-//      case 'chlapi.chata': $s= (object)array('state'=>'ok','user'=>5877,'mrop'=>1,'firm'=>1); break;
-//      case 'chlapi.petr':  $s= (object)array('state'=>'ok','user'=>5457,'mrop'=>1,'firm'=>1); break;
+      case 'chlapi.bean':  $s= (object)array('state'=>'ok','user'=>5877,'mrop'=>1,'firm'=>1); break;
+      case 'chlapi.doma':  $s= (object)array('state'=>'ok','user'=>5877,'mrop'=>1,'firm'=>1); break;
+      case 'chlapi.chata': $s= (object)array('state'=>'ok','user'=>5877,'mrop'=>1,'firm'=>1); break;
+      case 'chlapi.petr':  $s= (object)array('state'=>'ok','user'=>5457,'mrop'=>1,'firm'=>1); break;
       // normální dotaz na ostrý server
       default: servant("cmd=me_login&mail=$x->mail&pin=$x->pin&web=$x->web&lang=$x->lang");
     }
