@@ -114,6 +114,7 @@ a.cke_button_off:active {
 }
 span.bible {
   color: yellow;
+  background: #000 !important;
   text-decoration: underline;
   cursor: help;
 }
