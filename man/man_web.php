@@ -223,6 +223,7 @@ function cac_meditace($ymd,$jmp,$plny,$par=2) {
       $par==1 ? "stav IN (3,4)" : (     // upraveno nebo přeloženo
       $par==2 ? "stav IN (0,1,3,4)"     // upraveno nebo přeloženo ale nepřekládáno
               : "1" );                  // vždy když existuje nějaký překlad
+  $cond.= " AND text_eng NOT LIKE '%<script%'"; // ochran proti příspěvkům obsahujícím script
   if ($ymd) {
     $x= select_object('*','cac LEFT JOIN cactheme USING (id_cactheme)',
         "text_cz!='' AND $cond AND datum<='$ymd' ORDER BY datum DESC LIMIT 1",'ezertask');

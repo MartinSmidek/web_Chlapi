@@ -109,11 +109,20 @@ panel testy { type:'right', title:'Úvahy a meditace'
         curr_row: number
     # ==> globální funkce
     func Init() { b.browse_refresh(); Free() }
-    func LoadCac() {
-      g.load(b.id_cac); t.load(b.id_cactheme); 
-      text_eng= b.text_eng;
-      ref_tema= `<a href="${b.url_theme}" target="cac"><i class='fa fa-share'></i> CAC</a>`; 
-      ref_text= `<a href="${b.url_text}" target="cac"><i class='fa fa-share'></i> CAC</a>`; 
+    func LoadCac() { var u:object
+      u= match("(<script)",b.text_eng);
+//      echo(debug(u,'u'));
+      if ( u && u.s0 ) {
+        form.init();
+        text_eng= "Pozor text obsahuje &lt;script...&gt;";
+        text_cz= '---';
+      }
+      else {
+        g.load(b.id_cac); t.load(b.id_cactheme); 
+        text_eng= b.text_eng;
+        ref_tema= `<a href="${b.url_theme}" target="cac"><i class='fa fa-share'></i> CAC</a>`; 
+        ref_text= `<a href="${b.url_text}" target="cac"><i class='fa fa-share'></i> CAC</a>`; 
+      }
     } 
     func GoNewCac() { var idc:number
       idc= php.select('id_cac','cac',"title_eng!='' ORDER BY datum DESC LIMIT 1");

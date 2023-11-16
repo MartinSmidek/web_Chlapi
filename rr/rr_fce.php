@@ -1093,15 +1093,21 @@ function cac_read_medit_2023($dueto,$ymd,$errata_author=0) { trace();
   display("načtení dne: $ret->ok $ret->date ($cac_day_text)");
   $text= preg_split('~<p><strong>(Story|Reference(?:s|)|Explore|Breath)~',$p[1],-1,PREG_SPLIT_DELIM_CAPTURE);
   $ret->text= $text[0];
-  $ret->reference= '';
-  for ($i= 1; $i<count($text); $i+= 2) {
-    if (substr($text[$i],0,3)=='Ref') {
-      $ret->reference= "<strong>Odkazy{$text[$i+1]}";
-    }
+  // ochrana proti vnořenému scriptu
+  if (preg_match("/<script/",$text[0])) {
+    $ret= (object)array('ok'=>0,'stamp'=>"$dueto READ: obsahuje script");
   }
-  // zápis do stamp
-  $dt= date('Y-m-d H:i:s');
-  query("INSERT INTO stamp (typ,kdy,pozn) VALUES ('cac','$dt','$ret->stamp')");
+  else {
+    $ret->reference= '';
+    for ($i= 1; $i<count($text); $i+= 2) {
+      if (substr($text[$i],0,3)=='Ref') {
+        $ret->reference= "<strong>Odkazy{$text[$i+1]}";
+      }
+    }
+    // zápis do stamp
+    $dt= date('Y-m-d H:i:s');
+    query("INSERT INTO stamp (typ,kdy,pozn) VALUES ('cac','$dt','$ret->stamp')");
+  }
   //   návrat
 end:  
   return $ret;
