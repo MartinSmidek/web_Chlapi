@@ -1141,6 +1141,9 @@ panel CAC [0,0,828,*] { type:'popup', style:"min-width:700px;height:calc(100% - 
       text_eng= eng;
     } 
     func SaveCac() { 
+      stav= 3; stav.change();  
+      preklada= sys('user','id_user'); preklada.change();  
+      changed_cz= fdate('Y-m-d H:i:s'); changed_cz.change();  
       c.save(); 
       if (theme_cz.changed()) { t.save() } // případná změna téma
       p.refresh();
@@ -1150,6 +1153,10 @@ panel CAC [0,0,828,*] { type:'popup', style:"min-width:700px;height:calc(100% - 
       func onclick() { SaveCac(); panel.hide(1); }}
     button  [-1,5,,] { title:'Zpět', help:'ukončit editor bez uložení změn'
       func onclick() { panel.hide(0); }}
+    // poznámky o změně
+    field stav { data:c.stav }
+    field preklada { data:c.preklada }
+    field changed_cz { data:c.changed_cz }
     // čeština
     field theme_cz [0,0,399,] { data:t.theme_cz }
     field [0,25,399,] { data:c.title_cz }

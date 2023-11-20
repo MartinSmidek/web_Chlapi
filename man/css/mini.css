@@ -58,8 +58,11 @@ img.StatusIcon { filter: drop-shadow(3px 3px 3px #333); margin-top: -7px; }
 .Check3 { font-size: .8em; }
 div.MenuLeft3 { width: 210px; float: left; height: 100%; }  
 
-.Label3 h1 {
-  font-size:12pt; margin:0; padding:0; }
+/*.Label3 h1 {
+   font-size:12pt; 
+   margin:0; 
+   padding:0; 
+  }*/
 
 /* konec oprav kvůli webu */
 
