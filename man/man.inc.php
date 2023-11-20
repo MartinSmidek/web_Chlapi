@@ -1,7 +1,19 @@
 <?php # (c) 2018 Martin Smidek <martin@smidek.eu>
 
-//  global $ezer_root, $ezer_local, $ezer_server, $EZER, $abs_root, $rel_root;
+  global // import 
+    $ezer_root; 
+  global // export
+    $EZER, $ezer_server, $ezer_version;
+  global // klíče
+    $api_gmail_user, $api_gmail_pass;
   
+  // vyzvednutí ostatních hodnot ze SESSION
+  $ezer_server=  $_SESSION[$ezer_root]['ezer_server'];
+  $ezer_version= $_SESSION[$ezer_root]['ezer'];
+  $abs_root=     $_SESSION[$ezer_root]['abs_root'];
+  $rel_root=     $_SESSION[$ezer_root]['rel_root'];
+  chdir($abs_root);
+
   date_default_timezone_set('Europe/Prague');
 
   // nastavení zobrazení PHP-chyb klientem při &err=1

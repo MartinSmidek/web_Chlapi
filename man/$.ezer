@@ -10,6 +10,7 @@ panel p [0,0,*,*] { type:'main', _sys:'$'
   var history: array, top=-1
   use f: form _f [0,0,,]
   use w: form _w [0,30,,]
+  func onresize(w,h) { echo('resize ',w,' ',h); CAC.edit_resize() } // reakce na změny rozměrů okna prohlížeče
   func onstart() { var gets:object
     gets= function('return Ezer.get;');
     last= cconc(gets.page,gets.page,'home');
@@ -26,6 +27,7 @@ panel p [0,0,*,*] { type:'main', _sys:'$'
       case 'kalendar':EDITOR.Kalendar(_id); refresh(); break;
       case 'xfotky':  FOTKY.oprava(_id,_idk); refresh(); break; // pokud _idk='x' povol jen změnu názvu
       case 'xucasti': TABLE.oprava(_id); refresh(); break;
+      case 'cac':     CAC.oprava(_id); refresh(); break; 
     }
   }
   func zmenit(_mid,_typ1,_id,_typ2) { 
@@ -493,23 +495,9 @@ panel ADMIN [0,0,600,500] { title:'Nástroje administrátora', type:'popup', css
           break;
         }
       }
-//      proc onclick(i:ezer) {
-//        panel.display(2,'mu'); u.den.display(0);
-//        u.fill(p.item_title(i),' ');
-//        { eq(i.par.typ,'download'); 
-//          u.append("<i>zobrazené zálohy lze stáhnout kliknutím (nelze 'Stahnout jako ...')</i><br>");
-//          u.append(ask('sys_backup_make',i.par)) 
-//        | eq(i.par.typ,'special'); u.append(ask('sys_backup_make',i.par)) 
-//        | eq(i.par.typ,'restore'); 
-//          [ confirm('Opravdu mám lokální databázi přepsat tou, kterou teď vybereš? 
-//                  Máš ji uschovanou? Po výběru se již rozběhne proces obnovy ...'); 
-//            // načti obnovu
-//            u.append(ask('sys_backup_make',i.par));
-//          ]
-//        }
-//      }
     }
     menu { title:'GitHub',type:'group',skill:'m'
+#if ezer_version==3.1
       item { title:'[fa-question] show log'         par:{op:'show'}}
       item { title:'[fa-gear] CMS: git status'      par:{folder:'cms',op:'cmd',cmd:'status'}}
       item { title:'[fa-gear] CMS: git log'         par:{folder:'cms',op:'cmd',cmd:'log'}}
@@ -521,33 +509,35 @@ panel ADMIN [0,0,600,500] { title:'Nástroje administrátora', type:'popup', css
       item { title:'[fa-gears] Ezer: git pull'      par:{folder:'ezer',op:'cmd',cmd:'pull origin ezer3.1'}}
       item { title:'[fa-gears] Ezer: git fetch ...' help:"po fetch>git reset --hard origin/ezer3.1"
                                                     par:{folder:'ezer',op:'cmd',cmd:'fetch'}}
-//      item { title:'[fa-question] CMS: git status'  par:{folder:'cms',op:'cmd',cmd:'status'}}
-//      item { title:'[fa-gear] CMS: git log'         par:{folder:'cms',op:'cmd',cmd:'log'}}
-//      item { title:'[fa-gear] CMS: git pull'        par:{folder:'cms',op:'cmd',cmd:'pull origin master'}}
-//      item { title:'[fa-gear] CMS: git fetch ...'   help:"po fetch>git reset --hard origin/master"
-//                                                    par:{folder:'cms',op:'cmd',cmd:'fetch'}}
-//      item { title:'[fa-question] Ezer: git status' par:{folder:'ezer',op:'cmd',cmd:'status'}}
-//      item { title:'[fa-gears] Ezer: git log'       par:{folder:'ezer',op:'cmd',cmd:'log'}}
-//      item { title:'[fa-gears] Ezer: git pull'      par:{folder:'ezer',op:'cmd',cmd:'pull origin ezer3.1'}}
-//      item { title:'[fa-gears] Ezer: git fetch ...' help:"po fetch>git reset --hard origin/ezer3.1"
-//                                                    par:{folder:'ezer',op:'cmd',cmd:'fetch'}}
       func onclick (i:ezer) {  
         panel.display(2,'mu'); u.display(0,'d|t'); clear();
-        u.fill(p.item_title(i),php.git_make(i.par));
+        u.fill(p.item_title(i),php.git_make(i.par)); // GIT volaný přes aplikaci
       }
+#endif      
+#if ezer_version==3.2
+      // web
+      item { title:'[fa-info] CMS: git status'     par:{folder:'.',op:'cmd',cmd:'status'}}
+      item { title:'[fa-file-text-o] CMS: git log' par:{folder:'.',op:'cmd',cmd:'log'}}
+      item { title:'[fa-angle-down] CMS: git pull' par:{folder:'.',op:'cmd',cmd:'pull'}}
+      item { title:'[fa-angle-double-down] CMS: git fetch ...'    
+         help:"po fetch>git reset --hard origin/master" par:{folder:'.',op:'cmd',cmd:'fetch'}}
+      // ezer
+      item { title:'[fa-info] Ezer: git status'       par:{folder:'ezer',op:'cmd',cmd:'status'}}
+      item { title:'[fa-file-text-o] Ezer: git log'   par:{folder:'ezer',op:'cmd',cmd:'log'}}
+      item { title:'[fa-angle-down] Ezer: git pull'   par:{folder:'ezer',op:'cmd',cmd:'pull'}}
+      item { title:'[fa-angle-double-down] Ezer: git fetch ...'   
+          help:"po fetch>git reset --hard origin/..." par:{folder:'ezer',op:'cmd',cmd:'fetch'}}
+      // op
+      func onclick (i:ezer) {  
+        if (sys('ezer','server')) {  // test na lokální běh na NTB
+          panel.display(2,'mu'); u.display(0,'d|t'); clear();
+          u.fill(p.item_title(i),php.git_exec(i.par)); // GIT volaný přes jádro 3.2
+        }
+        else
+          alert('nelze na vývojovém serveru')  
+      }
+#endif      
     }
-//    menu { title:'(errata)', type:'group', skill:'m'
-//      item { title:'oprava fotek - 1'     par:{copy:'id_xfotky=1'} }
-//      item { title:'oprava fotek - 35'    par:{copy:'id_xfotky=35'} }
-//      item { title:'oprava fotek - 48'    par:{copy:'id_xfotky=48'} }
-//      item { title:'oprava fotek - 49,50' par:{copy:'id_xfotky IN (49,50)'} }
-//      item { title:'oprava fotek - vše'   par:{copy:"path!=''"} }
-//      func onclick(i:ezer) {
-//        clear(); panel.display(2,'mu'); u.den.display(0);
-//        u.fill(p.item_title(i),' ');
-//        u.append(php.ERRATA_2020(i.par.copy));
-//      }
-//    }
     func onclick (i:ezer) {  var y:text
       panel.display(2,'mu'); u.display(0,'t');
       u.den.display(i.par.c=='den');
@@ -1128,6 +1118,48 @@ panel OPTIONS [0,0,220,220] { title:'Volby zobrazení pro redakci', type:'popup'
     old.set(ask('session',co));
     ask('session',co,cconc(add,sum(old,kolik),minus(old,kolik)));
     p.refresh;  
+  }
+}
+# ----------------------------------------------------------------------------==> CAC
+panel CAC [0,0,828,*] { type:'popup', style:"min-width:700px;height:calc(100% - 100px)", 
+    par:{close:'no'}, _sys:'edi'
+  use m: form _m [2,0,,]
+  func edit_resize() { var h:number
+    h= js.get_label_height(&m.text_eng);
+    js.set_edit_height(&m.text_cz,h-54);
+  }
+  func oprava(id_cac) { 
+    m.LoadCac(id_cac);
+    panel.popup(10,40);
+    edit_resize();
+  }
+  form _m {
+    view c: table cac
+    view t: table cactheme { join_type:'LEFT', join:"USING (id_cactheme)" }
+    func LoadCac(id_cac) { 
+      c.load(id_cac); t.load(id_cactheme); 
+      text_eng= eng;
+    } 
+    func SaveCac() { 
+      c.save(); 
+      if (theme_cz.changed()) { t.save() } // případná změna téma
+      p.refresh();
+    } 
+    field id_cactheme { data:c.id_cactheme }
+    button  [-46,5,,] { title:'Uložit', help:'ukončit editor a uložit změny'
+      func onclick() { SaveCac(); panel.hide(1); }}
+    button  [-1,5,,] { title:'Zpět', help:'ukončit editor bez uložení změn'
+      func onclick() { panel.hide(0); }}
+    // čeština
+    field theme_cz [0,0,399,] { data:t.theme_cz }
+    field [0,25,399,] { data:c.title_cz }
+    edit text_cz [0,50,405,543] { type:'html', data:c.text_cz, par:{toolbar:'Cac'} }
+    // angličtina
+    field [422,0,300,] { data:t.theme_eng, format:'d', style:'background:white' }
+    field [422,25,300,] { data:c.title_eng, format:'d', style:'background:white' }
+    field eng { data:c.text_eng }
+    label text_eng [421,51,390,543] { 
+      style:'overflow-x:auto;height:calc(100% - 64px);padding:5px;font-size:10pt;background:white' }
   }
 }
 # ----------------------------------------------------------------------------==> EDITOR
@@ -1809,6 +1841,33 @@ table xclanek { key_id:'id_xclanek', db:'setkani'
   text web_text
   date ch_date  { sql_pipe:'sql_date1' } // datum podstatné změny
 }
+table cac { key_id:'id_cac', db:'ezertask'
+  number id_cac
+  number id_cactheme
+  date datum { sql_pipe:'sql_date'} 
+  text stav // volné, rezervace, upravené, přeložené
+  text errata
+  text url_theme
+  text url_text
+  text author
+  text reference
+  text preklada
+  text theme_eng
+  text title_eng
+  text text_eng
+  date imported_eng
+  text theme_cz
+  text title_cz
+  text text_cz
+  text text_cz_deepl
+  date changed_cz
+}
+table cactheme { key_id:'id_cactheme', db:'ezertask'
+  number id_cactheme
+  text url_theme
+  text theme_eng
+  text theme_cz
+}
 table _help {  key_id:'id_help'                     // tabulka _help je v databázi aplikace
   number id_help { key:'primary' }
   text kind, number version, date datum { sql_pipe:'sql_date1' },
@@ -1840,22 +1899,8 @@ table _skill { key_id:'id_skill', db:'ezer_system'
   number id_skill
   text skill_abbr
   text skill_desc
+  text skill_name
 }
-table _cis { key_id:'id_cis'
-  number id_cis text druh, text data, text zkratka, number poradi,
-  text hodnota, text popis, text barva, text ikona
-}
-//table _track { key_id:'id_track'
-//  number id_track { key:'primary' }
-//  date kdy { help:'datum změny' }
-//  text kdo { help:'pachatel' }
-//  text kde { help:'tabulka' }
-//  number klic { help:'klíč' }
-//  text fld { help:'položka' }
-//  text op { help:'operace' }
-//  text old { help:'původní hodnota' }
-//  text val { help:'původní hodnota' }
-//}
 table _cis { key_id:'id_cis'
   number id_cis
   text druh,

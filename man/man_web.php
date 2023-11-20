@@ -297,6 +297,6 @@ function cac_meditace($ymd,$jmp,$plny,$par=2) {
       <a href='$x->url_theme' target='cac'>$x->theme_cz</a></h1>
       $prefix $body $reference
       <hr><i>$postfix</i>";
-  return $html;
+  return array($x->id_cac,$html);
 }
 ?>

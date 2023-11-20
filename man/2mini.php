@@ -648,11 +648,11 @@ function emailIsValid($email,&$reason) {
 # odešle mail
 # k posílání přes GMail viz http://phpmailer.worxware.com/?pg=examplebgmail
 function mail_send($reply_to,$address,$subject,$body) { trace(); 
-  global $api_gmail_user, $api_gmail_pass, $chlapi_gmail_user;
+  global $api_gmail_user, $api_gmail_pass, $chlapi_gmail_user, $kernel;
   $ret= (object)array('msg'=>'');
   $TEST= 0;
 //  $TEST= 1;
-  $ezer_path_serv= "ezer3.1/server";
+  $ezer_path_serv= "$kernel/server";
   $phpmailer_path= "$ezer_path_serv/licensed/phpmailer";
   require_once("$phpmailer_path/class.phpmailer.php");
   require_once("$phpmailer_path/class.smtp.php");

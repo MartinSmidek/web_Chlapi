@@ -5,7 +5,12 @@
 //                                                                                                //
 // CMS/Ezer                                             (c) 2016 Martin Šmídek <martin@smidek.eu> //
 // ---------------------------------------------------------------------------------------------- //
-
+function get_label_height(html,height) {
+  return html.DOM_Block.height();
+}
+function set_edit_height(html,height) {
+  html.DOM_Block.find("#cke_1_contents").height(height);
+}
 // ============================================================================================> CMS
 // ---------------------------------------------------------------------------------- opravit clanek
 function opravit(typ,id,idk) {

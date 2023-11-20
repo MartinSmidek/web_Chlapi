@@ -1,7 +1,8 @@
 <?php
 
   // volba verze jádra Ezer, vnucení parametrů
-  $kernel= "ezer3.1"; 
+  $ezer_version= "3.2";
+  $kernel= "ezer$ezer_version"; 
   $_GET['pdo']= 2;
 
   // verze js + css
@@ -88,6 +89,14 @@
           {name:'stín/i',    element:'img',  attributes:{'class':'shadow'}},
           {name:'ikona',     element:'span',  attributes:{'class':'ikona'}},
           {name:'odkaz',     element:'a',    attributes:{'class':'jump'}},
+          {name:'bible',     element:'span', attributes:{'class':'bible'}}
+        ],
+        contentsCss:'man/css/edit.css'
+      },
+      Cac:{toolbar:[['Styles','-','Undo','Redo','-','Bold','Italic','-','Outdent','Indent',
+              '-','Link','Unlink','-','Source']],
+        stylesSet:[
+          {name:'odstavec',  element:'p'},
           {name:'bible',     element:'span', attributes:{'class':'bible'}}
         ],
         contentsCss:'man/css/edit.css'

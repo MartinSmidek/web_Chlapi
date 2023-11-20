@@ -32,7 +32,7 @@ if ( isset($_GET['src']) &&$_GET['src'] ) {
       $ref= "home!1";
       break;
     case 'cac':
-      $obsah= cac_meditace('',"",0,2); // třetí parametr je vysvětlený ve funkci
+      list($id_cac,$obsah)= cac_meditace('',"",0,2); // třetí parametr je vysvětlený ve funkci
       $img= "<img src='/man/img/cac_logo.jpg' style='width:80px;float:right;
           margin:20px 45px 40px 10px;border-radius:5px'>";
       $ref= "home!2";

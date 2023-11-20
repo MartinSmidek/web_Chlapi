@@ -485,6 +485,7 @@ function title_menu($title,$items,$id=0,$idk=0,$idm=0) {
     case 'ea':  $cm[]= "['{$c}editovat akci',function(el){ opravit('xakce',$id,$x[1]);}]"; break;
     case 'et':  $cm[]= "['{$c}editovat kalendář',function(el){ opravit('kalendar',$x[1]);}]"; break;
     case 'eu':  $cm[]= "['{$c}editovat tabulku účastí',function(el){ opravit('xucasti',$id);}]"; break;
+    case 'em':  $cm[]= "['{$c}editovat překlad',function(el){ opravit('cac',$x[1]);}]"; break;
     // p - přidání
     case 'pcn': $cm[]= "['{$c}přidat článek na začátek',function(el){ pridat('xclanek',$idm,1);}]"; break;
     case 'pcd': $cm[]= "['{$c}přidat článek na konec',function(el){ pridat('xclanek',$idm,0);}]"; break;
@@ -768,10 +769,14 @@ __EOT;
       global $backhref;
       list($dva,$ymd)= explode(',',$top);
       $plny= $dva==$id;
-      $obsah= cac_meditace($ymd,"$backhref!$id",$plny,2); // třetí parametr je vysvětlený ve funkci
+      list($id_cac,$obsah)= cac_meditace($ymd,"$backhref!$id",$plny,2); // třetí parametr je vysvětlený ve funkci
 //      $obsah= cac_meditace($ymd,"$backhref!$id",$plny,$_SESSION['web']['GET']['cac']?:1); // 1=publikované, 2=už přeložené
       if ( $plny ) {
         // zobrazit jako plný článek
+        $menu= '';
+        if ( $REDAKCE ) {
+          $menu= title_menu('překlad meditace',"em,$id_cac");
+        }
         $html.= "
           <div id='temata'><span>Seznam přeložených témat</span><dl></dl></div>
           <div class='back' $menu>
@@ -1217,13 +1222,13 @@ function pridej_fotky($id) {
 function show_page($html) { // ,$menu_type='new') {
   global $part;
   global $wid, $REDAKCE, $KLIENT, $index, $GET_rok, $mode, $load_ezer, $ezer_server_ostry, $prefix;
-  global $bar_menu, $links, $currpage, $tm_active;
+  global $bar_menu, $links, $currpage, $tm_active, $ezer_version;
   
   // definice do <HEAD>
   
   // jádro Ezer - jen pokud není aktivní CMS
   $script= '';
-  $client= "./ezer3.1/client";
+  $client= "./ezer$ezer_version/client";
   $lang= get_lang(); // en | cs
   
   // Facebook
@@ -1288,7 +1293,7 @@ __EOJ
       Ezer.fce= {};
       Ezer.str= {};
       Ezer.obj= {};
-      Ezer.version= '3.1'; Ezer.root= 'man'; Ezer.app_root= 'man'; 
+      Ezer.version= '$ezer_version'; Ezer.root= 'man'; Ezer.app_root= 'man'; 
       Ezer.options= {
         _oninit: 'skup_mapka',
         skin: 'db'
@@ -2252,8 +2257,12 @@ function db_connect($mydb='setkani') {
 //  );
 //  ezer_connect('setkani');
   
-  global $ezer_db, $dbs, $ezer_server;
-  $ezer_db= $dbs[$ezer_server];
+  global $ezer_db, $db, $dbs, $ezer_server;
+  // redefine OBSOLETE
+  if (isset($dbs[$ezer_server])) $dbs= $dbs[$ezer_server];
+  if (isset($db[$ezer_server])) $db= $db[$ezer_server];
+  $ezer_db= $dbs;
+//  $ezer_db= $dbs[$ezer_server];
   ezer_connect($mydb); 
 }
 /** =========================================================================================> ADMIN */
