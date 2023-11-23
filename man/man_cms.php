@@ -316,8 +316,8 @@ function table_create($idc,$rows) {
   $ret= (object)array('ok'=>1,'msg'=>'');
   $err= '';
   // kontrola, zda již k pozvánce tabulka neexistuje
-  $idu= select("id_xucast","xucast","id_xclanek=$idc");
-  if ( $idu ) { $err= "tabulka pro pozvánku $idc již existuje"; goto end; }
+  $uzje= select("COUNT(*)","xucast","id_xclanek=$idc");
+  if ( $uzje ) { $err= "tabulka pro pozvánku $idc již existuje"; goto end; }
   // vytvoření tabulky jako xucast(id_xclanek=idc,skupina=...,jmeno=max,poradi=...)
   foreach ($rows as $row) {
     // normalizace názvu

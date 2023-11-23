@@ -1258,7 +1258,7 @@ __EOD;
   }
 
   $script.= <<<__EOJ
-    <script src="$client/licensed/jquery-3.2.1.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="$client/licensed/jquery-3.3.1.min.js" type="text/javascript" charset="utf-8"></script>
     <script src="$client/licensed/jquery-ui.min.js" type="text/javascript" charset="utf-8"></script>
     <script src="/man/2chlapi.js$v_app" type="text/javascript" charset="utf-8"></script>
 __EOJ;
