@@ -1922,6 +1922,7 @@ function servant($qry,$context=null) {
         ? "Sorry, there was error #4, martin@smidek.eu will be happy to help you ..."
         : "Sorry, došlo k chybě č.4, martin@smidek.eu ti poradí ...";
     $_SESSION['web']['*servant_state']= "text:$json";
+    $_SESSION['web']['*servant_error']= $s->msg;
                                                   display($s->msg);
 //    $s->msg= "'$servant&$qry' vrátil '$json'";
   }

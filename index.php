@@ -56,6 +56,7 @@ $_SESSION['web']['GET']= isset($_SESSION['web']['GET'])
 # ------------------------------------------ ajax
 if ( count($_POST) ) {
   global $s;
+  try {
   require_once("man/2mini.php");
   $x= array2object($_POST);
   $s= $x;
@@ -71,6 +72,10 @@ if ( count($_POST) ) {
   }
   echo $yjson;
   exit;
+  }
+  catch (Exception $e) {
+    $_SESSION['web']['*server_catch']= $e->getMessage();
+  }
 }
 def_user();
 if ( $REDAKCE ) {
@@ -89,6 +94,7 @@ else {
   $counts= array(); // typ -> počet
 //  if ($_GET['menu']=='new' || $_SESSION['web']['menu']=='new') {
     $elem= '';
+    $part= (object)array(); // části výsledné stránky
     $html= new_menu($path,$elem);
     $html.= eval_elem($elem);
     show_page($html,'new');

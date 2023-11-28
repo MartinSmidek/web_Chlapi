@@ -418,8 +418,11 @@ var panel, label, geo;
 function onmaploaded() { // ondomready() {
   skup_mapka();
 }
-var code= {
-  "app": {
+// -------------------------------------------------------------------------------------- skup mapka
+function skup_mapka() {
+  if ( typeof(Ezer)=='undefined' || !Ezer.App ) return;
+  let code= 
+    {"app": {
     "part": {
       "x": {
         "options": {"css":"mapa"},
@@ -427,7 +430,9 @@ var code= {
         "part": {
           "f": {
             "options": {"css":"mapa"},
-            "type": "var", "_of": "form", "_init": "$.x._f"
+            "type": (Ezer.version=="3.2" ? 'use' : 'var'), 
+            "_of": "form", 
+            "_init": "$.x._f"
           },
           "_f": {
             "type": "form",
@@ -441,11 +446,7 @@ var code= {
         }
       }
     }
-  }
-};
-// -------------------------------------------------------------------------------------- skup mapka
-function skup_mapka() {
-  if ( typeof(Ezer)=='undefined' || !Ezer.App ) return;
+  }};
   header= jQuery('div.header');
   header.css({position:'unset'});
   label= jQuery('div.cms_mapa');
@@ -457,7 +458,7 @@ function skup_mapka() {
     jQuery('#skup0').css({display:'block'});
     Ezer.App.load_root(code);
     panel= Ezer.run.$.part.x;
-    label= panel.part.f.value.part.l;
+    label= panel.part.f.part.l;
   }
   label.part= {
     onmarkclick: function(mark) {
