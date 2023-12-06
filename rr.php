@@ -49,7 +49,7 @@
     $ezer_root= 'rr';
     session_start();
     $_SESSION[$ezer_root]['ezer_server']= $ezer_server;
-    $_SESSION[$ezer_root]['ezer']= "3.1";
+    $_SESSION[$ezer_root]['ezer']= $ezer_version;
     $_SESSION[$ezer_root]['abs_root']= $abs_root; //s[$ezer_server];
     $_SESSION[$ezer_root]['rel_root']= $rel_root; //s[$ezer_server];
     $_SESSION[$ezer_root]['pdo']= $_GET['pdo'];

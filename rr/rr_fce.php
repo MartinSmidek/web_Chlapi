@@ -1183,9 +1183,22 @@ function rr_send($par) {
   $dnes= date('j/n/Y',mktime(0,0,0,date('n'),date('j')+$plus,date('Y')));
   $html= "neni pro $dnes nastaveno! ($offset)";
   ezer_connect("ezertask");
-  $qry= "SELECT * FROM rr WHERE datum=curdate()$offset ";
+  $qry= "SELECT *,COUNT(*) AS _pocet,curdate()$offset AS _den FROM rr WHERE datum=curdate()$offset ";
   $res= pdo_qry($qry);
-  while ( $res && ($o= pdo_fetch_object($res)) ) {
+  $o= pdo_fetch_object($res);
+  if ( !$res || $o->_pocet!=1 || $o->state!='prepared' ) {
+    $den= $res ? "na $o->_den" : '';
+    $problem= "Nelze poslat Myšlenku RR $den";
+    $msg= "SQL dotaz<br><br>$qry<br><br>";
+    $msg.= 
+        !$res ? "selhal." : (
+        $o->_pocet==0 ? "nenašel Myšlenku na $den" : (
+        $o->_pocet!=1 ? "našel více variant Myšlenky na $den ($o->_pocet)" 
+      : "nemá stav 'prepared"
+    ));
+    $ok= rr_send_mail($problem,$msg,'martin.smidek@setkani.org','martin@smidek.eu','já','rr - missing');
+  }
+  else {
     $day_n= $o->day_n;
     $subject= $o->subject;
     $state= $o->state;
