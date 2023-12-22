@@ -56,7 +56,7 @@ function page($ref) { trace();
   $page= '';
   $counts= array(); // typ -> počet
   def_user();
-  list($ref,$par)= $ref ? explode('?',$ref) : array($ref);
+  list($ref,$par)= $ref ? array_merge(explode('?',$ref),array_fill(0,1,'')) : array($ref);
   $path= $ref ? explode('!',$ref) : array($wid==1 ? 'en-home' : 'home');
 //  // varianty menu
 //  $menu_type= get_menu();
@@ -195,7 +195,7 @@ __EOM;
       ? "onclick=\"go(arguments[0],'page=$href','{$prefix}$href','$input',0);\""
       : "href='{$prefix}$href'";
     $jmp.= "title='$href'";
-    if ($x[2]==1 && !$cleared) {
+    if (isset($x[2]) && $x[2]==1 && !$cleared) {
       $cleared= 1;
       $clear= ";clear:right;";
     }
@@ -1562,6 +1562,8 @@ __EOD;
     $background
     $fb_root
     <div id='page'>
+      <div style="z-index: 99999;background: yellow;color: red;position: fixed;font-weight: bold;">
+        UPOZORNĚNÍ A OMLUVA: V úterý 26.12.2023 bude pro odstávku serveru tento web během dne nedostupný</div>
       $headline
       $login
       <div class="body">
