@@ -1558,12 +1558,14 @@ __EOD
         </div>
       </div>
 __EOD;
+  $apology= '';
+//  $apology= '<div style="z-index: 99999;background: yellow;color: red;position: fixed;font-weight: bold;">
+//        UPOZORNĚNÍ A OMLUVA: V úterý 26.12.2023 bude pro odstávku serveru tento web během dne nedostupný</div>';
   $body=  <<<__EOD
     $background
     $fb_root
     <div id='page'>
-      <div style="z-index: 99999;background: yellow;color: red;position: fixed;font-weight: bold;">
-        UPOZORNĚNÍ A OMLUVA: V úterý 26.12.2023 bude pro odstávku serveru tento web během dne nedostupný</div>
+      $apology
       $headline
       $login
       <div class="body">
