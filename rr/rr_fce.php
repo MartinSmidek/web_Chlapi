@@ -63,7 +63,9 @@ function stat_brno($par) {  trace();
         }
       }
       break;
-    case 'survey': // --------------------------------------------------------- přehled identifikace
+    case 'survey-a': // ------------------------------------------------------- přehled identifikace
+    case 'survey-n': // ------------------------------------------------------- přehled identifikace
+      $rel= $par->fce=='survey-a' ? '!=' : '=';
       $radku= select('COUNT(*)','chlapi.xucast',"jmeno_remove=''");
       $celkem= select('COUNT(DISTINCT jmeno_id)','chlapi.xucast',"jmeno_id>0");
       $answer= select('COUNT(DISTINCT id_osoba)','chlapi.xucast',"id_osoba>0");
@@ -72,7 +74,7 @@ function stat_brno($par) {  trace();
       $qr= pdo_qry("
         SELECT TRIM(IF(jmeno_corr='',jmeno,jmeno_corr)) AS _jmeno,COUNT(*) AS _pocet
         FROM chlapi.xucast 
-        WHERE jmeno_id>0 AND id_osoba=0
+        WHERE jmeno_id>0 AND id_osoba $rel 0
         GROUP BY jmeno_id
         ORDER BY _jmeno
       ");
@@ -83,10 +85,10 @@ function stat_brno($par) {  trace();
         $je= $nidos ? " v Answeru {$nidos}x ($idos-$obce)" : '';
         $lst.= "{$pocet}x $jmeno$je<br>";
       }
+      $var= $par->fce==='survey-a' ? '' : "<br> a $n není";
       $inf->html.= "Na setkáních se do tabulky účasti na $radku řádků zapsalo
         <br> celkem $celkem chlapů
-        <br> z toho $answer chlapů je v Answeru
-        <br> a $n není, jsou to tito:<hr>$lst ";
+        <br> z toho $answer chlapů je v Answeru".$var.", jsou to tito:<hr>$lst ";
       break;
     case 'jmeno_id.csv':  // ------------------------------------ opravy jmen podle doc/jmeno_id.csv 4.
       $fp= fopen("$abs_root/doc/jmeno_id.csv",'r'); // jmeno,jmeno_corr
