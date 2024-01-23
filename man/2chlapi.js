@@ -161,6 +161,7 @@ function _bar_menu(y,cmd) {
       if ( Ezer.run!==undefined ) {
         change_css(y);
         refresh();
+        jQuery('div.cms_page').css({background:y.screen=='dark'?'black':'white'}); 
       }
       else 
         location.reload(true);
