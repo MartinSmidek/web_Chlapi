@@ -21,6 +21,7 @@ function def_user() {
       'level' => isset($_SESSION['man']['level']) ? 0+$_SESSION['man']['level'] : 0  
   ) : NULL; 
   $mobile= in_array($_SESSION['platform'],array('I','M','A'));
+  $mobile= 1;
 }
 # -------------------------------------------------------------------------------------==> def user
 // zjistí, zda osoba osoba.id_osoba byla na akci id_akce
@@ -459,7 +460,7 @@ function test_elem($exists,$elem_id,$elem,&$html) {
 # id,kid,mid jsou id a x je další parametr
 # pokud je definováno pole cmenu (elementem menu) přidá se na začátek
 function title_menu($title,$items,$id=0,$idk=0,$idm=0) {
-  global $cmenu;
+  global $cmenu, $kod;
   $cm= array();
   // přidej na začátek menu definované elementem menu
   if ( count($cmenu) ) {
@@ -518,9 +519,10 @@ function title_menu($title,$items,$id=0,$idk=0,$idm=0) {
     default: fce_error("'$item' není menu");
     }
   }
-  $on= " title='$title' oncontextmenu=\"Ezer.fce.contextmenu([\n"
+  $kod= "Ezer.fce.contextmenu([\n"
       .implode(",\n",$cm)
-      ."],arguments[0],0,0,'#xclanek$id');return false;\"";
+      ."],arguments[0],0,0,'#xclanek$id');return false;";
+  $on= " title='$title' oncontextmenu=\"$kod\"";
   return $on;
 }
 # -------------------------------------------------------------------------------------==> eval elem
@@ -529,7 +531,7 @@ function title_menu($title,$items,$id=0,$idk=0,$idm=0) {
 // $counts je pole sčítající skutečně renderované (viditelné) elementy
 function eval_elem($desc,$book=null) { //trace();
   global $REDAKCE, $KLIENT, $ezer_server_ostry, $index, $load_ezer, $curr_menu, $top, $path,
-      $mobile, $cmenu, $backref, $counts, $rel_root, $links, $backref; 
+      $mobile, $cmenu, $backref, $counts, $rel_root, $links, $backref, $kod; 
                                                     debug(array($desc,$book),"eval_elem");
   $elems= explode(';',$desc);
   $ipad= '';
@@ -776,11 +778,17 @@ __EOT;
         $menu= '';
         if ( $REDAKCE ) {
           $menu= title_menu('překlad meditace',"em,$id_cac");
+          if ( $mobile ) {
+            $ipad= "<span class='ipad_menu' style='margin-left:15px'
+                onclick=\"arguments[0].stopPropagation();$kod\">
+              <i class='fa fa-bars'></i></span>";
+          }
         }
         $html.= "
           <div id='temata'><span>Seznam přeložených témat</span><dl></dl></div>
           <div class='back' $menu>
             <div id='fokus_part' class='home'>
+              $ipad
               $obsah
             </div>
           </div>";
@@ -2237,10 +2245,10 @@ function datum_oddo($x1,$x2) {
   }
   elseif ( $r1==$r2 ) {
     if ( $m1==$m2 ) { //zacatek a konec je stejny mesic
-      $datum= "$d1 - $d2. $m1"  . ($r1!=$letos ? ". $r1" : '');;
+      $datum= "$d1 - $d2. $m1"  . ($r1!=$letos ? ". $r1" : '');
     }
     else { //ostatni pripady
-      $datum= "$d1. $m1 - $d2. $m2"  . ($r1!=$letos ? ". $r1" : '');;
+      $datum= "$d1. $m1 - $d2. $m2"  . ($r1!=$letos ? ". $r1" : '');
     }
   }
   else { //ostatni pripady
