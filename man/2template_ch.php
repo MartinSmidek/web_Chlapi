@@ -21,7 +21,7 @@ function def_user() {
       'level' => isset($_SESSION['man']['level']) ? 0+$_SESSION['man']['level'] : 0  
   ) : NULL; 
   $mobile= in_array($_SESSION['platform'],array('I','M','A'));
-  $mobile= 1;
+//  $mobile= 1;
 }
 # -------------------------------------------------------------------------------------==> def user
 // zjistí, zda osoba osoba.id_osoba byla na akci id_akce
