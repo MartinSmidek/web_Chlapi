@@ -6,6 +6,7 @@ date_default_timezone_set('Europe/Prague');
 
 $microtime_start= microtime();
 $ezer_version= "3.2";
+$kernel= "ezer$ezer_version"; 
 
 // skryté definice
 global $ezer_server, $paths_log, $abs_root, $rel_root, $log_path, $db, $dbs, $lang;

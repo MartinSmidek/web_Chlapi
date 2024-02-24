@@ -515,7 +515,7 @@ function skup_sendmail(psc,skupina) {
   body= body.replace(/\n/,'<br>');
   body= "<b>Odesílatel:</b> "+reply+"<br><b>Zpráva:</b><br> "+body+"<hr>\
     POZOR: pokud budeš odpovídat, pohlídej prosím, aby odpověď šla na mail "+reply
-    +" a ne na www.chlapi.cz@gmail.com ...\
+    +"  ...\
     <br><br>\
     <i>Tento mail byl zaslán ze stránky <a href='https://${chlapi_online}/skupiny'>chlapi.cz/skupiny</a>\
        po kliknutí na ikonu tvojí chlapské skupiny '"+skupina+"'. Tvůj mail byl získán z tabulky\
