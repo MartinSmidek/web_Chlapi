@@ -506,7 +506,7 @@ function skup_dialog2(mark) {
 }
 // ----------------------------------------------------------------------------------- skup sendmail
 function skup_sendmail(psc,skupina) {
-  var to= geo.emails[psc], reply, subj, body, msg, chlapi_online= "www.chlapi.cz";
+  var to= geo.emails[psc], reply, subj, body;
   reply= jQuery('#skup_from').val();
   subj= "SeSkup: Dotaz na organizátora skupiny";
   body= jQuery('#skup_body').val();
@@ -517,7 +517,7 @@ function skup_sendmail(psc,skupina) {
     POZOR: pokud budeš odpovídat, pohlídej prosím, aby odpověď šla na mail "+reply
     +"  ...\
     <br><br>\
-    <i>Tento mail byl zaslán ze stránky <a href='https://${chlapi_online}/skupiny'>chlapi.cz/skupiny</a>\
+    <i>Tento mail byl zaslán ze stránky <a href='https://chlapi.cz/skupiny!mapa'>chlapi.cz/skupiny</a>\
        po kliknutí na ikonu tvojí chlapské skupiny '"+skupina+"'. Tvůj mail byl získán z tabulky\
        chlapských skupin. Pokud myslíš, že něco není v pořádku, obrať se prosím na správce\
        aplikace <a href='mailto:martin@smidek.eu'>Martina Šmídka</a>.</i>";
