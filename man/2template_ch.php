@@ -1075,6 +1075,9 @@ __EOT;
       }
       // zformátujeme kalendář
       $html.= "<div class='back' $menu><div id='clanek2' class='home'>$ipad<table class='kalendar'>";
+      if ($terminy) {
+        $html.= "<p class='ukazat_plan'> plánovaný termín (zatím se nelze přihlásit, změna vyhrazena) </p>";
+      }
       if ( count($s->akce) ) {
         foreach ($s->akce as $a) {
           if (!$terminy && $a->termin==2) continue;
