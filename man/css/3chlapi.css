@@ -176,8 +176,9 @@ div.header div.scroll-line {
   margin-bottom: -4px;
   background: red;
   width: 0%;
-  position: sticky;
-  top: 360px;
+  /*position:sticky; top:360px;*/
+  position: absolute;
+  bottom: 0;
 }
 div.filler {
   height: 2em;

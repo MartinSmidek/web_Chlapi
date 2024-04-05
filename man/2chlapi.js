@@ -23,20 +23,19 @@ jQuery.fn.extend({
 });
 // ------------------------------------------------------------------------------------- scroll line
 // capture scroll any percentage - podle https://codepen.io/derekjp/pen/pJzpxB
+// 2024 funguje i pro FireFox
 var scroll_line_last= 0;
 function scroll_line() {
-  if (navigator.userAgent.indexOf("Firefox")== -1) {
-    jQuery('#web').scroll(function(){
-      var wintop= jQuery('#web').scrollTop(), 
-          docheight= jQuery('#page').height(), 
-          winheight= jQuery(window).height();
-      var scrolled= (wintop/(docheight-winheight))*100;
-      if (Math.abs(scroll_line_last-scrolled)) {
-        scroll_line_last= scrolled;
-        jQuery('.scroll-line').css('width', (scrolled + '%'));
-      }
-    });
-  }
+  jQuery('#web').scroll(function(){
+    var wintop= jQuery('#web').scrollTop(), 
+        docheight= jQuery('#page').height(), 
+        winheight= jQuery(window).height();
+    var scrolled= Math.min((wintop/(docheight-winheight))*100,100);
+    if (Math.abs(scroll_line_last-scrolled)) {
+      scroll_line_last= scrolled
+      jQuery('.scroll-line').css('width', (scrolled + '%'));
+    }
+  });
 }
 // -------------------------------------------------------------------------------------- jump fokus
 // nastaví polohu stránky
@@ -466,6 +465,7 @@ function skup_mapka() {
       skup_dialog(mark);
   }};
   label.init('ROADMAP');
+//  label.init('ROADMAP',{mapTypeControl:0,streetViewControl:0},'smap');
   ask({cmd:'mapa',mapa:'skupiny'},skup_mapka_);
 }
 function skup_mapka_(y) {
