@@ -1249,6 +1249,14 @@ function show_page($html) { // ,$menu_type='new') {
 //      <script async defer crossorigin="anonymous" src="https://connect.facebook.net/cs_CZ/sdk.js#xfbml=1&version=v6.0"></script>'
 //__EOD;      
 
+// licence m.j. pro Národní knihovnu
+$cc= <<<__EOD
+<p xmlns:cc="http://creativecommons.org/ns#" style="float:right;margin:5px">
+  <a href="http://creativecommons.org/licenses/by-nc-sa/4.0/?ref=chooser-v1" target="_blank" 
+    rel="license noopener noreferrer" 
+    style="display:inline-block;text-decoration:none;text-shadow:none;color:white">
+    CC BY-NC-SA 4.0</a></p>
+__EOD;
  // Google Analytics - chlapi.cz=UA-163664361-1 chlapi.online=UA-99235788-2
   $GoogleAnalytics= !$ezer_server_ostry ? '' : <<<__EOD
 <!-- Global site tag (gtag.js) - Google Analytics -->
@@ -1274,12 +1282,12 @@ __EOD;
     <script src="/man/2chlapi.js$v_app" type="text/javascript" charset="utf-8"></script>
 __EOJ;
   
+  // smaps
+//  $script.= !$load_ezer ? '' : <<<__EOJ
+//    <script src="https://api.mapy.cz/loader.js"></script>
+//__EOJ;
   // gmaps
   $api_key= "AIzaSyAq3lB8XoGrcpbCKjWr8hJijuDYzWzImXo"; // Google Maps JavaScript API 'answer-test'
-//    <script src="https://maps.googleapis.com/maps/api/js?key=$api_key&callback=initMap" async defer></script>
-//  $script.= !$load_ezer ? '' : <<<__EOJ
-//    <script src="https://maps.googleapis.com/maps/api/js?key=$api_key&callback=skup_mapka" async defer></script>
-//__EOJ;
   $script.= !$load_ezer ? '' : <<<__EOJ
     <script src="https://maps.googleapis.com/maps/api/js?libraries=places&key=$api_key&callback=onmaploaded"></script>
 __EOJ;
@@ -1411,7 +1419,11 @@ __EOD;
         \">
       <div class='scroll-line'></div>
       <img id='chlogo' src='/man/img/kriz.png'$logo_title>
-      <div id='motto'>$motto</div>
+      <div id='motto'>
+        $motto
+        $cc
+      </div>
+      
     </div>";   
 //  }
 //   --------------------------------------------------------------- STARÉ MENU
@@ -2045,7 +2057,12 @@ function ask_server($x) {
     break;
 
   case 'mapa':     // ------------------------------------------------------------------------- mapa
-    servant("mapa=$x->mapa");
+//    servant("mapa=$x->mapa");
+//    $x= (object)array('cmd'=>'mapa','mapa'=>$_GET['mapa']);
+//    server($x);
+    db_connect('ezer_db2');
+    $s->mapa= mapa2_skupiny2();;
+//    $y->ip= ip_get();
     break;
 
   case 're_login': // ---------------------------------------------------------------------- relogin
