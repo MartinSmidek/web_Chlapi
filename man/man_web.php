@@ -299,4 +299,156 @@ function cac_meditace($ymd,$jmp,$plny,$par=2) {
       <hr><i>$postfix</i>";
   return array($x->id_cac,$html);
 }
-?>
+/** ==========================================================================================> MAPA */
+# ------------------------------------------------------------------------------------ mapa2 skupiny
+# přečtení seznamu skupin z tabulky
+# https://docs.google.com/spreadsheets/d/1mp-xXrF1I0PAAXexDH5FA-n5L71r5y0Qsg75cU82X-4/edit#gid=0
+# https://docs.google.com/spreadsheets/d/1mp-xXrF1I0PAAXexDH5FA-n5L71r5y0Qsg75cU82X-4/gviz/tq?tqx=out:json
+#   0 - skupina
+#   1 - psč[,město,ulice]
+#   2 - aktualizace
+#   3 - kontakt
+#   4 - email
+#   5 - poznámka
+#   6 - uzavřená skupina
+function mapa2_skupiny2() {  trace();
+  global $totrace, $trace;
+//   $totrace='M';
+  $goo= "https://docs.google.com/spreadsheets/d";
+  $key= "1mp-xXrF1I0PAAXexDH5FA-n5L71r5y0Qsg75cU82X-4";         // Seznam skupin - kontakty
+  $prefix= "google.visualization.Query.setResponse(";           // přefix json objektu
+  $sheet= "List 1";
+  $x= file_get_contents("$goo/$key/gviz/tq?tqx=out:json"); //&sheet=$sheet");
+//                                         display($x);
+  $xi= strpos($x,$prefix);
+  $xl= strlen($prefix);
+//                                         display("xi=$xi,$xl");
+  $x= substr(substr($x,$xi+$xl),0,-2);
+//                                         display($x);
+  $tab= json_decode($x)->table;
+//                                         debug($tab,$sheet);
+  // projdeme získaná data
+  $adrs= $geos= $notes= $clmns= $emails= array();
+  $n= 0;
+  $msg= '';
+  if ( $tab ) {
+    foreach ($tab->rows as $irow=>$crow) {
+      $row= $crow->c;
+      if ( $row[0]->v=="ZVLÁŠTNÍ SKUPINY:" ) break;     // konec seznamu
+      $group= $row[0]->v;
+      $adr= $row[1]->v;
+      $adr= strtr($adr,array(';'=>',','?'=>'',"\n"=>''));
+      $aktual= $row[2]->v;
+      if ( preg_match("/(\d+),(\d+),(\d+)/",$x,$m) )
+        $aktual= "$m[3].$m[2].$m[1]";
+      $kontakt= $row[3]->v;
+      // emailové adresy do pole $emails
+      $email= trim($row[4]->v);
+      $email= strtr($email,array(' '=>',',';'=>','));
+      $email= strtr($email,array(',,'=>','));
+      $note= isset($row[5]) ? $row[5]->v : '';
+        // podrobnosti do pole $clmns
+      $clmn= "<h3>$group</h3><p>Kontakt:$kontakt, <b>$email</b></p>"
+           . "<p>$note</p><p style='text-align:right'><i>aktualizováno: $aktual</i></p>";
+//                                                 if ( $irow==0 ) { $adr="110 00,Praha,Voršilská 2085/3"; }
+//                                                 if ( $irow==1 ) { goto end; }
+      $adrs[$irow]= "CZ,$adr";               // CZ,psč[,město,ulice]
+      $notes[$irow]= $note;
+      $groups[$irow]= $group;
+      $emails[$irow]= $email;
+      $clmns[$irow]= $clmn;
+      $n++;
+//      break; // ----------------------------------------------------------- DEBUG 1 MARK
+    }
+  }
+  // konec
+end:
+  $ret= mapa2_adr($adrs,$groups,$notes);
+  $msg= $msg ? "<br><br>Problem nastal pro PSC: $msg" : '';
+  $msg.= $ret->err ? "<br><br>$ret->err" : '';
+  $ret->err= '';
+  $ret->clmns= $clmns;
+  $ret->emails= $emails;
+  $ret->msg= "Je zobrazeno $n skupin z tabulky <b>Seznam skupin - kontakty</b>$msg|{$ret->msg}";
+  return $ret;
+}
+# ----------------------------------------------------------------------------------==> .. mapa2 adr
+# vrátí strukturu pro gmap
+function mapa2_adr($adrs,$groups,$notes) {
+  global $totrace, $trace;
+  // k PSČ zjistíme LAN,LNG
+  $ret= (object)array('mark'=>'','n'=>0);
+  $marks= $err= '';
+  $err_psc= array();
+  $n= $ndb1= $ndb2= $ngeo= 0; $del= '';
+  foreach ($adrs as $irow=>$adr) {
+    $lat= $lng= 0;
+    $psc= substr(strtr(trim(substr($adr,0,10)),array(' '=>'')),0,5);
+    // nejprve zjistíme, zda jsme již zjistili polohu
+    list($lat,$lng)= select("lat,lng","ezer_db2._geocode","adr='$adr'","ezer_db2");
+    if ( !$lat ) {
+      // zkusíme online geolokaci
+      $g= geocode_google($adr);
+      if ( $g->err ) {
+        $err.= "geolokace:{$g->err}";
+        // nouzově zjistíme aspoň polohu PSČ, je-li v tabulce
+        list($lat,$lng)= select("lat,lng","psc_axy","psc='$psc'","ezer_db2");
+        $ndb2++;
+      }
+      else {
+        // zapíšeme do tabulky
+        $lat= $g->lat;
+        $lng= $g->lng;
+        query("INSERT INTO ezer_db2._geocode (adr,lat,lng) VALUES ('$adr','$lat','$lng')","ezer_db2");
+        $ngeo++;
+      }
+    }
+    else {
+      $ndb1++;
+    }
+    if ( $lat ) {
+      $n++;
+//       $title= "<b>{$groups[$irow]}</b><br>$notes[$irow]"; ---- nejde, je pak ošklivý title
+      $title= "{$groups[$irow]}: $notes[$irow]";
+      $title= str_replace(',','‚',$title); // &sbquo;
+      // title se objeví při mouseover a jako nápis po kliknutí na značku
+      $marks.= "{$del}$irow,{$lat},{$lng},$title"; $del= ';';
+    }
+    else {
+      $err_psc[$p].= " $p";
+    }
+  }
+  // zjištění chyb
+  if (( $ne= count($err_psc) )) {
+    $err.= "<br>$ne PSC se nepovedlo lokalizovat. Tyka se to: ".implode(' a ',$err_psc);
+  }
+  $msg= "(db1=$ndb1,geo=$ngeo,db2=$ndb2,$trace)";
+  $ret= (object)array('mark'=>$marks,'n'=>$n,'err'=>$err,'msg'=>$msg);
+  return $ret;
+}
+# -----------------------------------------------------------------------------==> .. geocode google
+# vrátí strukturu pro gmap
+function geocode_google($adr) {
+  global $api_key_gmaps;
+  $lat= $lng= $err= '';
+  $adr= urlencode($adr);
+  $url= "https://maps.googleapis.com/maps/api/geocode/json?key=$api_key_gmaps&address=$adr";
+//   $err= "[$url]";
+  $json= @file_get_contents($url);
+  if ( $json ) { //&& substr($json,0,1)=='{' ) {
+    $y= json_decode($json);
+    if ( $y->status=="OK" ) {
+      $lat= $y->results[0]->geometry->location->lat;
+      $lng= $y->results[0]->geometry->location->lng;
+    }
+    else {
+      $err.= $y->status;
+    }
+  }
+  else {
+    $err.= "adresa nemá správný tvar";
+  }
+  $ret= (object)array('lat'=>$lat,'lng'=>$lng,'err'=>$err);
+  return $ret;
+}
+
