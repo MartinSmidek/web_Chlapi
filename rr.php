@@ -14,8 +14,8 @@
   $app_root=  'rr';
   $app_js=    array("rr/rr_fce.js");
   $app_css=   array("rr/rr.css");
-//  $skin=     'default';
-  $skin=     'ch';
+  $skin=     'default';
+//  $skin=     'ch';
   
   // skryté definice, cesty, databáze, detekce serveru
   $deep_root= "../files/chlapi";
