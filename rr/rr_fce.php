@@ -1188,7 +1188,7 @@ function rr_send($par) {
   $qry= "SELECT *,COUNT(*) AS _pocet,curdate()$offset AS _den FROM rr WHERE datum=curdate()$offset ";
   $res= pdo_qry($qry);
   $o= pdo_fetch_object($res);
-  if ( !$res || $o->_pocet!=1 || $o->state!='prepared' ) {
+  if ( !$res || $o->_pocet!=1 ) { //|| $o->state!='prepared' ) { 9.6.2024 
     $den= $res ? "na $o->_den" : '';
     $problem= "Nelze poslat Myšlenku RR $den";
     $msg= "SQL dotaz<br><br>$qry<br><br>";
