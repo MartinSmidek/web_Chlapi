@@ -1,6 +1,6 @@
 /* styly pro editor */
 
-body { font-size:10pt; font-family: sans-serif; }
+body {/* font-size:10pt; *//* font-family: sans-serif; */}
 div.cke_maximized { z-index: 100000 !important; }
 h1 {font-size:14pt;}
 h2 { font-size:12pt; }

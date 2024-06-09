@@ -5,7 +5,7 @@
   $_GET['pdo']= 2;
 
   // verze použitého jádra Ezeru a další parametry aplikace
-  $ezer_version= isset($_GET['ezer']) ? $_GET['ezer'] : '3.1'; 
+  $ezer_version= '3.2'; // isset($_GET['ezer']) ? $_GET['ezer'] : '3.1'; 
   $dbg= isset($_GET['dbg']) ? $_GET['dbg'] : 0;
 
   // základní údaje o aplikaci

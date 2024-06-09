@@ -205,7 +205,7 @@ panel p [0,0,*,*] { type:'main', _sys:'$'
   }
 }
 # ----------------------------------------------------------------------------==> MENU
-panel CMS [0,0,610,400] { type:'popup',  title:'CMS - definice menu', 
+panel CMS [0,0,620,410] { type:'popup',  title:'CMS - definice menu', 
     style:"min-width:590px", _sys:'cms'
     css:'dialog', par:{min_top:30}
   var from_table= 1, visible=0
@@ -340,7 +340,7 @@ panel CMS [0,0,610,400] { type:'popup',  title:'CMS - definice menu',
   }
 }
 # ----------------------------------------------------------------------------==> ADMIN
-panel ADMIN [0,0,600,500] { title:'Nástroje administrátora', type:'popup', css:'dialog_menu', 
+panel ADMIN [0,0,610,510] { title:'Nástroje administrátora', type:'popup', css:'dialog_menu', 
     style:"min-width:590px", _sys:'adm'
     par:{
       infos: [
@@ -553,7 +553,7 @@ panel ADMIN [0,0,600,500] { title:'Nástroje administrátora', type:'popup', css
   }
 }
 # ----------------------------------------------------------------------------==> REDAKCE
-panel REDAKCE [0,0,840,515] {type:'popup', title:'Nástroje redaktora', css:'dialog_menu', 
+panel REDAKCE [0,0,850,525] {type:'popup', title:'Nástroje redaktora', css:'dialog_menu', 
     /*style:"min-width:830px",*/ skill:'a|a', _sys:'red'
 
   const sys_users_list = 22
@@ -920,7 +920,7 @@ panel REDAKCE [0,0,840,515] {type:'popup', title:'Nástroje redaktora', css:'dia
   }
 }
 # ----------------------------------------------------------------------------==> OPTIONS
-panel OPTIONS [0,0,220,220] { title:'Volby zobrazení pro redakci', type:'popup'
+panel OPTIONS [0,0,230,230] { title:'Volby zobrazení pro redakci', type:'popup'
   use g: form _g [0,10,,]
   func onfocus() { start() }
   func start() { var level:number
@@ -966,7 +966,7 @@ panel OPTIONS [0,0,220,220] { title:'Volby zobrazení pro redakci', type:'popup'
   }
 }
 # ----------------------------------------------------------------------------==> CAC
-panel CAC [0,0,828,*] { type:'popup', style:"min-width:700px;height:calc(100% - 100px)", 
+panel CAC [0,0,838,*] { type:'popup', style:"min-width:700px;height:calc(100% - 100px)", 
     par:{close:'no'}, _sys:'edi'
   use m: form _m [2,0,,]
   func edit_resize() { var h:number
@@ -1015,7 +1015,7 @@ panel CAC [0,0,828,*] { type:'popup', style:"min-width:700px;height:calc(100% - 
   }
 }
 # ----------------------------------------------------------------------------==> EDITOR
-panel EDITOR [0,0,783,*] { type:'popup', style:"min-width:700px;height:calc(100% - 100px)", 
+panel EDITOR [0,0,793,*] { type:'popup', style:"min-width:700px;height:calc(100% - 100px)", 
     par:{close:'no'}, _sys:'edi'
   var id:number,
       path:text
@@ -1303,7 +1303,7 @@ panel EDITOR [0,0,783,*] { type:'popup', style:"min-width:700px;height:calc(100%
   }
 }
 # ----------------------------------------------------------------------------==> UPLOAD
-panel UPLOAD [0,0,400,130] { title:' Nahrát soubor', type:'popup', style:"min-width:390px", 
+panel UPLOAD [0,0,410,140] { title:' Nahrát soubor', type:'popup', style:"min-width:390px", 
     css:'dialog', _sys:'upl'
   var ckeditor:object,
       path:text
@@ -1380,7 +1380,7 @@ panel UPLOAD [0,0,400,130] { title:' Nahrát soubor', type:'popup', style:"min-w
         }
     }}
   }
-  panel UPLOAD_URL [,,300,60] { type:'popup' title:'zadej url s přílohou', style:"min-width:300px" 
+  panel UPLOAD_URL [,,310,70] { type:'popup' title:'zadej url s přílohou', style:"min-width:300px" 
     use ff:form _ff
     func onfocus() { ff.zip.init(); ff.zip.focus() }
     form _ff {
@@ -1394,7 +1394,7 @@ panel UPLOAD [0,0,400,130] { title:' Nahrát soubor', type:'popup', style:"min-w
 }
 # ----------------------------------------------------------------------------==> FOTKY
 # organizer fotek
-panel FOTKY [0,0,680,265] { title:' Organizér fotek', type:'popup', css:'dialog'
+panel FOTKY [0,0,690,275] { title:' Organizér fotek', type:'popup', css:'dialog'
   use f: form _foto [0,0,,]
   # zapamatování informací do DOM pro
   func onfocus() {
@@ -1526,7 +1526,7 @@ panel FOTKY [0,0,680,265] { title:' Organizér fotek', type:'popup', css:'dialog
       }
     }
   }
-  panel ZIP_URL [,,300,60] { type:'popup' title:'zadej url ZIPu s fotografiemi' use ff:form _ff
+  panel ZIP_URL [,,310,70] { type:'popup' title:'zadej url ZIPu s fotografiemi' use ff:form _ff
     func onfocus() { ff.zip.init() }
     form _ff {
       field zip [0,0,300,] { format:'t' }
@@ -1539,7 +1539,7 @@ panel FOTKY [0,0,680,265] { title:' Organizér fotek', type:'popup', css:'dialog
 }
 # ----------------------------------------------------------------------------==> TABLE
 # organizer tabulky účastníků akce
-panel TABLE [0,0,500,240] { title:' Organizér tabulky účastníků akce', type:'popup', css:'dialog'
+panel TABLE [0,0,510,250] { title:' Organizér tabulky účastníků akce', type:'popup', css:'dialog'
   use f: form _tab [0,0,,]
   var nova:number       // 1 = nová tabulka
   # ==> . nový
@@ -1610,7 +1610,7 @@ panel TABLE [0,0,500,240] { title:' Organizér tabulky účastníků akce', type
     button [-20,0,,] { title:'[fa-undo] Zpět', help:'ukončit bez vytvoření tabulky'
       func onclick() { panel.hide(0); } }
   }
-  panel HOSTS [0,0,500,500] { title:' Seznam hostitelů', type:'popup', css:'dialog'
+  panel HOSTS [0,0,510,510] { title:' Seznam hostitelů', type:'popup', css:'dialog'
     use f: form [0,0,500,500] {
       field seznam [0,0,500,240] 
     }

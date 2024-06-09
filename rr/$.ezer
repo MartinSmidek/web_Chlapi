@@ -221,7 +221,7 @@ menu rr { type:'main', active:rr.richard
         }
         menu {title:'Log file',type:'group', skill:'a'
           item {title:'[fa-question] odeslání mailu Pokladna',  par:{typ:'mail',subj:'pokladna'} }
-          func onclick (i:ezer) { var cac:object
+          func onclick (i:ezer) { 
             clear(); info.header(i); panel.display(0,'.'); 
             info.fill('',php.stamp_show(i.par.typ,i.par.subj));
           }

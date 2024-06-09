@@ -35,7 +35,7 @@
 
   // informace pro debugger o poloze ezer modulů
   $dbg_info= (object)array(
-    'src_path'  => array('rr','man','ezer3.1') // poloha a preference zdrojových modulů
+    'src_path'  => array('rr','man','ezer3.2') // poloha a preference zdrojových modulů
   );
 
   // použité funkce
