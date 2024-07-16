@@ -1092,7 +1092,7 @@ function cac_read_medit_2023($dueto,$ymd,$errata_author=0) { trace();
       '~<div class="(?:wp-block-gecko-blocks-section|entry-content article)">(.*)~ms',
       $html,$p);
   $ret->stamp.= "match2={$ret->cut}; ";
-  display("načtení dne: $ret->ok $ret->date ($cac_day_text)");
+  display("načtení dne: $ret->ok $ret->stamp ($cac_day_text)");
   $text= preg_split('~<p><strong>(Story|Reference(?:s|)|Explore|Breath)~',$p[1],-1,PREG_SPLIT_DELIM_CAPTURE);
   $ret->text= $text[0];
   // ochrana proti vnořenému scriptu
