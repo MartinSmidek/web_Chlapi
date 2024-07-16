@@ -55,27 +55,39 @@
     $_SESSION[$ezer_root]['pdo']= $_GET['pdo'];
     $_POST['root']= $ezer_root;
     require_once("rr.inc.php");
-    $html= '???';
-    switch ($_GET['batch']) {
-    case 'rr-today':
-      $html= rr_send((object)array('den'=>'','poslat'=>1,'opakovat'=>0));
-      echo "rr_send/sent=$html";
-      break;
-    case 'rr-test':
-      $html= rr_send((object)array('den'=>'','poslat'=>0,'opakovat'=>0));
-      echo "rr_send/test=$html";
-      $html= cac_read_medits('TEST');
-      echo "<hr><h2>Daily Meditations from CAC</h2><br>$html";
-      break;
-    case 'rr-cac':
-      $html= cac_read_medits('AUTO');
-      echo "<hr><h2>Daily Meditations from CAC</h2><br>$html";
-      break;
-//    case 'rr-note': -- přesunuto do answer/db2.php
-//      $stamp= note_send2('*',1);
-//      echo "<hr><h2>Odeslání připomenutí</h2><br>$html";
-//      break;
+    $html= '';
+    try {
+      error_reporting(0);
+      switch ($_GET['batch']) {
+      case 'rr-today':
+        $html= rr_send((object)array('den'=>'','poslat'=>1,'opakovat'=>0));
+        echo "rr_send/sent=$html";
+        break;
+      case 'rr-test':
+        $html= rr_send((object)array('den'=>'','poslat'=>0,'opakovat'=>0));
+        echo "rr_send/test=$html";
+        $html= cac_read_medits('TEST');
+        $x= 1/0;
+        echo "<hr><h2>Daily Meditations from CAC</h2><br>$html";
+        break;
+      case 'rr-try':
+        $html= "test try";
+        echo "pred 1/0";
+        $x= neexistující_funkce();
+        echo "po 1/0";
+        break;
+      case 'rr-cac':
+        $html= cac_read_medits('AUTO');
+        echo "<hr><h2>Daily Meditations from CAC</h2><br>$html";
+        break;
+      }
+    } 
+    catch (Throwable $e) { 
+      echo "po catch";
+      $html= $e->getMessage(); 
     }
+    $_SESSION[$ezer_root]['last_run']= $_GET['batch'].' in '.date('j.n.Y H:i:s')
+        .' ret='.substr($html,0,64);
   }
   else {
     // je to standardní aplikace se startem v kořenu
