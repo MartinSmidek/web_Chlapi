@@ -58,6 +58,7 @@
     $html= '';
     try {
       error_reporting(0);
+      date_default_timezone_set("Europe/Prague");
       switch ($_GET['batch']) {
       case 'rr-today':
         $html= rr_send((object)array('den'=>'','poslat'=>1,'opakovat'=>0));
@@ -72,9 +73,9 @@
         break;
       case 'rr-try':
         $html= "test try";
-        echo "pred 1/0";
+        echo "<hr>pred chybou";
         $x= neexistující_funkce();
-        echo "po 1/0";
+        echo "<br>po chybe";
         break;
       case 'rr-cac':
         $html= cac_read_medits('AUTO');
@@ -83,11 +84,15 @@
       }
     } 
     catch (Throwable $e) { 
-      echo "po catch";
+      echo "<br>po catch";
       $html= $e->getMessage(); 
     }
-    $_SESSION[$ezer_root]['last_run']= $_GET['batch'].' in '.date('j.n.Y H:i:s')
-        .' ret='.substr($html,0,64);
+    $last_run= $_GET['batch'].' in '.date('j.n.Y H:i:s').' ret='.substr($html,0,64);
+    echo "<br>$last_run";
+    $_SESSION[$ezer_root]['last_run']= $last_run;
+    echo "<br>$abs_root/last_run.txt";
+    file_put_contents("$abs_root/last_run.txt",$last_run);
+    
   }
   else {
     // je to standardní aplikace se startem v kořenu
