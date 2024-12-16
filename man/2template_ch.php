@@ -1192,7 +1192,7 @@ function pridej_fotky($id) {
   global $REDAKCE, $mobile;
   $html= '';
   $rf= pdo_qry("SELECT id_xfotky,alias,nazev,seznam,path,autor FROM xfotky WHERE id_xclanek=$id
-      ORDER BY id_xfotky");
+      ORDER BY poradi,id_xfotky");
   while ($rf && list($orig_fid,$alias_fid,$nazev,$seznam,$fotopath,$podpis)=pdo_fetch_row($rf)) {
     $note= '';
     $menu= "title='$orig_fid'";

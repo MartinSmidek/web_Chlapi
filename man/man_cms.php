@@ -618,7 +618,8 @@ function save_fotky($x,$perm=null) {
 //  $set_text= $text==$text2 ? '' : ",text='$text2'";
   // zápis
   query("UPDATE xfotky
-         SET editors='$editors',nazev='$nadpis',kdy='$psano',autor='$autor',alias='$alias'
+         SET editors='$editors',nazev='$nadpis',kdy='$psano',autor='$autor',alias='$alias',           
+             poradi='$x->poradi'
            $set_seznam
          WHERE id_xfotky='$fid'");
   return 1;

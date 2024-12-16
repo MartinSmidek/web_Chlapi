@@ -1449,6 +1449,7 @@ panel FOTKY [0,0,690,275] { title:' Organizér fotek', type:'popup', css:'dialog
     field autor  [35,15,100,]  { tag:'o,n', title:'^autor:' }
     field nadpis [146,15,224,] { tag:'o,n,x', title:'^název:' }
     field psano  [380,15,85,]  { tag:'o,n', type:'date', title:'^psáno:', format:'r' }
+    field poradi [469,15,30,]  {tag:'o,n', format:'r', title:'^pořadí', help:'pořadí v rámci galerií tohoto článku' }
     field alias  [633,40,40,]  { tag:'x', title:'Alias ID' }
     label        [0,72,80,80]  { tag:'o', css:'drop_back' }
     label fotky  [0,70,690,205] { tag:'o', style:'overflow:auto' }
