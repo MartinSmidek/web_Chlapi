@@ -595,6 +595,12 @@ __EOT;
       $layout= $id;
       break; 
     
+    case 'border':  # ----------------------------------------------- . border tabulek
+      $html.= <<<__EOT
+        <style>td {border:1px solid grey; padding:5px}</style>
+__EOT;
+      break; 
+    
     case 'pozvanky':  # --------------------------------------------- . pozvánky skupiny $id
       // seznam aktuálních pozvánek - bude mít fokus pouze, pokud není v cestě referovaný konkrétní článek
       // tzn. když cesta nekončí číslem - to musí mít přednost
