@@ -541,8 +541,8 @@ function load_fotky($fid) { trace();
   $path= "$abs_root/inc/f/$fid";
   $x= (object)array();
   $time= time();
-  list($id_xclanek,$x->editors,$x->autor,$x->nadpis,$lst,$psano)=
-    select('id_xclanek,editors,autor,nazev,seznam,kdy','xfotky',"id_xfotky=$fid");
+  list($id_xclanek,$x->editors,$x->autor,$x->nadpis,$lst,$psano,$x->poradi)=
+    select('id_xclanek,editors,autor,nazev,seznam,kdy,poradi','xfotky',"id_xfotky=$fid");
   $x->fotky= "<span class='foto drop' data-foto-n='-1'></span><ul class='foto' id='foto'>";
   $x->psano= sql_date1($psano);
   $fs= explode(',',$lst);
