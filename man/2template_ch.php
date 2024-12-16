@@ -1287,7 +1287,7 @@ __EOJ;
 //    <script src="https://api.mapy.cz/loader.js"></script>
 //__EOJ;
   // gmaps
-  $api_key= "AIzaSyAq3lB8XoGrcpbCKjWr8hJijuDYzWzImXo"; // Google Maps JavaScript API 'answer-test'
+  global $api_key;
   $script.= !$load_ezer ? '' : <<<__EOJ
     <script src="https://maps.googleapis.com/maps/api/js?libraries=places&key=$api_key&callback=onmaploaded"></script>
 __EOJ;
