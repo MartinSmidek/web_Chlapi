@@ -13,14 +13,15 @@ menu rr { type:'main', active:rr.richard
           item dnesni {title:'[fa-send-o] dnešní myšlenky', par:{den:0,poslat:1,opakovat:0} }
           item {title:' ... znovu', par:{den:0,poslat:1,opakovat:1} }
           item {title:' ... na martin@smidek.eu', 
-                  par:{den:0,poslat:1,opakovat:0,test:'martin@smidek.eu'}, skill:'m'}
+                  par:{den:0,poslat:1,opakovat:1,test:'martin@smidek.eu'}, skill:'m'}
           item {title:'[fa-send] včerejší myšlenky', par:{den:-1,poslat:1,opakovat:0} }
           item {title:' ... znovu', par:{den:-1,poslat:1,opakovat:1} }
         }
         func onclick (i:ezer) {
           info.header(i);
           info.msg= '';
-          info.fill('',php.rr_send(i.par));
+          if (i.par.poslat && confirm('Opravdu poslat?'))
+            info.fill('',php.rr_send(i.par));
         }
       }
       use info: form right [12,4,,]

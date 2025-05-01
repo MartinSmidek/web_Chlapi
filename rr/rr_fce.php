@@ -1246,37 +1246,28 @@ function rr_send($par) {
 # pošle systémový mail, pokud není určen adresát či odesílatel jde o mail správci aplikace
 # $to může být seznam adres oddělený čárkou
 function rr_send_mail($subject,$html,$from='',$to='',$fromname='',$typ='',$replyto='',$lognote='') { //trace();
-  global $ezer_path_serv, $EZER, $api_gmail_user, $api_gmail_pass;
+  global $EZER, $abs_root;
   $to= $to ? $to : $EZER->options->mail;
-  // poslání mailu
-  $phpmailer_path= "$ezer_path_serv/licensed/phpmailer";
-  require_once("$phpmailer_path/class.smtp.php");
-  require_once("$phpmailer_path/class.phpmailer.php");
-  // napojení na mailer
-  $mail= new PHPMailer;
-  $mail->SetLanguage('cs',"$phpmailer_path/language/");
-  
+  // příprava mailu
+  require_once "$abs_root/ezer3.2/server/ezer_mailer.php";
+  $serverConfig= (object)[
+      'Host'       => 'smtp.gmail.com',
+      'Username'   => 'answer@setkani.org',
+      'files_path' => __DIR__.'/../../files/setkani4'
+    ];
+  $mail= new Ezer_PHPMailer($serverConfig);
   $mail->IsSMTP();
-  $mail->Mailer= 'smtp';
-  $mail->Host= "smtp.gmail.com";
-  $mail->Port= 465;
-  $mail->SMTPAuth= 1;
-  $mail->SMTPSecure= "ssl";
-  $mail->Username= $api_gmail_user;
-  $mail->Password= $api_gmail_pass;
-  $mail->CharSet = "utf-8";
-  $mail->From= $from;
+  $mail->IsHTML(true);
+  $mail->SetFrom($mail->From,$fromname);
   $mail->AddReplyTo($replyto?:$from);
-  $mail->FromName= $fromname;
   foreach (explode(',',$to) as $to1) {
     $mail->AddAddress($to1);
   }
   $mail->Subject= $subject;
   $mail->Body= $html;
-  $mail->IsHTML(true);
   // pošli
-  $ok= $mail->Send();
-  if ( !$ok )
+  $ok= $mail->Ezer_Send();
+  if ( $ok!=='ok' )
     fce_warning("Selhalo odeslání mailu: $mail->ErrorInfo");
   else {
     // zápis do stamp
