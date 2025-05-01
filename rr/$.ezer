@@ -20,7 +20,9 @@ menu rr { type:'main', active:rr.richard
         func onclick (i:ezer) {
           info.header(i);
           info.msg= '';
-          if (i.par.poslat && confirm('Opravdu poslat?'))
+          if (i.par.poslat && !confirm('Opravdu poslat?')) 
+            info.fill('','... tak nic');
+          else
             info.fill('',php.rr_send(i.par));
         }
       }
