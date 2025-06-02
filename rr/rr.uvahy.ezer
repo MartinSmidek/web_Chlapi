@@ -318,6 +318,7 @@ panel testy { type:'right', title:'Úvahy a meditace'
           ymd= date2sql(den);
           form.enable(0,'u|p');
           uvaha= php.cac_save_medit_2025('TEST-2025',ymd,0,vsechno);
+          if (!uvaha.ok) { alert(`úvahu nelze nalézt ${uvaha.err}`); return }
           form.enable(1,'u');
           //echo(debug(uvaha));
           d.nazev= uvaha.title;

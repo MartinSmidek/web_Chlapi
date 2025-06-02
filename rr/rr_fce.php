@@ -968,10 +968,9 @@ end:
 function cac_mail_search_2025($ymd,$search_all=0) {
   $ret= (object)['ok'=>0,'err'=>''];
   // Připojení ke schránce
-  $username= 'meditace@chlapi.cz';
-  $password= 'Kopie_Meditaci_Cac_2025'; // doporučuji použít heslo pro aplikaci
+  global $meditace_mail, $meditace_pass;
   $hostname= '{imap.seznam.cz:993/imap/ssl}INBOX';
-  $imap= imap_open($hostname, $username, $password);
+  $imap= imap_open($hostname, $meditace_mail, $meditace_pass);
   if (!$imap) { $ret->err= 'Nelze se připojit k IMAP serveru: ' . imap_last_error(); goto end; }
   // projdeme e-maily obsahující "Daily Meditation" v předmětu
   $emails= imap_search($imap, 'TEXT "Daily Meditation"', SE_UID);
