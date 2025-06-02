@@ -244,9 +244,14 @@ panel testy { type:'right', title:'Úvahy a meditace'
             if (msg) alert(msg);
             b.browse_row(); LoadCac()
         } }
-        item { title:'znovu načíst den bez překladu' skill:'m' func onclick() { 
-            clear(); php.cac_read_medit_2023('AGAIN',date2sql(datum)); b.browse_row(); LoadCac() 
-        } }
+//        item { title:'znovu načíst den bez překladu' skill:'m' func onclick() { var x:object
+//            clear(); 
+//            x= php.cac_save_medit_2025('AGAIN',date2sql(datum),1,vsechno); 
+//            if (x.ok) {
+//              b.browse_row(); 
+//              LoadCac() 
+//            }
+//        } }
         item { title:'přeložit den pomocí DeepL'     skill:'m' func onclick() { 
             clear(); 
             if (!text_cz || confirm("opravdu přepsat přeložený text?")) { 
@@ -307,42 +312,43 @@ panel testy { type:'right', title:'Úvahy a meditace'
       label author [10,119,272,20]
       label [10,148,272,20] { title:'téma' }
       label tema  [10,168,272,40]
-      button [300,10,,] { title:'[fa-question] Najdi úvahu' 
+      check vsechno [300,10,100,] { title:'všechny maily', value:"0", format:'t' }
+      button [300,40,,] { title:'[fa-question] Najdi úvahu' 
         func onclick() { 
           ymd= date2sql(den);
           form.enable(0,'u|p');
-          uvaha= php.cac_save_medit_2023('TEST-2023',ymd);
-//          uvaha= php.cac_save_medit('TEST',ymd,0);
+          uvaha= php.cac_save_medit_2025('TEST-2025',ymd,0,vsechno);
           form.enable(1,'u');
           //echo(debug(uvaha));
           d.nazev= uvaha.title;
           d.author= uvaha.autor;
           d.tema= uvaha.tema;
       }}
-      button [300,40,,] { tag:'u', title:'[fa-save] Ulož' 
+      button [300,70,,] { tag:'u', title:'[fa-save] Ulož' 
         func onclick() { 
-          uvaha= php.cac_save_medit_2023('TEST-2023',ymd);
+          uvaha= php.cac_save_medit_2025('TEST-2025',ymd,1,vsechno);
+          if (!uvaha.ok) { alert(`úvahu nelze nalézt ${uvaha.err}`); return }
           form.enable(1,'p');
           g.b.browse_seek(`c.datum="${ymd}"`);
       }}
-      button [300,70,,] { tag:'p', title:'[fa-magic] Přelož' 
+      button [300,100,,] { tag:'p', title:'[fa-magic] Přelož' 
         func onclick() { var e:object
           e= php.cac_through_DeepL(uvaha.idc);
           nazev= `${nazev}<hr>${e.title_cz}`;
           tema= `${tema}<hr>${e.theme_cz}`;
           g.b.browse_seek(`c.datum="${ymd}"`);
       }}
-      button [300,100,,] { title:'[fa-undo] Zpět' 
+      button [300,130,,] { title:'[fa-undo] Zpět' 
         func onclick() { panel.hide(0);
       }}
-      button [177,10,,] { title:'[fa-exclamation] Oprav autora' 
+      button [177,10,,] { title:'[fa-exclamation] Oprav autora', format:'d' 
         func onclick() { 
-          uvaha= php.cac_read_medit_2023('TEST-2023',date2sql(den),1);
+          uvaha= php.cac_read_medit_2025('TEST-2025',date2sql(den),vsechno,1);
           d.author= uvaha.autor;
       }}
-      button [300,130,,] { title:'[fa-exclamation] Doplň autory' 
+      button [300,160,,] { title:'[fa-exclamation] Doplň autory', format:'d' 
         func onclick() { 
-          uvaha= php.cac_read_medit_2023('TEST-2023',date2sql(den),1);
+          uvaha= php.cac_read_medit_2025('TEST-2025',date2sql(den),vsechno,1);
           d.author= uvaha.autor;
       }}
     }

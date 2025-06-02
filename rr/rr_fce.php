@@ -853,10 +853,310 @@ end:
   curl_close($ch);
   return $cz;
 }
-# ---------------------------------------------------------------------------------- cac read_medits
+# ========================================================================================= CAC 2025
+# ----------------------------------------------------------------------------- cac read_medits 2025
 # doplní nové úvahy do CAC 
 #   $dueto=AUTO|TEST|USER|MENU
 function cac_read_medits($dueto) {
+  $msg= '';
+  $ok= 0;
+  $dnes= date('Y-m-d');
+  // nejprve zjisti, jestli už jsme dnešní den neimportovali
+  $mame= select('datum','cac',"datum='$dnes' AND text_eng!='' ");
+  if ($mame) { 
+    $ok= 1; $msg= "dnešní meditaci už máme"; 
+    // zápis do stamp
+    $dt= date('Y-m-d H:i:s');
+    // query("INSERT INTO stamp (typ,kdy,pozn) VALUES ('cac','$dt','$dueto READ: $dnes already exists')");
+    goto end; 
+  }
+  // zajištění naplnění prázdnými záznamy na měsíc dopředu
+  $date= new DateTime($dnes);
+  $date->modify('+1 month');
+  $za_mesic= $date->format('Y-m-d');
+  // zajisti aby byly prázdné záznamy od posledního až do za měsíc
+  $last= select('datum','cac',"1 ORDER BY datum DESC LIMIT 1");
+  if (!$last) $last= '2021-12-31'; // start
+  $date= new DateTime($last);
+  $z= 100; // zarážka
+  while ($z>0 && $last<$za_mesic) {
+    $z--;
+    $date->modify('+1 day');
+    $last= $date->format('Y-m-d');
+    query("INSERT INTO cac (datum) VALUE ('$last')");
+  }
+  // potom doplň z CAC chybějící texty
+  $n= 3;
+  $last= select('datum','cac',"IFNULL(text_eng,'')!='' ORDER BY datum DESC LIMIT 1");
+  if (!$last) $last= '2021-12-31'; // start
+  while ($n>0 && $last<$dnes) {
+    $n--;
+    $date= new DateTime($last);
+    $date->modify('+1 day');
+    $last= $date->format('Y-m-d');
+    // získání a zápis úvahy
+    $x= cac_save_medit_2025($dueto,$last);
+    if ($x->idc) {
+      $ret= cac_through_DeepL($x->idc);
+      $msg.= "$last: $x->title ... $ret->title_cz<br>";
+    }
+    else {
+      $msg.= "SELHALO";
+    }
+    $ok= 1;
+  }
+  $msg=  $ok ? $msg : ' novější úvahy CAC zatím nejdou importovat ';
+end:  
+  return $msg;
+}
+# ------------------------------------------------------------------------------ cac save_medit_2023
+# verze platná od 28.5.2025
+# uloží do daného dne danou meditaci - pokud je úspěšně načtená
+function cac_save_medit_2025($dueto,$ymd,$save=1,$search_all=0) { trace();
+  // načtení úvahy
+  $x= cac_read_medit_2025($dueto,$ymd,$search_all);
+  if (!$x->ok) {
+    $x->idc= 0;
+    goto end;
+  }
+  // zapsání úvahy do tabulky
+  if (!$save) goto end;
+  $x->idc= select('id_cac','cac',"datum='$ymd'");
+  if (!$x->idc) {
+    query("INSERT INTO cac (datum) VALUE ('$ymd')");
+    $x->idc= pdo_insert_id();
+  }
+  $tema= pdo_real_escape_string($x->tema);
+  // test, jestli nejde o nové téma
+  $idt= select('id_cactheme','cactheme',"theme_eng='$tema' ");
+  if (!$idt) {
+    query("INSERT INTO cactheme SET theme_eng='$tema',url_theme='$x->url_tema' ");
+    $idt= pdo_insert_id();
+  }
+  $title= pdo_real_escape_string($x->title);
+  $text= pdo_real_escape_string($x->text);
+  $reference= pdo_real_escape_string($x->reference);
+  $dt= date('Y-m-d H:i:s');
+  if ($text) {
+    query("UPDATE cac SET 
+        id_cactheme='$idt',url_text='$x->url_title',imported_eng='$dt',
+        author='$x->autor',reference='$reference',title_eng='$title',text_eng='$text' 
+        WHERE id_cac=$x->idc");
+  }
+end:  
+  return $x;
+}
+# ------------------------------------------------------------------------------ cac read_medit_2023
+# verze platná od 28.5.2025
+# vrátí meditaci ze dne {r,m,d} jako objekt 
+function cac_read_medit_2025($dueto,$ymd,$search_all=0,$errata_author=0) { trace();
+  $ret= (object)array('ok'=>0,'stamp'=>"$dueto READ: ");
+  $ret= cac_mail_search_2025($ymd,$search_all);
+  $ret->stamp= "match1={$ret->ok}; ";
+  display("načtení dne: $ret->ok $ret->stamp ($ret->title)");
+  // zápis do stamp
+  $dt= date('Y-m-d H:i:s');
+  query("INSERT INTO stamp (typ,kdy,pozn) VALUES ('cac','$dt','$ret->stamp')");
+  //   návrat
+end:  
+  return $ret;
+}
+# ----------------------------------------------------------------------------- cac mail_search 2025
+# verze platná od 28.5.2025
+# hledá mail obsahující meditaci daného dne 
+# od nejnovějšího mailu dokud nenarazí na daný den nebo na něco staršího
+function cac_mail_search_2025($ymd,$search_all=0) {
+  $ret= (object)['ok'=>0,'err'=>''];
+  // Připojení ke schránce
+  $username= 'meditace@chlapi.cz';
+  $password= 'Kopie_Meditaci_Cac_2025'; // doporučuji použít heslo pro aplikaci
+  $hostname= '{imap.seznam.cz:993/imap/ssl}INBOX';
+  $imap= imap_open($hostname, $username, $password);
+  if (!$imap) { $ret->err= 'Nelze se připojit k IMAP serveru: ' . imap_last_error(); goto end; }
+  // projdeme e-maily obsahující "Daily Meditation" v předmětu
+  $emails= imap_search($imap, 'TEXT "Daily Meditation"', SE_UID);
+  if ($emails===false ) { $ret->err= "Ve schránce nejsou žádné Meditace"; goto end; }
+  for ($i= count($emails)-1; $i>=0; $i--) {
+    $im= $emails[$i];
+    // Konverze UID na číslo zprávy
+    $msg_number= imap_msgno($imap, $im);
+    // hlavička
+    $header= imap_headerinfo($imap, $msg_number);
+    $ret->m_from= imap_utf8($header->fromaddress ?? 'neznámý odesílatel');
+    $ret->m_subject= imap_utf8($header->subject ?? '(bez předmětu)');
+    $ret->m_date= $header->date ?? 'neznámé datum';
+    // dekódování zprávy
+    $body= imap_fetchbody($imap, $msg_number, 1);
+    $structure = imap_fetchstructure($imap, $msg_number);
+    if ( $structure->parts[0]->encoding == 3 ) {
+      $body= base64_decode($body);
+    }
+    elseif ( $structure->parts[0]->encoding == 4 ) {
+      $body= quoted_printable_decode($body);
+    }
+    else { $ret->err= "Nečitelný mail Meditace"; goto end; }
+    // rozklad částí Meditace
+    // {'ok'=>1,'datum'=>$date,'tema'=>$thema,'url'=>$url,'reference'=>$lit,'text'=>$art}
+    $med= cac_mail_parts_2025($body);
+//    echo "<br>Meditace z $med->datum ";
+    if ($med->datum==$ymd) {
+      // nalezli jsme meditaci
+      $ret= $med;
+      $ret->ok= 1;
+      goto end;
+    }
+    elseif (!$search_all && $med->datum<$ymd) {
+      // ostatní jsou starší
+      $ret->ok= 0;
+      goto end;
+    }
+  }
+end:
+  if ($imap) imap_close($imap); // Odpojení
+  return $ret;
+}
+
+# ------------------------------------------------------------------------------ cac mail_parts 2025
+# verze platná od 28.5.2025
+# vybere z uloženého mailu části {ok,datum,title,url_title,tema,url_tema,autor,text}
+function cac_mail_parts_2025($body) { 
+  $start_prefix = 'READ ON CAC.ORG ';
+  $end = 'SHARE THIS MEDITATION';
+  // Najdeme řádky pro titulek a datum
+  $lines = preg_split("/\R/", $body);
+  $thema = '';
+  $date = '';
+  $lit= '';
+  $found = false;
+  for ( $i = 0; $i < count($lines); $i++ ) {
+    if ( strpos($lines[$i], "Richard Rohr's Daily Meditations") !== false ) {
+      $found = true;
+      $i++;
+      // přeskočíme prázdné řádky
+      while ( $i < count($lines) && trim($lines[$i]) === '' ) {
+        $i++;
+      }
+      // první neprázdný řádek – očekávaný řádek s názvem týdne
+      if ( isset($lines[$i]) ) {
+        $line = trim($lines[$i]);
+        $colon = strpos($line, ':');
+        $thema = $colon !== false ? trim(substr($line, $colon + 1)) : $line;
+        $i++;
+      }
+      // přeskočíme prázdné řádky
+      while ( $i < count($lines) && trim($lines[$i]) === '' ) {
+        $i++;
+      }
+      // další neprázdný řádek – očekávané datum
+      if ( isset($lines[$i]) ) {
+        $raw_date = trim($lines[$i]);
+        $date_obj = DateTime::createFromFormat('l, F j, Y', $raw_date);
+        $date = $date_obj ? $date_obj->format('Y-m-d') : '';
+      }
+      break;
+    }
+  }
+  // Najdi hlavní část těla
+  $start_pos = strpos($body, $start_prefix);
+  $end_pos = strpos($body, $end);
+  if ( $start_pos === false || $end_pos === false || $end_pos <= $start_pos ) {
+    $url = '';
+    $ret->ok= 0; 
+    goto end;
+  }
+  $start_pos += strlen($start_prefix);
+  // Najdi URL
+  $url_start = strpos($body, '<', $start_pos) ?: strpos($body, '[', $start_pos);
+  $url_end = strpos($body, '>', $url_start) ?: strpos($body, ']', $url_start);
+  $url = ($url_start !== false && $url_end !== false && $url_end > $url_start) ? substr($body, $url_start + 1, $url_end - $url_start - 1)
+        : '';
+  $text_start = $url_end + 1;
+  $text = trim(substr($body, $text_start, $end_pos - $text_start));
+  // Odstavce
+  $raw_paragraphs = preg_split("/\R{2,}/", $text);
+  $html = '';
+  $first = true;
+  foreach ( $raw_paragraphs as $para ) {
+    $lines = preg_split("/\R/", $para);
+    $processed = '';
+    for ( $i = 0; $i < count($lines); $i++ ) {
+      $line = htmlspecialchars(trim($lines[$i]));
+      $next = $i + 1 < count($lines) ? trim($lines[$i + 1]) : '';
+      $processed .= $line;
+      if ( $i + 1 < count($lines) ) {
+        $last_char = substr(rtrim($line), -1);
+        $next_starts_upper = preg_match('/^[A-ZČŠŘŽÝÁÍÉÚŮ]/u', $next);
+        if ( in_array($last_char, ['.', ':', '!', '?', '"', '”']) || $next_starts_upper ) {
+          $processed .= '<br>';
+        }
+        else {
+          $processed .= ' ';
+        }
+      }
+    }
+    // Zpracování hvězdiček na <i>
+    $final = '';
+    $italic = false;
+    for ( $j = 0; $j < strlen($processed); $j++ ) {
+      if ( $processed[$j] === '*' ) {
+        $final .= $italic ? '</i>' : '<i>';
+        $italic = !$italic;
+      }
+      else {
+        $final .= $processed[$j];
+      }
+    }
+    if ( $first ) {
+      $title= $final;
+      $final = '<strong>' . $final . '</strong>';
+      $first = false;
+    }
+    else {
+      $html .= "<p>$final</p>\n";
+    }
+  }
+  $art= $html;
+  $start = 'References';
+  $end = 'Image credit and inspiration';
+  $start_pos = strpos($body, $start);
+  $end_pos = strpos($body, $end);
+  if ( $start_pos === false || $end_pos === false || $end_pos <= $start_pos ) {
+    $ret->ok= 0; 
+    goto end;
+  }
+  $start_pos += strlen($start);
+  $text = trim(substr($body, $start_pos, $end_pos - $start_pos));
+  // Rozdělení na odstavce podle prázdných řádků
+  $paragraphs = preg_split("/\R{2,}/", $text);
+  $html = '';
+  foreach ( $paragraphs as $p ) {
+    $p = htmlspecialchars($p); // ochrana HTML
+    // Zpracování hvězdiček: každá lichá * -> <i>, sudá -> </i>
+    $result = '';
+    $italic = false;
+    $length = strlen($p);
+    for ( $i = 0; $i < $length; $i++ ) {
+      if ( $p[$i] === '*' ) {
+        $result .= $italic ? '</i>' : '<i>';
+        $italic = !$italic;
+      }
+      else {
+        $result .= $p[$i];
+      }
+    }
+    $html .= "<p>$result</p>\n";
+  }
+  $lit= $html;
+end:
+  $ret= (object)['ok'=>1,'datum'=>$date,'tema'=>$thema,'title'=>$title,'url_title'=>$url,
+      'reference'=>$lit,'text'=>$art];
+  return $ret;
+}
+# ========================================================================================= CAC 2023
+# ---------------------------------------------------------------------------------- cac read_medits
+# doplní nové úvahy do CAC 
+#   $dueto=AUTO|TEST|USER|MENU
+function _cac_read_medits($dueto) {
   $msg= '';
   $ok= 0;
   $dnes= date('Y-m-d');
