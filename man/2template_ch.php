@@ -1088,14 +1088,15 @@ __EOT;
         foreach ($s->akce as $a) {
           if (!$terminy && $a->termin==2) continue;
             if ( $a->org ) {
-              $org=
-                $a->org==1 ? "YMCA Setkání" : (
-                $a->org==2 ? "YMCA Familia" : '');
-              $web= $a->url ? "<a href='$a->url' target='web'>$org</a>" : (
-                $a->org==1 ? "<a href='https://www.setkani.org'>$org</a>" : (
-                $a->org==2 ? "<a href='http://www.familia.cz'>$org</a>" : '')
-              );
-              $web= $a->termin==2 ? " ($org)" : "<br>přihlášku najdeš na webu $web";
+              $web= '';
+              if ($a->org==1) {
+                $web= $a->termin==2 ? " (YMCA Setkání)" 
+                    : "<br>přihlášku potom najdeš na webu <a href='https://www.setkani.org'>YMCA Setkání</a>";
+              }
+              elseif ($a->org==2) {
+                $web= $a->termin==2 ? " (YMCA Familia)" 
+                    : "<br>přihlášku potom najdeš zde";
+              }
             }
             else {
               $web= $REDAKCE
