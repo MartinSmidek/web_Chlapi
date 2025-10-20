@@ -1094,7 +1094,7 @@ __EOT;
                     : "<br>přihlášku potom najdeš na webu <a href='https://www.setkani.org'>YMCA Setkání</a>";
               }
               elseif ($a->org==2) {
-                $web= $a->termin==2 ? " (YMCA Familia)" 
+                $web= $a->termin==2 ? " (chlapi.cz)" 
                     : "<br>přihlášku potom najdeš zde";
               }
             }
