@@ -1095,7 +1095,7 @@ __EOT;
               }
               elseif ($a->org==2) {
                 $web= $a->termin==2 ? " (chlapi.cz)" 
-                    : "<br>přihlášku potom najdeš zde";
+                    : ($a->anotace ? '' : "<br>přihlášku potom najdeš zde");
               }
             }
             else {
