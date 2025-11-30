@@ -130,7 +130,7 @@ function new_menu($path,&$elem) { trace();
     }
     elseif ($m->typ==2||$m->typ==3) {
       $mid_top= $m->mid_top;
-      $href= "{$menu[$mid_top]->ref}!$m->ref";
+      $href= $m->mid_sub ? "{$menu[$m->mid_sub]->ref}" : "{$menu[$mid_top]->ref}!$m->ref";
       if (!isset($xmenu[$mid_top][$isub])) $xmenu[$mid_top][$isub]= array();
       $xmenu[$mid_top][$isub][]= array($m->nazev,$href);
       if ($m->ref===$top) {
