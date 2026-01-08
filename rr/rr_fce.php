@@ -975,7 +975,9 @@ function cac_mail_search_2025($ymd,$search_all=0) {
   // projdeme e-maily obsahující "Daily Meditation" v předmětu
   $emails= imap_search($imap, 'TEXT "Daily Meditation"', SE_UID);
   if ($emails===false ) { $ret->err= "Ve schránce nejsou žádné Meditace"; goto end; }
-  for ($i= count($emails)-1; $i>=0; $i--) {
+  $mailu= count($emails)-1;
+  display("ve schránce je $mailu mailů");
+  for ($i= $mailu; $i>=0; $i--) {
     $im= $emails[$i];
     // Konverze UID na číslo zprávy
     $msg_number= imap_msgno($imap, $im);
@@ -984,6 +986,11 @@ function cac_mail_search_2025($ymd,$search_all=0) {
     $ret->m_from= imap_utf8($header->fromaddress ?? 'neznámý odesílatel');
     $ret->m_subject= imap_utf8($header->subject ?? '(bez předmětu)');
     $ret->m_date= $header->date ?? 'neznámé datum';
+    $date= new DateTime($ret->m_date);
+    $date= $date->format('Y-m-d');
+    display("mail z $date ($ret->m_date) $ret->m_subject");
+    // TEST výběr
+    if ($date!=$ymd) continue;
     // dekódování zprávy
     $body= imap_fetchbody($imap, $msg_number, 1);
     $structure = imap_fetchstructure($imap, $msg_number);
@@ -996,7 +1003,10 @@ function cac_mail_search_2025($ymd,$search_all=0) {
     else { $ret->err= "Nečitelný mail Meditace"; goto end; }
     // rozklad částí Meditace
     // {'ok'=>1,'datum'=>$date,'tema'=>$thema,'url'=>$url,'reference'=>$lit,'text'=>$art}
-    $med= cac_mail_parts_2025($body);
+//    display($body);
+    $med= $date>'2025-12-26' ? cac_mail_parts_2026($body) : cac_mail_parts_2025($body);
+    display("... datum:'$med->datum'");
+    debug($med);
 //    echo "<br>Meditace z $med->datum ";
     if ($med->datum==$ymd) {
       // nalezli jsme meditaci
@@ -1011,14 +1021,137 @@ function cac_mail_search_2025($ymd,$search_all=0) {
     }
   }
 end:
+  display($ret->err ? "ERROR: $ret->err" : "no error");
   if ($imap) imap_close($imap); // Odpojení
   return $ret;
 }
 
 # ------------------------------------------------------------------------------ cac mail_parts 2025
+# verze platná od 26.12.2025
+# vybere z uloženého mailu části {ok,datum,title,url_title,tema,url_tema,autor,text}
+function cac_mail_parts_2026($body) { trace();
+  $start_prefix = 'READ ON CAC.ORG ';
+  $end = 'SHARE THIS MEDITATION';
+  // Najdeme řádky pro titulek a datum - vynecháme prázdné
+  $lines = preg_split("/\R/", $body, -1, PREG_SPLIT_NO_EMPTY);
+  $thema = '';
+  $date = '';
+  $lit= '';
+  $found = false;
+  // datum 
+  if ( isset($lines[2]) ) {
+    $raw_date = trim($lines[2]);
+    $date_obj = DateTime::createFromFormat('l, F j, Y', $raw_date);
+    $date = $date_obj ? $date_obj->format('Y-m-d') : '';
+  }
+  // název týdne a úvahy
+  if ( isset($lines[1]) ) {
+    $line= trim($lines[1]);
+    list($thema,$nazev)= array_map('trim',preg_split('/\s{2,}/', $line, 2));
+  }
+  display("thema=$thema");
+  debug($lines);
+  // Najdi hlavní část těla
+  $start_pos = strpos($body, $start_prefix);
+  $end_pos = strpos($body, $end);
+  if ( $start_pos === false || $end_pos === false || $end_pos <= $start_pos ) {
+    $url = '';
+    $ret->ok= 0; 
+    goto end;
+  }
+  $start_pos += strlen($start_prefix);
+  // Najdi URL
+  $url_start = strpos($body, '<', $start_pos) ?: strpos($body, '[', $start_pos);
+  $url_end = strpos($body, '>', $url_start) ?: strpos($body, ']', $url_start);
+  $url = ($url_start !== false && $url_end !== false && $url_end > $url_start) 
+        ? substr($body, $url_start + 1, $url_end - $url_start - 1)
+        : '';
+  $text_start = $url_end + 1;
+  $text = trim(substr($body, $text_start, $end_pos - $text_start));
+  // Odstavce
+  $raw_paragraphs = preg_split("/\R{2,}/", $text);
+  $html = '';
+//  $first = true;
+  foreach ( $raw_paragraphs as $para ) {
+    $lines = preg_split("/\R/", $para);
+    $processed = '';
+    for ( $i = 0; $i < count($lines); $i++ ) {
+      $line = htmlspecialchars(trim($lines[$i]));
+      $next = $i + 1 < count($lines) ? trim($lines[$i + 1]) : '';
+      $processed .= $line;
+      if ( $i + 1 < count($lines) ) {
+        $last_char = substr(rtrim($line), -1);
+        $next_starts_upper = preg_match('/^[A-ZČŠŘŽÝÁÍÉÚŮ]/u', $next);
+        if ( in_array($last_char, ['.', ':', '!', '?', '"', '”']) || $next_starts_upper ) {
+          $processed .= '<br>';
+        }
+        else {
+          $processed .= ' ';
+        }
+      }
+    }
+    // Zpracování hvězdiček na <i>
+    $final = '';
+    $italic = false;
+    for ( $j = 0; $j < strlen($processed); $j++ ) {
+      if ( $processed[$j] === '*' ) {
+        $final .= $italic ? '</i>' : '<i>';
+        $italic = !$italic;
+      }
+      else {
+        $final .= $processed[$j];
+      }
+    }
+//    if ( $first ) {
+//      $title= $final;
+//      $final = '<strong>' . $final . '</strong>';
+//      $first = false;
+//    }
+//    else {
+      $html .= "<p>$final</p>\n";
+//    }
+  }
+  $art= $html;
+  $start = 'References';
+  $end = 'Image credit and inspiration';
+  $start_pos = strrpos($body, $start);
+  $end_pos = strpos($body, $end);
+  if ( $start_pos === false || $end_pos === false || $end_pos <= $start_pos ) {
+    $ret->ok= 0; 
+    goto end;
+  }
+  $start_pos += strlen($start);
+  $text = trim(substr($body, $start_pos, $end_pos - $start_pos));
+  // Rozdělení na odstavce podle prázdných řádků
+  $paragraphs = preg_split("/\R{2,}/", $text);
+  $html = '';
+  foreach ( $paragraphs as $p ) {
+    $p = htmlspecialchars($p); // ochrana HTML
+    // Zpracování hvězdiček: každá lichá * -> <i>, sudá -> </i>
+    $result = '';
+    $italic = false;
+    $length = strlen($p);
+    for ( $i = 0; $i < $length; $i++ ) {
+      if ( $p[$i] === '*' ) {
+        $result .= $italic ? '</i>' : '<i>';
+        $italic = !$italic;
+      }
+      else {
+        $result .= $p[$i];
+      }
+    }
+    $html .= "<p>$result</p>\n";
+  }
+  $lit= $html;
+end:
+  $ret= (object)['ok'=>1,'datum'=>$date,'tema'=>$thema,'title'=>$nazev,'url_title'=>$url,
+      'reference'=>$lit,'text'=>$art];
+  return $ret;
+}
+# ------------------------------------------------------------------------------ cac mail_parts 2025
 # verze platná od 28.5.2025
 # vybere z uloženého mailu části {ok,datum,title,url_title,tema,url_tema,autor,text}
-function cac_mail_parts_2025($body) { 
+function cac_mail_parts_2025($body) { trace();
   $start_prefix = 'READ ON CAC.ORG ';
   $end = 'SHARE THIS MEDITATION';
   // Najdeme řádky pro titulek a datum
