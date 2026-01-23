@@ -824,6 +824,50 @@ function cac_through_DeepL($idc) {
 # ---------------------------------------------------------------------------------- cac deepl_en2cs
 # překlad anglického textu pomocí DeepL
 function cac_deepl_en2cs($eng) {
+    global $deepl_auth_key;
+
+    $url = 'https://api-free.deepl.com/v2/translate';
+
+    $data = array(
+        "text" => array($eng),
+        "source_lang" => "EN",
+        "target_lang" => "CS"
+    );
+
+    $options = array(
+        CURLOPT_URL => $url,
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_POST => true,
+        CURLOPT_HTTPHEADER => array(
+            'Content-Type: application/json',
+            'Authorization: DeepL-Auth-Key ' . $deepl_auth_key
+        ),
+        CURLOPT_POSTFIELDS => json_encode($data)
+    );
+
+    $ch = curl_init();
+    curl_setopt_array($ch, $options);
+    $result = curl_exec($ch);
+
+    if (curl_errno($ch)) {
+        fce_warning('Error: ' . curl_error($ch));
+        curl_close($ch);
+        return '';
+    }
+
+    curl_close($ch);
+
+    $json = json_decode($result, true);
+
+    if (!isset($json['translations'][0]['text'])) {
+        fce_warning("DeepL API error: " . $result);
+        return '';
+    }
+
+    return pdo_real_escape_string($json['translations'][0]['text']);
+}
+
+function cac_deepl_en2cs_old($eng) {
   global $deepl_auth_key;
   $cz= '';
   $options= array(
