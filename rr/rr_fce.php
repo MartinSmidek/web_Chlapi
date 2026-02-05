@@ -1050,7 +1050,7 @@ function cac_mail_search_2025($ymd,$search_all=0) {
 //    display($body);
     $med= $date>'2025-12-26' ? cac_mail_parts_2026($body) : cac_mail_parts_2025($body);
     display("... datum:'$med->datum'");
-    debug($med);
+//    debug($med);
 //    echo "<br>Meditace z $med->datum ";
     if ($med->datum==$ymd) {
       // nalezli jsme meditaci
@@ -1068,7 +1068,7 @@ end:
   display($ret->err ? "ERROR: $ret->err" : "no error");
   if ($imap) imap_close($imap); // Odpojení
   return $ret;
-}
+} //cac_mail_search_2025
 
 # ------------------------------------------------------------------------------ cac mail_parts 2025
 # verze platná od 26.12.2025
@@ -1094,7 +1094,7 @@ function cac_mail_parts_2026($body) { trace();
     list($thema,$nazev)= array_map('trim',preg_split('/\s{2,}/', $line, 2));
   }
   display("thema=$thema");
-  debug($lines);
+//  debug($lines);
   // Najdi hlavní část těla
   $start_pos = strpos($body, $start_prefix);
   $end_pos = strpos($body, $end);
@@ -1156,6 +1156,11 @@ function cac_mail_parts_2026($body) { trace();
 //    }
   }
   $art= $html;
+  // odstranění html 
+  display($art);
+  $art= $text = preg_replace('/\[(https?:\/\/[^\]]+)\]/', '', $art);
+  display($art);
+  // další části
   $start = 'References';
   $end = 'Image credit and inspiration';
   $start_pos = strrpos($body, $start);
@@ -1191,7 +1196,7 @@ end:
   $ret= (object)['ok'=>1,'datum'=>$date,'tema'=>$thema,'title'=>$nazev,'url_title'=>$url,
       'reference'=>$lit,'text'=>$art];
   return $ret;
-}
+} //cac_mail_parts_2026
 # ------------------------------------------------------------------------------ cac mail_parts 2025
 # verze platná od 28.5.2025
 # vybere z uloženého mailu části {ok,datum,title,url_title,tema,url_tema,autor,text}
